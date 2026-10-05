@@ -92,7 +92,7 @@ Términos tal como aparecen en Vensim (inglés) con su equivalente y significado
 | Optimization / Calibration | Optimización / Calibración | Ajuste de parámetros (`.voc` + `.vpd`). |
 | Payoff | Función objetivo / de pago | Lo que el optimizador maximiza (o error a minimizar). |
 | Policy optimization | Optimización de políticas | Búsqueda de parámetros de decisión que maximizan un objetivo. |
-| Kalman filtering | Filtrado de Kalman | Estimación de estado con ruido (DSS). |
+| Kalman filtering | Filtrado de Kalman | Estimación de estado con ruido (Professional y DSS según `01-productos-licencias-versiones.md`). |
 | MCMC | MCMC (Monte Carlo por cadenas de Markov) | Calibración bayesiana / distribución posterior. |
 | Reality Check | Prueba de realidad | Pruebas formales de comportamiento bajo condiciones extremas. |
 | Units Check | Comprobación de unidades | Verificación de consistencia dimensional. |
@@ -121,7 +121,7 @@ Términos tal como aparecen en Vensim (inglés) con su equivalente y significado
 | `.vsc` | Control de sensibilidad |
 | `.voc` | Control de optimización |
 | `.vpd` | Definición de payoff |
-| `.lst` | Salida tabular (sensibilidad/optimización) |
+| `.lst` | *Savelist*: lista de variables a guardar/exportar (una por línea) |
 | `.out` | Parámetros resultantes de una optimización |
 | `.cmd` | Script de comandos |
 
@@ -130,9 +130,9 @@ Términos tal como aparecen en Vensim (inglés) con su equivalente y significado
 | Producto | Descripción breve |
 |---|---|
 | Vensim PLE | Personal Learning Edition: gratuita para uso educativo/personal, funciones básicas. |
-| Vensim PLE Plus | PLE con funciones adicionales (p.ej. subíndices limitados, sensibilidad). |
-| Vensim Professional (Pro) | Edición profesional: subíndices, optimización, macros, Reality Check, etc. |
-| Vensim DSS | Decision Support System: todo lo de Pro + DLL, Venapps, simulación compilada, Kalman, etc. |
+| Vensim PLE Plus | PLE + conectividad con datos, múltiples vistas, sensibilidad Monte Carlo, gaming y controles de E/S en el sketch (sin subíndices). |
+| Vensim Professional (Pro) | Edición profesional: subíndices, optimización/calibración, MCMC, Kalman, macros, editor de texto, etc. |
+| Vensim DSS | Decision Support System: todo lo de Pro + DLL, command scripts, Venapps, funciones externas, simulación compilada, multi-core, servidor MCP (10.5), etc. |
 | Vensim Model Reader | Visor gratuito para ejecutar modelos publicados. |
 | Ventity | Producto hermano de Ventana Systems para modelos basados en entidades. |
 

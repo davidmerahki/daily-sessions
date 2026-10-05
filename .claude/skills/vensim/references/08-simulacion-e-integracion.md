@@ -113,14 +113,14 @@ Ejemplo: `DELAY3(pedidos, 3)` en un modelo mensual tiene etapas de 1 mes → `TI
 
 ### 2.2 Por qué potencias de 2 (0.5, 0.25, 0.125, 0.0625, 0.03125…)
 
-Los números en coma flotante son binarios: 0.125 = 2⁻³ se representa **exactamente**, 0.1 no. Al acumular `Time` paso a paso con un dt no binario aparecen errores de redondeo que desplazan eventos discretos (`STEP`, `PULSE`, comparaciones `Time >= x`) un paso entero. Demostración en Python (doble precisión):
+Los números en coma flotante son binarios: 0.125 = 2⁻³ se representa **exactamente**, 0.1 no. Al acumular `Time` paso a paso con un dt no binario aparecen errores de redondeo que pueden desplazar un paso entero los eventos definidos con comparaciones sobre `Time` (`Time >= x`, `Time = x` dentro de `IF THEN ELSE`). `STEP`, `PULSE` y `PULSE TRAIN` comparan con *time plus* = `Time + TIME STEP/2` precisamente para evitarlo (ver `05-referencia-de-funciones.md` §5; así lo implementan también PySD y SDEverywhere). Demostración en Python (doble precisión):
 
 ```text
 0.1 sumado 10 veces   = 0.9999999999999999   ==1.0? False
 0.125 sumado 8 veces  = 1.0                  ==1.0? True
 0.1 sumado 1000 veces = 99.9999999999986
 0.0625 sumado 1000 v. = 62.5
-STEP(1,1) con Time acumulado y dt=0.1: se activa en el paso 11 (Time=1.0999…), no en el 10
+Time >= 1 con Time acumulado y dt=0.1: se cumple en el paso 11 (Time=1.0999…), no en el 10
 ```
 
 Con precisión simple (algunas compilaciones antiguas de Vensim eran *single precision*; *test-models* documenta salidas de "Vensim DSS 7.3.4 single precision" y "double precision") el problema es mucho mayor. Además, con un dt binario `SAVEPER` = 1 es múltiplo exacto de `TIME STEP`. El cuadro de *Time Bounds* ofrece precisamente valores de dt en potencias de 2 (verificar la lista exacta del desplegable).
@@ -341,7 +341,7 @@ Otros casos:
 
 ### 6.1 Nombre del run y dataset
 
-- El **nombre de la corrida** se escribe en el cuadro de texto de la barra de herramientas (por defecto `Current`). Al simular se crea `nombre.vdf` (formato binario clásico) o `nombre.vdfx` (formato más reciente; aparece en modelos de 2020 en adelante, verificar versión de introducción) en la carpeta del modelo. Si ya existe, Vensim pregunta si sobrescribe (se puede desactivar).
+- El **nombre de la corrida** se escribe en el cuadro de texto de la barra de herramientas (por defecto `Current`). Al simular se crea `nombre.vdf` (formato binario clásico) o `nombre.vdfx` (formato de las versiones de 64 bits según EMA Workbench, ver `11-automatizacion-scripts-dll-python.md` y `12-formatos-de-archivo.md`; versión de introducción: verificar) en la carpeta del modelo. Si ya existe, Vensim pregunta si sobrescribe (se puede desactivar).
 - Usa nombres significativos (`base`, `politica_A`, `dt_mitad`): todas las comparaciones (gráficos, `Runs Compare`) trabajan con datasets cargados por nombre.
 
 ### 6.2 Modos de ejecución (barra de herramientas)
@@ -478,8 +478,8 @@ Este mecanismo es también la forma de **acoplar Vensim con código externo paso
 | Oscilación de periodo 2·dt | dt > constante de tiempo de algún flujo | Reducir dt o revisar el tiempo mínimo. |
 | Resultados que cambian con el método (Euler vs RK4) | dt grande o discontinuidades | Sección 3.2. |
 | *Simultaneous equations* | Ciclo de auxiliares sin Level | Sección 4.2. |
-| Eventos (`STEP`, `PULSE`) desplazados un paso | dt no binario, comparaciones de igualdad con `Time` | dt potencia de 2; usar `>=` en vez de `=` con `Time`. |
-| `:NA:` propagándose | Datos faltantes usados en aritmética | `:NA:` es un número muy negativo (−1.298074214633707e+33 ≈ −2¹¹⁰; verificar), no un NaN: compruébalo explícitamente (`x = :NA:`) antes de operar. Al exportar a `.tab`, Vensim deja la celda vacía (caso `na` de *test-models*). |
+| Eventos desplazados un paso (`IF THEN ELSE` con `Time`, `PULSE` de ancho < dt) | dt no binario, comparaciones de igualdad con `Time` | dt potencia de 2; usar `>=` en vez de `=` con `Time`, o `STEP`/`PULSE` (usan *time plus*). |
+| `:NA:` propagándose | Datos faltantes usados en aritmética | `:NA:` es un número muy negativo (−1.298074214633707e+33 = −2¹¹⁰ en la DLL y los `.vdf`; Simlin modela el literal como −2¹⁰⁹, verificar; ver `04-lenguaje-de-ecuaciones.md` §5.10), no un NaN: compruébalo explícitamente (`x = :NA:`) antes de operar. Al exportar a `.tab`, Vensim deja la celda vacía (caso `na` de *test-models*). |
 
 Notas:
 - Vensim detiene la simulación en el primer error de coma flotante e informa la variable y el instante; el dataset queda con los valores hasta ese momento (verificar si en tu versión continúa con aviso). Los avisos se pueden silenciar (en Venapps: `SETTING>SHOWWARNING|0`), pero no lo hagas mientras depuras.
@@ -520,5 +520,5 @@ Notas:
 - `venpy` (wrapper Python de la DLL de Vensim; comandos `MENU>GAME`, `GAME>GAMEINTERVAL`, `GAME>GAMEON`, `GAME>ENDGAME`, `SIMULATE>ADDCIN`): https://github.com/pbreach/venpy y fork de Vensim.
 - EMA Workbench, conector Vensim (`vensimDLLwrapper.py`: DLL `vendll32.dll` / `VdpDLL32.dll`, `vensim_continue_simulation`): https://github.com/quaquel/EMAworkbench
 - PySD 3.14 (documentación del *Julia builder*: Euler coincide con Vensim; `DELAY FIXED` con `N = round(delay/TIME STEP)`): https://pysd.readthedocs.io/
-- Demostraciones numéricas propias (NumPy / PySD) reproducibles con los scripts `work-sim/demo_integration.py` y `work-sim/demo_pysd_dt.py` del entorno de construcción de esta base.
+- Demostraciones numéricas propias (NumPy / PySD) hechas al construir esta base (scripts no incluidos).
 - Sterman, J. D. (2000). *Business Dynamics*, Apéndice A (integración numérica y elección de dt). McGraw-Hill.

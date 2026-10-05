@@ -162,8 +162,8 @@ Resumen (detalle en `04-lenguaje-de-ecuaciones.md`):
 |---|---|---|
 | Aritméticos | `+ - * / ^` | `^` = potencia (equivale a `POWER`). |
 | Comparación | `= <> < > <= >=` | Devuelven 1 (verdadero) o 0 (falso). `=` es comparación dentro de una expresión. |
-| Lógicos | `:AND:`, `:OR:`, `:NOT:` | Con dos puntos. Tienen menor precedencia que las comparaciones: `:NOT: 1 > 2` vale 1 en Vensim (`:NOT:` se aplica a `1 > 2`). `:AND:` liga más que `:OR:` (según Simlin; verificar). Ante la duda, paréntesis. |
-| Precedencia (de mayor a menor) | `()` y llamadas · `-` unario · `^` · `* /` · `+ -` · comparaciones · `:NOT:` · `:AND:`/`:OR:` | Tabla de la documentación de PySD (verificar el caso `-x^2` en Vensim). |
+| Lógicos | `:AND:`, `:OR:`, `:NOT:` | Con dos puntos. Tienen menor precedencia que las comparaciones: `:NOT: 1 > 2` vale 1 en Vensim (`:NOT:` se aplica a `1 > 2`). `:AND:` liga más que `:OR:` (documentación "Operators"; ver `04-lenguaje-de-ecuaciones.md` §7.4). Ante la duda, paréntesis. |
+| Precedencia (de mayor a menor) | `()` y llamadas · `^` · `-`/`+` unarios · `* /` · `+ -` · comparaciones · `:NOT:` · `:AND:` · `:OR:` | `^` va **antes** que el signo unario: `-2^2 = -4` en la salida real de Vensim DSS 6.3 (`test-models/tests/exponentiation`). Tabla completa y casos dudosos (asociatividad de `^`) en `04-lenguaje-de-ecuaciones.md` §7.4. |
 | `:NA:` | `IF THEN ELSE(x = :NA:, 0, x)` | Valor especial "no disponible" (ver §6). |
 | `:EXCEPT:` | `x[r] :EXCEPT: [r1] = …` | Excepciones en ecuaciones con subíndices (ver 06). |
 | Palabras clave de datos | `x[r] :INTERPOLATE: := GET XLS DATA(…)` | `:INTERPOLATE:`, `:RAW:`, `:HOLD BACKWARD:`, `:LOOK FORWARD:` controlan cómo se rellenan los huecos entre datos (ver §11). |
@@ -275,7 +275,7 @@ Inyeccion = Cantidad inyectada / TIME STEP * PULSE(Tiempo inyeccion, TIME STEP)
 | `SAVEPER` | Periodo de guardado de resultados | Debe ser múltiplo de `TIME STEP`; típico `SAVEPER = TIME STEP`. |
 
 ### `:NA:`
-- Constante especial "no disponible" (en las salidas de Vensim aparece como un número negativo enorme, ≈ −1.298×10³³; verificar valor exacto). Se usa para marcar datos ausentes y se compara con `=`: `IF THEN ELSE(x = :NA:, valor por defecto, x)`.
+- Constante especial "no disponible": un número finito muy negativo, no un NaN (≈ −1.298×10³³ = −2¹¹⁰ en la DLL y en los `.vdf`; Simlin modela el literal como −2¹⁰⁹: verificar valor exacto; ver `04-lenguaje-de-ecuaciones.md` §5.10). Se usa para marcar datos ausentes y se compara con `=`: `IF THEN ELSE(x = :NA:, valor por defecto, x)`.
 - Las funciones de datos devuelven `:NA:` cuando no hay dato; `VECTOR SELECT` puede usarlo como `missing value`.
 
 ### `A FUNCTION OF(x, y, …)`
@@ -291,7 +291,7 @@ Inyeccion = Cantidad inyectada / TIME STEP * PULSE(Tiempo inyeccion, TIME STEP)
 - Para que los `measure` de calendario tengan sentido con `relativeto` 0/1 el modelo debe tener un eje de tiempo con fechas (unidades de tiempo de calendario) (verificar). Lista de códigos tomada de la docstring de PySD, que reproduce la doc de Vensim.
 
 ### `GAME(x)`
-- Fuera del modo Gaming devuelve `x`. En una simulación de juego (*Gaming*), el usuario puede cambiar el valor en cada intervalo de juego (*GAME INTERVAL*); el valor introducido se mantiene hasta que se vuelve a cambiar. Debe ir justo tras el `=` (verificar). Ver `08-simulacion-e-integracion.md`.
+- Fuera del modo Gaming devuelve `x`. En una simulación de juego (*Gaming*), el usuario puede cambiar el valor en cada intervalo de juego (*GAME INTERVAL*); el valor introducido se mantiene hasta que se vuelve a cambiar. Debe envolver toda la ecuación, justo tras el `=` (el caso `game` de test-models indica que Vensim no admite `GAME(A + B) * C`; verificar). Ver `08-simulacion-e-integracion.md`.
 
 ```vensim
 Pedido decidido = GAME(Pedido recomendado)
@@ -391,7 +391,7 @@ SMOOTHI = INTEG((input - SMOOTHI) / delay time, initial value)
 ```
 - `SMOOTH` arranca en equilibrio con el valor inicial de `input`; `SMOOTHI` arranca en `initial value` (evaluado en la inicialización).
 - La salida es continua aunque `delay time` cambie bruscamente.
-- Estabilidad con Euler: `delay time` ≥ 2·`TIME STEP` para no oscilar; para precisión, `TIME STEP` ≤ `delay time`/4.
+- Estabilidad con Euler: con `delay time` < `TIME STEP` la salida oscila (amortiguada si `delay time` > `TIME STEP`/2, explosiva si es menor; ver `08-simulacion-e-integracion.md` §2.5); para precisión, `TIME STEP` ≤ `delay time`/4.
 
 ```vensim
 Demanda percibida = SMOOTH(Demanda, Tiempo de percepcion)
@@ -653,7 +653,7 @@ Poblacion historica :INTERPOLATE: := GET XLS DATA('datos.xlsx', 'Hoja1', 'A', 'B
 ```
 | Palabra clave (antes de `:=`) | Entre puntos de datos |
 |---|---|
-| `:INTERPOLATE:` | Interpolación lineal (comportamiento por defecto en PySD; verificar el defecto de Vensim) |
+| `:INTERPOLATE:` | Interpolación lineal (modo por defecto también en Vensim: una variable de datos sin palabra clave se interpola, como muestra la salida real de Vensim en `SDEverywhere/models/extdata` (`Simple Totals` interpolado linealmente entre t = 2 y t = 9); ver `07-datos-lookups-import-export.md` §3.2) |
 | `:HOLD BACKWARD:` | Mantiene el último valor conocido |
 | `:LOOK FORWARD:` | Toma el siguiente valor conocido |
 | `:RAW:` | Solo valores en los instantes con dato; `:NA:` en el resto |
@@ -775,7 +775,7 @@ Todas operan sobre la **última dimensión** del array; PySD reproduce exactamen
 | VECTOR REORDER | `VECTOR REORDER(vector[r], sort order[r])` | Reordena `vector` según un vector de orden (el que devuelve VECTOR SORT ORDER). |
 | VECTOR ELM MAP | `VECTOR ELM MAP(vector[first elm], offset)` | Elemento situado `offset` posiciones después del elemento dado (en orden de almacenamiento; base 0). Ej. Vensim: `x = 1,2,3,4,5`, `VECTOR ELM MAP(x[three], DimA - 1)` → `3, 4, 5`. **El primer argumento debe ser una variable**, no una expresión (error de Vensim: "Argument 1 to function VECTOR ELM MAP must be a normal variable"). Fuera de rango → `:NA:` (verificar). |
 | VECTOR SELECT | `VECTOR SELECT(selection[r!], expression[r!], missing value, numerical action, error action)` | Agregación condicionada (ver abajo). |
-| VECTOR LOOKUP | `VECTOR LOOKUP(vector[first elm], x, xmin, xmax, mode)` | Usa el vector como tabla con x equiespaciados entre `xmin` y `xmax`; `mode` elige interpolación/escalón (verificar valores). Firma de 5 args confirmada por xmutil y modelos reales. |
+| VECTOR LOOKUP | `VECTOR LOOKUP(vector[first elm], x, xmin, xmax, mode)` | Usa el vector como tabla con x equiespaciados entre `xmin` y `xmax`; `mode` elige el tipo de consulta (lista de códigos 0–9 tomada de un modelo de T. Fiddaman en `06-subindices-y-arrays.md` §9; verificar valores). Firma de 5 args confirmada por xmutil y modelos reales. |
 
 **VECTOR SELECT — códigos** (docstring de PySD, contrastado con Vensim DSS 9.2.4):
 - `numerical action`: 0 suma ponderada Σ sel·expr · 1 producto de sel·expr · 2 mínimo de sel·expr · 3 máximo de sel·expr · 4 media de sel·expr · 5 producto de expr^sel (la ayuda dice sel^expr pero Vensim calcula expr^sel) · 6 suma de expr (donde sel ≠ 0) · 7 producto de expr · 8 mínimo de expr · 9 máximo de expr · 10 media de expr. Solo cuentan los elementos con `selection` ≠ 0. Puede ser una expresión dinámica.
@@ -912,10 +912,10 @@ sin productividad no hay produccion[sector] :THE CONDITION: productividad a cero
 **Ediciones** (ver `01-productos-licencias-versiones.md`). La documentación advierte que "not all functions are available in all configurations". Reglas prácticas **(verificar en la página de cada función)**:
 - Matemáticas, entradas de prueba, `INTEG`, `SMOOTH*`, `DELAY1/3`, `DELAY FIXED`, lookups y aleatorias básicas están en todas las ediciones (los datos de prueba de `RANDOM UNIFORM/NORMAL/EXPONENTIAL` se generaron con **Vensim PLE 10.1.4**).
 - Todo lo que necesita **subíndices** (SUM, VMAX, VECTOR…, ALLOCATE…, INVERT MATRIX, TABBED ARRAY) requiere una edición con arrays (Pro/DSS).
-- Macros, datos externos (`GET XLS`/`GET DIRECT`), funciones de asignación/mercado, colas, Gaming y funciones externas (DLL) se asocian a Pro/DSS; algunas solo a DSS.
+- Según la tabla de `01-productos-licencias-versiones.md`: conectividad con datos (variables Data, Excel; previsiblemente `GET XLS`/`GET DIRECT`, verificar) y `GAME`/Gaming desde **PLE Plus**; macros en Pro/DSS (verificar para Pro); funciones externas (DLL de usuario) solo en **DSS**. Asignación/mercado y colas usan subíndices, así que exigen al menos Pro (verificar si alguna es solo DSS).
 - Vensim Model Reader ejecuta modelos con cualquier función pero no permite editarlos.
 
-**Versiones.** No se pudo acceder a la página *Function and Language Changes* (`function_changes.html`), que lista las funciones nuevas por versión, por lo que **no se confirma qué funciones se añadieron en Vensim 9 o 10**. Indicios de disponibilidad por versión en los casos de prueba usados: `GET TIME VALUE`, `VECTOR SORT ORDER/RANK/REORDER`, `FORECAST`, `DELAY N` → Vensim DSS 7.3.4; `VECTOR SELECT` → Vensim DSS 9.2.4; `RANDOM …` → PLE 10.1.4; `DELAY FIXED`, `DELAY1/3`, `SMOOTH*` → presentes desde las primeras versiones. Funciones como `FIND ZERO`, `SIMULTANEOUS`, `MATRIX MULTIPLY`, `TRANSPOSE` o funciones de texto/cadenas **no se han podido confirmar** como funciones de Vensim: no las propongas sin comprobarlas.
+**Versiones.** No se pudo acceder a la página *Function and Language Changes* (`function_changes.html`), que lista las funciones nuevas por versión, por lo que **no se confirma qué funciones se añadieron en Vensim 9 o 10**. Indicios de disponibilidad por versión en los casos de prueba usados: `GET TIME VALUE`, `VECTOR SORT ORDER/RANK/REORDER`, `FORECAST`, `DELAY N` → Vensim DSS 7.3.4; `VECTOR SELECT` → Vensim DSS 9.2.4; `RANDOM …` → PLE 10.1.4; `DELAY FIXED`, `DELAY1/3`, `SMOOTH*` → presentes desde las primeras versiones. `SIMULTANEOUS` aparece en la documentación ("Iterative Solutions to Active Simultaneous Equations", ver `13-buenas-practicas-errores-y-depuracion.md` §3.2), pero su firma y edición no están confirmadas (verificar). Funciones como `FIND ZERO`, `MATRIX MULTIPLY`, `TRANSPOSE` o funciones de texto/cadenas **no se han podido confirmar** como funciones de Vensim: no las propongas sin comprobarlas.
 
 ---
 

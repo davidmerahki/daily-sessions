@@ -1,6 +1,6 @@
 # 14 — Ejemplos de modelos Vensim completos y validados
 
-> Siete modelos `.mdl` listos para abrir en Vensim (con diagrama), cada uno validado ejecutándolo con **PySD 3.14.3** y contrastado con un segundo motor independiente (**simlin**). Archivos en `kb/examples/`. Todos los valores numéricos de este documento provienen de esas simulaciones (no son estimaciones).
+> Siete modelos `.mdl` listos para abrir en Vensim (con diagrama), cada uno validado ejecutándolo con **PySD 3.14.3** y contrastado con un segundo motor independiente (**simlin**). Archivos en `examples/` (carpeta del skill). Todos los valores numéricos de este documento provienen de esas simulaciones (no son estimaciones).
 
 ## Tabla de contenidos
 
@@ -43,11 +43,11 @@ Convenciones comunes a los siete archivos:
 
 ## 2. Cómo se validaron (comandos PySD)
 
-Intérprete: `scratchpad/venv/bin/python` (PySD 3.14.3). Patrón usado para cada modelo:
+Intérprete: Python 3.11 con PySD 3.14.3 (o `scripts/validar_modelo.py`). Patrón usado para cada modelo:
 
 ```python
 import pysd
-m = pysd.read_vensim("kb/examples/sir_epidemia.mdl")   # traduce .mdl -> .py y carga
+m = pysd.read_vensim("examples/sir_epidemia.mdl")   # traduce .mdl -> .py y carga
 r = m.run()                                            # DataFrame indexado por tiempo
 r["Infecciosos"].max(), r["Infecciosos"].idxmax()      # pico y momento del pico
 m.run(params={"tasa de contactos": 3})                 # experimento: cambiar una constante
@@ -56,7 +56,7 @@ m.run(time_step=0.015625, saveper=0.015625)            # prueba de sensibilidad 
 
 Notas prácticas observadas durante la validación:
 
-- `read_vensim` escribe un `.py` (y `__pycache__`) junto al `.mdl`. Para no ensuciar `kb/examples/` se copió cada modelo a `work-ex/val/` antes de traducirlo.
+- `read_vensim` escribe un `.py` (y `__pycache__`) junto al `.mdl`. Para no ensuciar `examples/`, copia el modelo a una carpeta de trabajo antes de traducirlo.
 - **Cambiar el paso de integración**: usar `run(time_step=..., saveper=...)`. Pasar `params={"TIME STEP": x}` dio resultados inconsistentes en PySD 3.14.3: con una versión del modelo de Bass guardada con TIME STEP 0.0625, `params={"TIME STEP": 0.015625}` dejó la rejilla en 0.0625 y el resultado sin cambios, y `params={"TIME STEP": 0.25}` dio un pico de 377 781 frente a 379 536 con `time_step=0.25`.
 - Si se regenera un `.mdl` y se vuelve a traducir **dentro del mismo segundo** y con el mismo tamaño de archivo, Python puede reutilizar el bytecode en caché del `.py` anterior y devolver resultados obsoletos. Usar nombres de archivo distintos o borrar `__pycache__`.
 - Validación cruzada: los siete modelos también se simularon con `simlin simulate archivo.mdl` (motor independiente en Rust, compilado desde `src/simlin`). La máxima diferencia relativa entre PySD y simlin, variable por variable y en todos los instantes, fue ≤ 7e-8 (≤ 2e-12 en seis de los siete modelos). simlin además importó y renderizó el sketch de los siete archivos sin errores, lo que confirma que la sección de diagrama es sintácticamente válida. simlin también hace inferencia y verificación de unidades: **no reportó ningún problema dimensional** en los siete modelos (control negativo: al cambiar a propósito `muertes = Poblacion*esperanza de vida` emite `unit_mismatch -- the equation computes to units 'person*year', but the variable's specified units are 'person/year'`).
@@ -94,16 +94,16 @@ tasa de natalidad=
 | Código | Objeto | Ejemplo en `poblacion.mdl` | Campos relevantes |
 |--------|--------|----------------------------|-------------------|
 | `10` | Variable (stock, auxiliar, etiqueta de flujo, sombra) | `10,1,Poblacion,400,220,40,20,3,3,0,0,0,0,0,0` | id, nombre, x, y, semiancho, semialto, forma (3 = caja de stock, 8 = auxiliar sin caja, 40 = nombre unido a una válvula), bits (3 = normal; 2 = variable sombra) |
-| `11` | Válvula de un flujo | `11,5,48,300,220,6,8,34,3,0,0,1,0,0,0` | forma 34 = flujo horizontal, 33 = vertical |
+| `11` | Válvula de un flujo | `11,5,48,300,220,6,8,34,3,0,0,1,0,0,0` | forma 34 = flujo horizontal, 33 = vertical (codificación de la orientación: verificar; ver `12-formatos-de-archivo.md` §4.4) |
 | `12` | Nube (fuente/sumidero) o comentario | `12,2,48,230,220,10,8,0,3,0,0,-1,0,0,0` | `48` en el 3.er campo = nube; con texto en la línea siguiente = comentario |
 | `12` | Marcador de bucle | `12,25,0,330,250,15,15,5,4,0,0,-1,0,0,0` + línea `R` | forma 4 / 5 = icono de bucle en uno u otro sentido de giro (qué valor corresponde a cada sentido: verificar) |
 | `1` | Conector (flecha) o tubería | `1,17,1,5,1,0,43,0,0,64,0,-1--1--1,,1\|(345,290)\|` | id, desde, hasta, forma (0 recta, 1 curva por el punto de control), polaridad (43 = `+`, 45 = `-`, 0 = sin signo), …, `64`, 1 = enlace de inicialización; tuberías de flujo: grosor 22 |
 
 Convenciones de tubería observadas en archivos de Vensim: el conector de la válvula al extremo aguas abajo lleva forma `4` y el del extremo aguas arriba forma `100`; las flechas de información hacia un flujo suelen apuntar a la **válvula** (id del objeto `11`), aunque Vensim también acepta la etiqueta del flujo (ambas formas aparecen en `samples/SIR/SIR.mdl`).
 
-**(c) Sección de configuración** (tras `///---\\\`, empieza por `:L<%^E!@`): líneas `1:` (nombre del run por defecto), `22:` (equivalencias de unidades), `4:Time`, `5:` (variable seleccionada en el Control Panel), etc. Vensim la regenera al guardar.
+**(c) Sección de configuración** (tras `///---\\\`, empieza por `:L<%^E!@`): líneas `1:` (dataset de la última corrida, p. ej. `Current.vdf`), `9:` (nombre del run), `15:` (método de integración), `22:` (equivalencias de unidades), `4:Time`, `5:` (variable seleccionada en el Control Panel), etc. (tabla completa en `12-formatos-de-archivo.md` §6). Vensim la regenera al guardar.
 
-Los siete archivos se generaron con un pequeño script Python (`work-ex/mdlgen.py`) que escribe exactamente este formato; puede reutilizarse para producir modelos con diagrama de forma programática.
+Los siete archivos se generaron con un pequeño script Python (`scripts/mdlgen.py`, incluido en el skill) que escribe exactamente este formato; reutilízalo para producir modelos con diagrama de forma programática (ver el ejemplo de uso en su docstring).
 
 ---
 
@@ -281,7 +281,7 @@ Los resultados dejan de cambiar de forma apreciable por debajo de 1/64 de año; 
 1. Duplicar `efectividad de la publicidad`: el despegue es más temprano pero el pico apenas cambia.
 2. Reducir `fraccion de adopcion` a la mitad: la S se estira en el tiempo (el boca a boca domina la duración).
 3. Añadir abandono/reposición (`Adoptantes → Adoptantes potenciales` con una vida útil del producto) para obtener un equilibrio de ventas de reposición.
-4. Calibrar p y q contra datos de ventas (*Optimize* con un payoff de calibración; disponible en Vensim Pro/DSS, en PLE Plus: verificar).
+4. Calibrar p y q contra datos de ventas (*Optimize* con un payoff de calibración; requiere Vensim Professional o DSS según `01-productos-licencias-versiones.md`).
 
 ---
 

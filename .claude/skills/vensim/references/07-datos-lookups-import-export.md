@@ -87,7 +87,7 @@ Variable with Inline Lookup = WITH LOOKUP(
 | `LOOKUP FORWARD` | `LOOKUP FORWARD(tbl, x)` | Sin interpolar: y del siguiente punto con x ≥ input |
 | `LOOKUP BACKWARD` | `LOOKUP BACKWARD(tbl, x)` | Sin interpolar: y del punto anterior con x ≤ input |
 | `LOOKUP INVERT` | `LOOKUP INVERT(tbl, y)` | x correspondiente a un y (requiere tabla monótona; verificar comportamiento si no lo es) |
-| `LOOKUP AREA` | `LOOKUP AREA(tbl, x1, x2)` | Área bajo la curva entre x1 y x2 **(verificar firma)** |
+| `LOOKUP AREA` | `LOOKUP AREA(tbl, x1, x2)` | Área bajo la curva entre x1 y x2 (3 argumentos, confirmado por xmutil; tratamiento fuera de rango: verificar) |
 | `LOOKUP SLOPE` | `LOOKUP SLOPE(tbl, x)` | Pendiente en x — versiones recientes **(verificar)** |
 | `VECTOR LOOKUP` | `VECTOR LOOKUP(vec[first], x, xmin, xmax, type)` | Usa un vector equiespaciado como tabla (ver archivo 06) |
 
@@ -477,4 +477,4 @@ Resultados (PySD 3.14.3): `sales[north]` 100, 110, 120, 130, 140, 150, 150; `sal
 - PySD 3.14.3: `py_backend/external.py`, `py_backend/data.py`, `docs/structure/vensim_translation.rst`, `docs/tables/get_functions.tab`.
 - simlin: `docs/design/vdf.md` (formato VDF: corrida vs dataset), `src/simlin-engine/src/mdl/settings.rs` (línea `30:` de alias de archivo), `src/pysimlin/simlin/vdf.py`.
 - Modelos *groupon* (metasd) en `simlin/test/metasd/social-network-valuation/` (uso real de `'?alias'`).
-- Validaciones propias con PySD: `scratchpad/work-subs/data1.mdl`.
+- Validaciones propias con PySD.

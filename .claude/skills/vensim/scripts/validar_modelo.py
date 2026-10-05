@@ -11,7 +11,7 @@ si aparecen NaN/inf y el valor inicial, final, mínimo y máximo de los stocks
 Requiere: pip install pysd
 Nota: PySD escribe la traducción (modelo.py) junto a cada .mdl.
 Un fallo aquí no prueba que el modelo sea inválido en Vensim: PySD no cubre
-todas las funciones (p.ej. parte de QUEUE/ALLOCATE, GAME, RC..., funciones DSS).
+todas las funciones (p.ej. parte de QUEUE/ALLOCATE, las RC... de Reality Check o funciones DSS).
 """
 import argparse
 import sys

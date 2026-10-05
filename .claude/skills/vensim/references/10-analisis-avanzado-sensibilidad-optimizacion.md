@@ -2,7 +2,7 @@
 
 Referencia práctica de las herramientas "avanzadas" de Vensim: simulaciones de sensibilidad / Monte Carlo (`.vsc`, `.lst`), optimización y calibración (`.voc`, `.vpd`, `.out`), calibración bayesiana con MCMC, filtrado de Kalman, análisis de estructura (bucles, árboles causales), diseño de escenarios y rendimiento. Palabras clave, opciones y menús en inglés, tal como los usa Vensim.
 
-> Convención: **(verificar)** = no confirmado contra la documentación oficial (vensim.com/documentation, no accesible directamente al construir esta base; se usaron extractos de búsqueda, archivos reales de Vensim y conocimiento general). La disponibilidad por edición (PLE, PLE Plus, Pro, DSS) se resume en `01-productos-licencias-versiones.md`; en general sensibilidad y optimización requieren ediciones de pago, y Kalman, simulación compilada y Venapps son de **DSS** (verificar matriz exacta en tu versión).
+> Convención: **(verificar)** = no confirmado contra la documentación oficial (vensim.com/documentation, no accesible directamente al construir esta base; se usaron extractos de búsqueda, archivos reales de Vensim y conocimiento general). La disponibilidad por edición (PLE, PLE Plus, Pro, DSS) se resume en `01-productos-licencias-versiones.md`; según esa tabla, la sensibilidad Monte Carlo está desde **PLE Plus**; optimización/calibración, MCMC y Kalman desde **Professional**; multi-core, simulación compilada y Venapps solo en **DSS** (verificar matriz exacta en tu versión).
 
 ## Tabla de contenidos
 
@@ -14,7 +14,7 @@ Referencia práctica de las herramientas "avanzadas" de Vensim: simulaciones de 
 6. [Intervalos de confianza y sensibilidad del payoff](#6-intervalos-de-confianza-y-sensibilidad-del-payoff)
 7. [Archivos de salida de la optimización](#7-archivos-de-salida-de-la-optimización)
 8. [Calibración bayesiana con MCMC](#8-calibración-bayesiana-con-mcmc)
-9. [Filtrado de Kalman (DSS)](#9-filtrado-de-kalman-dss)
+9. [Filtrado de Kalman (Pro/DSS)](#9-filtrado-de-kalman-prodss)
 10. [Flujo de calibración típico, paso a paso](#10-flujo-de-calibración-típico-paso-a-paso)
 11. [Análisis de estructura y comportamiento](#11-análisis-de-estructura-y-comportamiento)
 12. [Políticas, escenarios y diseño de experimentos](#12-políticas-escenarios-y-diseño-de-experimentos)
@@ -32,7 +32,7 @@ Referencia práctica de las herramientas "avanzadas" de Vensim: simulaciones de 
 | Optimización de políticas | **Optimize** con payoff de política (`*P`) | `.vpd`, `.voc` | Igual |
 | Intervalos de confianza de parámetros | `:SENSITIVITY=PAYOFF_VALUE` (o MCMC) | `.voc` | `run_sensitive.tab` (nombre según versión) |
 | Posterior bayesiana | `:OPTIMIZER=MCMC` | `.voc`, `.vpd` (+ priors) | `run_MCMC_sample.tab`, `_points.tab`, `_clust.tab`, `.vsc` generado |
-| Estimación de estado con ruido | Kalman filtering (DSS) | `.vpd` (varianzas de medida), `kalman.prm` | Run filtrado; `1step.err`/`2step.err` |
+| Estimación de estado con ruido | Kalman filtering (Pro/DSS según `01`) | `.vpd` (varianzas de medida), `kalman.prm` | Run filtrado; `1step.err`/`2step.err` |
 | Escenarios | Simulate + `.cin` | `.cin` | Un dataset por escenario |
 | Estructura | Causes/Uses Tree, Loops, Causes Strip, Document | — | Ventanas de análisis |
 
@@ -167,7 +167,7 @@ Incluye las variables de interés **y** las que quieras graficar; lo que no est�
 
 - **Bandas de confianza** (*Sensitivity Graph*): para la variable de trabajo, Vensim dibuja la mediana y bandas de percentiles; por defecto **50 %, 75 %, 95 % y 100 %** (verificar colores y dónde se cambian los percentiles). Alternativamente se pueden mostrar las trayectorias individuales.
 - Valores en un instante (distribución de resultados en t): vía DLL `vensim_get_sens_at_time(run, var, "Time", t, vals, maxn)` (usado por `venpy`), o exportando.
-- **Exportación**: *Exporting Sensitivity Results* en la doc; comando `SENS2FILE|vdffile|outfile|…` para volcar las corridas de sensibilidad a archivo tabulado (verificar argumentos adicionales).
+- **Exportación**: *Exporting Sensitivity Results* en la doc; comando `MENU>SENS2FILE|vdffile|outfile|…` (ver `11-automatizacion-scripts-dll-python.md` §2.4) para volcar las corridas de sensibilidad a archivo tabulado (verificar argumentos adicionales).
 - **Vensim 10.3**: casilla en la configuración de sensibilidad para variar también la `NOISE SEED` en cada simulación, combinando incertidumbre de parámetros (p.ej. muestra MCMC) con incertidumbre aleatoria del ruido del modelo; nuevas variables especiales reservadas para que las salidas de MCMC se ignoren en sensibilidad.
 
 ### 2.7 Buenas prácticas
@@ -452,7 +452,7 @@ Herramienta **Stats** (doc: *Stats tool*): estadísticos de ajuste modelo-dato (
 
 ### 8.1 Concepto e historia
 
-MCMC (*Markov chain Monte Carlo*) explora la calibración realizando un "paseo aleatorio" sobre la superficie de verosimilitud que define el payoff; la muestra de puntos aceptados aproxima la **distribución posterior** conjunta de los parámetros (con priors, ver 8.3). Disponible en Vensim desde la serie 7 (verificar versión exacta y ediciones). El algoritmo está adaptado de **DREAM** (Vrugt, ter Braak, Diks, Robinson, Hyman & Higdon, *Accelerating MCMC simulation by differential evolution with self-adaptive randomized subspace sampling*) y en **Vensim 10.3 (febrero 2025)** se actualizó a **DREAM-ZS** (Vrugt 2016) para mejor tasa de aceptación y convergencia más rápida. La misma maquinaria sirve para *simulated annealing* (con `MCTEMP`; página *Markov Chain Monte Carlo & Simulated Annealing*).
+MCMC (*Markov chain Monte Carlo*) explora la calibración realizando un "paseo aleatorio" sobre la superficie de verosimilitud que define el payoff; la muestra de puntos aceptados aproxima la **distribución posterior** conjunta de los parámetros (con priors, ver 8.3). Disponible en Vensim desde la **6.0** (2012; ver historial en `01-productos-licencias-versiones.md`), con gran mejora de rendimiento en 6.3; edición: Professional/DSS según `01` (verificar). El algoritmo está adaptado de **DREAM** (Vrugt, ter Braak, Diks, Robinson, Hyman & Higdon, *Accelerating MCMC simulation by differential evolution with self-adaptive randomized subspace sampling*) y en **Vensim 10.3 (febrero 2025)** se actualizó a **DREAM-ZS** (Vrugt 2016) para mejor tasa de aceptación y convergencia más rápida. La misma maquinaria sirve para *simulated annealing* (con `MCTEMP`; página *Markov Chain Monte Carlo & Simulated Annealing*).
 
 Requisito clave: el payoff debe ser una **log-verosimilitud** bien especificada (pesos = 1/σ correctos, `*CG` con σ, Poisson…), porque MCMC interpreta literalmente su escala; un payoff mal ponderado produce posteriores demasiado estrechas o anchas.
 
@@ -511,7 +511,7 @@ Iteraciones totales = 5000 + 10000·5 = 55 000 simulaciones (más las de inicial
 
 ---
 
-## 9. Filtrado de Kalman (DSS)
+## 9. Filtrado de Kalman (Pro/DSS)
 
 ### 9.1 Concepto
 

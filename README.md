@@ -10,7 +10,8 @@ Documentación completa sobre **[Vensim](https://vensim.com/)**, el software de 
 ├── references/         # 16 documentos de referencia en español (~700 KB)
 ├── examples/           # 7 modelos .mdl completos, con diagrama, validados
 └── scripts/
-    └── validar_modelo.py   # traduce y simula un .mdl con PySD y resume los stocks
+    ├── validar_modelo.py   # traduce y simula un .mdl con PySD y resume los stocks
+    └── mdlgen.py           # genera .mdl con diagrama (stocks, flujos, conectores, bucles) desde Python
 ```
 
 ### Contenido de `references/`

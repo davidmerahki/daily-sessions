@@ -237,6 +237,7 @@ La **condición** está restringida a:
 La **consecuencia** es una expresión lógica sobre variables del modelo; suele compararse una variable con una función `RC … CHECK` (sección 12). Palabras clave adicionales en la consecuencia:
 - `:CROSSING:` — las líneas deben cruzarse. `Inventory > :CROSSING: RC STEP CHECK(0, Inventory, 1)` exige que, a partir de `RC START TIME`, Inventory sea primero mayor que su valor de referencia y luego pase a ser menor y lo siga siendo. Dos `:CROSSING:` seguidos exigen mayor → menor → mayor (y quedarse mayor).
 - `:AT LEAST ONCE:` — la relación debe cumplirse al menos una vez (en lugar de en todo momento).
+- Ambas palabras clave proceden de extractos de la página *Constraints*; no las reconoce ningún parser abierto (xmutil, Simlin, PySD) ni aparecen en los `.mdl` de los repositorios consultados (verificar sintaxis exacta; ver `04-lenguaje-de-ecuaciones.md` §5.13).
 
 ### 11.2 Test Input
 
@@ -457,6 +458,6 @@ cold and no water :THE CONDITION: Water = RC STEP(Water, 0) :AND: temperature > 
 - `SDXorg/test-models/tests/reality_checks/test_reality_checks.mdl` (Vensim DSS 9.3.1): sintaxis real de Constraints/Test Inputs con subíndices y `RC STEP`/`RC STEP CHECK`.
 - Sección de *settings* (`22:`) de los `.mdl` en `test-models`, `SDEverywhere/models` y `simlin/test`: lista por defecto de equivalencias de unidades; `simlin/src/simlin-engine/src/mdl/settings.rs` (formato de la línea `22:`).
 - `simlin/src/simlin-engine/src/mdl/lexer.rs`: palabras clave `:TEST INPUT:`, `:THE CONDITION:`, `:IMPLIES:`, `:AND:`, `:OR:`, `:NOT:`.
-- Comprobación sintáctica propia de los ejemplos de esta guía (Constraints, Test Inputs, rangos de unidades) con PySD: `scratchpad/work-subs/rc2.mdl`.
+- Comprobación sintáctica propia de los ejemplos de esta guía (Constraints, Test Inputs, rangos de unidades) con PySD.
 - Modelo `SDEverywhere/models/comments` (comentarios `{…}` dentro de ecuaciones, ejecutado en Vensim).
 - PySD 3.14.3: `translators/vensim/parsing_grammars/element_object.peg` (definiciones `:THE CONDITION:`/`:TEST INPUT:`), `vensim_element.py` (separación de unidades y rangos `[min,max,?]`).

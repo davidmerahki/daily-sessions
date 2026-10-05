@@ -492,7 +492,7 @@ missing until 2=
 ```
 `[PySD ✓ s09]`
 
-- En Vensim, `:NA:` es un **número centinela muy negativo**, alrededor de −1.298e33 según las notas sobre el formato `.vdf` en Simlin. Por eso `x = :NA:` es una comparación válida (la gramática de SDEverywhere la prueba explícitamente) y es la forma de comprobar si falta un dato `:RAW:`.
+- En Vensim, `:NA:` es un **número centinela muy negativo y finito**, no un NaN IEEE: −1.298074214633707e+33 (= −2¹¹⁰) es el valor con el que la DLL devuelve "no disponible" (lo comprueba el `venpy` oficial de Ventana) y el que aparece en los `.vdf` según Simlin. Ojo: el código de Simlin modela el literal `:NA:` como −2¹⁰⁹ ≈ −6.49e32 y explica −1.298e33 como resultado de aritmética con NA (verificar). Como es finito, `x = :NA:` es una comparación válida (la gramática de SDEverywhere la prueba explícitamente) y es la forma de comprobar si falta un dato `:RAW:`; compare siempre con `:NA:`, nunca con el número.
 - PySD traduce `:NA:` a `NaN`, así que `x = :NA:` da siempre falso: en la prueba, `is missing` dio 0. Hay una diferencia semántica.
 - `NA` sin dos puntos aparece en algunas listas de funciones; usa siempre `:NA:` (verificar).
 
@@ -541,8 +541,8 @@ no workers no output:THE CONDITION:
 - `nombre :TEST INPUT: variable = valor` define una entrada de prueba.
 - `nombre :THE CONDITION: condición :IMPLIES: consecuencia` define una restricción. Se usan funciones RC como `RC STEP`, `RC COMPARE`…, que se tratan en el archivo de Reality Check.
 - xmutil y Simlin aceptan también `:TESTINPUT:` y `:THECONDITION:` sin espacio.
-- **`:CROSSING:`** no aparece en los léxicos de xmutil, Simlin ni PySD ni en ningún `.mdl` de los repositorios consultados. Que exista como palabra clave está por verificar.
-- Reality Check es una función de las ediciones avanzadas de Vensim, Pro y DSS (verificar disponibilidad por edición).
+- **`:CROSSING:`** (y `:AT LEAST ONCE:`) se describen en la página *Constraints* de la documentación (extractos recogidos en `09-unidades-y-reality-check.md` §11.1), pero no aparecen en los léxicos de xmutil, Simlin ni PySD ni en ningún `.mdl` de los repositorios consultados (verificar su sintaxis exacta).
+- Disponibilidad: la tabla comparativa oficial lista Reality Check en todas las ediciones, PLE incluida (`01-productos-licencias-versiones.md`, `09-unidades-y-reality-check.md` §17); en versiones antiguas era de las ediciones superiores (verificar en su versión).
 
 ### 5.14 Mezcla de tipos en una variable subindicada
 
@@ -692,8 +692,8 @@ Validación de precedencia `[PySD ✓ s03]`: `-2^2 → -4`, `1 + 2 * 3 - 8 / 4 �
 
 ### 8.1 Unidades
 
-- Van en el primer campo tras `~`: `Person/Year`, `unit/(Person*Month)`, `1/Year`, `$/unit`, `Month/Year`. Se admiten `*`, `/`, `^` y paréntesis.
-- **Adimensional**: `Dmnl`. Otras grafías como `dmnl` o `1` dependen de la versión (verificar).
+- Van en el primer campo tras `~`: `Person/Year`, `unit/(Person*Month)`, `1/Year`, `$/unit`, `Month/Year`. Se admiten `*`, `/` y paréntesis; la documentación dice que las unidades "are restricted to using only * / and ( ) operators" (ver `09-unidades-y-reality-check.md` §1), así que un área se escribe `meter*meter` y no `meter^2` (verificar si versiones recientes aceptan `^`).
+- **Adimensional**: `Dmnl`. Según la documentación citada en `09-unidades-y-reality-check.md` §2, `Dimensionless`, `Dmnl`, `Fraction`, `Nil` y `1` son sinónimos (verificar en su versión).
 - Las unidades de tiempo deben coincidir con las de `INITIAL TIME` (§6).
 - Las **equivalencias de unidades**, por ejemplo singular y plural, se declaran en los ajustes del modelo y quedan en la sección de configuración del `.mdl` (tipo 22 en el parser de Simlin). No se escriben en las ecuaciones.
 - Comprobación con Model › Units Check. Es recomendable porque detecta errores estructurales.
@@ -829,7 +829,7 @@ PySD parsea la **cabecera** con `:`, pero **no** la llamada con `:` (`Incomplete
 | Subíndices | **No se admiten dentro de la definición**. Las variables generadas heredan los subíndices del LHS de la llamada |
 | Estado | Cada llamada crea **sus propios Levels**: dos llamadas no comparten stock |
 | Anidamiento | Un macro puede llamar a otros ya definidos y se expande recursivamente. No se pueden anidar bloques `:MACRO:` uno dentro de otro |
-| Edición | Definir macros requiere Vensim **Pro o DSS**. PLE y PLE Plus no pueden |
+| Edición | Definir macros requiere Vensim **Pro o DSS**. PLE y PLE Plus no pueden (`01-productos-licencias-versiones.md` lo marca "verificar" para Pro) |
 
 La documentación recomienda usar macros "con moderación", porque pueden introducir dinámica oculta.
 
@@ -1126,7 +1126,7 @@ DimAlias <-> Dim ~~|
 
 ## 17. Registro de validación con PySD
 
-PySD **3.14.3** (Python 3.11). Cada fragmento se envolvió en un modelo mínimo con sección `.Control` (`INITIAL TIME = 0`, `FINAL TIME = 4`, `TIME STEP = 1`, salvo en s14). Se tradujo con `pysd.read_vensim()` y se ejecutó con `.run()`. Los archivos están en `scratchpad/work-lang/snippets/`.
+PySD **3.14.3** (Python 3.11). Cada fragmento se envolvió en un modelo mínimo con sección `.Control` (`INITIAL TIME = 0`, `FINAL TIME = 4`, `TIME STEP = 1`, salvo en s14). Se tradujo con `pysd.read_vensim()` y se ejecutó con `.run()`.
 
 | Id | Contenido | Resultado |
 |---|---|---|
@@ -1193,9 +1193,9 @@ PySD **3.14.3** (Python 3.11). Cada fragmento se envolvió en un modelo mínimo 
 - Subscripts y mapeos: https://www.vensim.com/documentation/ref_subscripts.html y https://www.vensim.com/documentation/ref_subscript_mapping.html (citados en Simlin)
 - Foro de Ventana, "Simultaneous initial value equation involving…": https://www.ventanasystems.co.uk/forum/viewtopic.php?t=6992
 
-**Repositorios locales** (`scratchpad/src/`):
+**Repositorios abiertos consultados**:
 - PySD: `pysd/pysd/translators/vensim/parsing_grammars/{common_grammar,components,element_object,file_sections,lookups,section_elements}.peg`, `vensim_element.py`, `vensim_structures.py`, `vensim_file.py`, `vensim_utils.py`; `pysd/docs/structure/vensim_translation.rst`; `pysd/docs/tables/{unary,binary,functions}.tab`.
 - test-models: `tests/{special_characters, fully_invalid_names, line_continuation, line_breaks, multiple_lines_def, na, pi, number_handling, zeroled_decimals, unchangeable_constant, variable_ranges, limits, logicals, exponentiation (output_vensimdss63dp.csv), active_initial_circular, initial_function, game, reality_checks, lookups_inline, lookups_with_expr, lookups_without_range, with_lookup, tabbed_arrays, odd_number_quotes, data_from_other_model, control_vars, unicode_characters, model_doc, constant_expressions, function_capitalization, subscript_numeric_range, subscript_mapping_vensim, subscript_copy, except, subscript_aggregation, vector_order, get_with_missing_values_xlsx}`.
 - SDEverywhere: `packages/parse/src/vensim/{parse-vensim-expr.spec.ts, parse-vensim-equation.spec.ts, preprocess-vensim.ts}`, `packages/parse/src/_shared/canonical-id.ts`, `packages/compile/src/generate/gen-expr.js`; modelos `models/{comments, specialchars, extdata, preprocess}`.
 - Simlin: `docs/design/mdl-parser.md`, `docs/reference/vensim-macros.md`, `src/simlin-engine/src/mdl/{CLAUDE.md, lexer.rs, reader.rs, ast.rs, builtins.rs, writer.rs}`, `src/simlin-engine/src/ast/expr0.rs`, `vensim-probes/README.md`; modelos `test/metasd/FREE/FREE6/FREE6-original/energy_pos_loop.mdl` y `test/metasd/theil-statistics/Theil_2011.mdl`.
-- Pruebas propias: `scratchpad/work-lang/check.py`, `check_data.py`, `snippets/s01…s18*.mdl`.
+- Pruebas propias con PySD (fragmentos s01–s19 de la §17).

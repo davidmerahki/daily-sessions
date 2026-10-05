@@ -57,7 +57,7 @@ Según la ayuda, la barra de menús clásica tiene estos menús. El contenido va
 | **View** | Apariencia del sketch: zoom, **Show Hidden** / nivel de ocultación, gestión de vistas (*View > New*…). **Vista del modelo como texto**, solo en Professional y DSS. *Diagram only mode* en PLE+ desde 10.4. |
 | **Insert** | Inserción de objetos en el sketch (página "The Insert Menu" de la ayuda). Contenido exacto: verificar. |
 | **Layout** | Alineación y espaciado de los objetos seleccionados (ver sección 7). |
-| **Model** | **Settings** (Model Settings), **Check Model**, **Units Check**, importar y exportar **datasets**. En PLE y PLE Plus también tiene Simulate, Start SyntheSim, Run Game, Sensitivity y Reality Check. |
+| **Model** | **Settings** (Model Settings), **Check Model**, **Units Check**, importar y exportar **datasets**. En PLE y PLE Plus también tiene Simulate, Start SyntheSim, Run Game, Sensitivity y Reality Check (la página de ayuda cubre ambas ediciones a la vez; según `01-productos-licencias-versiones.md`, Sensitivity y Gaming son de PLE Plus en adelante). |
 | **Simulation** | Las notas de 9.0 citan el ítem **Simulation > Simulation control**, que entra en el modo *Simulation setup*. Se presume un menú Simulation en la interfaz nueva (verificar su composición). |
 | **Tools** | **Options** (opciones globales), edición de **toolsets** de análisis y de sketch (*Toolset Editor*), **Language** (10.2.2), *Switch to new sketch* (9.0). |
 | **Window(s)** | Cambiar entre ventanas abiertas: sketch, outputs, Control Panel. El nombre exacto es "Window" o "Windows" según la versión (verificar). |
@@ -136,6 +136,7 @@ Fuente: "Keyboard Shortcuts" y "General Navigation" de la ayuda. En macOS el mod
 | **Ctrl+S** | Guardar |
 | **Ctrl+O** | Abrir modelo |
 | **Ctrl+T** | **Check Model** (en ventanas de sketch o de texto) |
+| **Ctrl+U** | **Units Check** (según `09-unidades-y-reality-check.md` y `13-buenas-practicas-errores-y-depuracion.md`) |
 | **Ctrl+Tab** | Pasar entre ventanas de la misma clase |
 | **Ctrl+Shift+Tab** | Pasar entre clases de ventana (build ↔ output…) |
 
@@ -358,12 +359,12 @@ Diálogo con pestañas:
 | Pestaña | Contenido |
 |---|---|
 | **Time Bounds** (en versiones nuevas, *Time Bounds and Dates*) | **INITIAL TIME**, **FINAL TIME**, **TIME STEP**, **SAVEPER** y **Units for Time**, con lista de unidades comunes o texto libre. Todos los campos numéricos se miden en esa unidad. Las versiones recientes admiten **formato de fecha** en el eje de tiempo: el `.mdl` guarda líneas `35:Date`, `36:YYYY-MM-DD` en la sección de settings. |
-| **Info/Sketch** | Información del modelo: **comentario y copyright**. Opciones del sketch como **mostrar causas iniciales**. |
+| **Info/Password** | Información del modelo (**comentario y copyright**) y **contraseña** del modelo (nombre de la pestaña según la página de ayuda "Info/Password" citada en `11-automatizacion-scripts-dll-python.md` §6; verificar en 10.x). Las opciones del sketch, como **mostrar causas iniciales**, están en la pestaña de sketch (verificar ubicación exacta). |
 | **Units Equiv** | **Sinónimos de unidades** (`Person, People, Persons`), para que Units Check no dé falsos errores. En el `.mdl` se guardan como líneas `22:` en la sección de settings. |
 | **Sketch** (10.1+) | Tooltips con **subíndices** y **valores de constantes**. |
 | Otras | La ayuda tiene una página "Reference Modes Tab". Si "Appearance" es una pestaña, y cuál es el contenido exacto en 10.5, está sin verificar. |
 
-> Un **"Model > Documentation"** como ítem de menú no está confirmado. Para documentar el modelo se usa el **Document tool**, el comentario de *Info/Sketch* o **SDM-Doc**, que se lanza desde Vensim desde 9.0 (verificar).
+> Un **"Model > Documentation"** como ítem de menú no está confirmado. Para documentar el modelo se usa el **Document tool**, el comentario de *Info/Password* o **SDM-Doc**, que se lanza desde Vensim desde 9.0 (verificar).
 
 ### Tools > Options (opciones globales)
 - **General**: *Use legacy equation editor* (10.3+), comportamiento de inicio, etc.
@@ -402,11 +403,11 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|72,72,1
 |---|---|
 | `*Nombre` | Inicio de una **vista** |
 | `$...` | Fuente y colores por defecto de la vista |
-| `10` | **Variable**: id, nombre, x, y, ancho, alto, forma (caja = Level), nivel de ocultación… El campo "arrows in allowed" **par** indica **sombra** (según la gramática de PySD). |
+| `10` | **Variable**: id, nombre, x, y, ancho, alto, forma (caja = Level), nivel de ocultación… El campo "arrows in allowed" (campo `bits` en `12-formatos-de-archivo.md` §4.3) **par** indica **sombra** (según la gramática de PySD). |
 | `11` | **Válvula** de un flujo |
 | `12` | **Comentario**, **nube** (nombre `48`) u otro objeto multipropósito, incluidos los identificadores de bucle con texto R/B |
 | `1` | **Flecha**: id, origen, destino, … El código de **delay mark** y la polaridad van en sus campos. |
-| `30`, `31` | Otros objetos (p. ej. I/O objects; verificar) |
+| `30`, `31` | **Imágenes**: 30 = bitmap, 31 = metafile (ver `12-formatos-de-archivo.md` §4.7; los I/O objects son registros `12`) |
 
 Desde Vensim 8.2.1 las líneas de variable llevan **bytes extra**, y los parsers antiguos pueden fallar con ellos.
 
@@ -470,7 +471,7 @@ Desde Vensim 8.2.1 las líneas de variable llevan **bytes extra**, y los parsers
 - Settings y opciones: http://vensim.com/documentation/model_settings.html · https://www.vensim.com/documentation/timeboundsdates.html · https://www.vensim.com/documentation/ref_units_equiv.html · https://www.vensim.com/documentation/advanced_options.html · https://www.vensim.com/documentation/ref17_options_for_ple_and_ple_plus.html
 - Notas de versión: http://vensim.com/documentation/vensim-8_2_2.html y http://vensim.com/documentation/vensim-8_2_2_2.html (9.0) · https://www.vensim.com/documentation/vensim-9_2.html · https://www.vensim.com/documentation/vensim-9_3.html · https://vensim.com/documentation/vensim-10_0_1.html · https://vensim.com/documentation/vensim-10_2_0.html · https://vensim.com/documentation/vensim-10_2_2-(september-2024).html · https://vensim.com/documentation/vensim-10_3.html · https://www.vensim.com/documentation/vensim-10_4_x.html · https://vensim.com/2026/06/vensim-ventity-news-june-2026/
 
-**Repos locales usados** (`scratchpad/src/`):
+**Repositorios abiertos consultados**:
 - `test-models/samples/teacup/teacup.mdl`: ejemplo de sección de sketch y settings.
 - `pysd/pysd/translators/vensim/parsing_grammars/sketch.peg` y `pysd/pysd/translators/vensim/vensim_file.py`: códigos de objetos del sketch, detección de sombras y nivel de ocultación.
 - `simlin/docs/design/mdl-parser.md`: tipos de elementos de vista (10 variable, 11 válvula, 12 comentario/nube, 1 conector).

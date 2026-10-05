@@ -642,4 +642,4 @@ Todos los ejemplos marcados como "validado" se ejecutaron con PySD 3.14.3 o se c
 - Repositorio SDEverywhere `models/` con salidas `.dat` generadas por Vensim: `subscript`, `mapping`, `multimap`, `subalias`, `except`, `sum`, `vector`, `elmcount`, `arrays`, `directsubs`, `directconst`, `same_family_*`.
 - PySD 3.14.3: `docs/structure/vensim_translation.rst`, `docs/tables/functions.tab`, gramáticas PEG `translators/vensim/parsing_grammars/*.peg`, `py_backend/external.py`.
 - Modelo *InterpolatingArrays.mdl* (T. Fiddaman, metasd) en `simlin/test/metasd/interpolating-arrays/` (`VECTOR LOOKUP`, mapeos `i prev`/`i next`).
-- Validaciones propias con PySD en `scratchpad/work-subs/subs1.mdl` … `subs4.mdl` (rangos, mapeos, `<->`, `:EXCEPT:`, tablas, `TABBED ARRAY`, posiciones, agregaciones, lookups con subíndices, cadena de envejecimiento).
+- Validaciones propias con PySD (rangos, mapeos, `<->`, `:EXCEPT:`, tablas, `TABBED ARRAY`, posiciones, agregaciones, lookups con subíndices, cadena de envejecimiento).

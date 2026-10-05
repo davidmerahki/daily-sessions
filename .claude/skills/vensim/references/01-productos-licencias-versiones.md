@@ -241,9 +241,9 @@ Las notas de versión están en la ayuda online (*Release Notes*), en orden cron
 |---|---|---|
 | `.mdl` | Modelo en **texto** (ecuaciones + sketch + settings) | Formato nativo y portable entre ediciones y versiones. Apto para control de versiones. Lo leen PySD y SDEverywhere. |
 | `.vmf` | Modelo **binario** | Se abre con *Open Model* y con el Model Reader. |
-| `.vpm` | Modelo **publicado** (*packaged*) | Para distribuir con Model Reader. Ver "Publishing a Packaged Model" en la ayuda. |
+| `.vpm` / `.vpmx` | Modelo **publicado** (*packaged*) | Para distribuir con Model Reader. `.vpmx` en versiones recientes/64 bits (ver `12-formatos-de-archivo.md`). Ver "Publishing a Packaged Model" en la ayuda. |
 | `.vpa` | **Venapp** publicada | DSS la crea; Model Reader la ejecuta. |
-| `.vdf` / `.vdfx` | **Datasets** (resultados de simulación) | Vensim 8 introdujo nuevos formatos para 64 bits. Se cree que `.vdfx` es el formato de dataset de 64 bits (verificar). |
+| `.vdf` / `.vdfx` | **Datasets** (resultados de simulación) | Vensim 8 introdujo nuevos formatos para 64 bits. `.vdfx` parece ser el formato de dataset de 64 bits: EMA Workbench usa `Current.vdfx` con Vensim de 64 bits y `Current.vdf` con 32 bits (ver `11` y `12`; verificar). |
 | `.voc`, `.vsc`, `.lst`, `.vpd` | Control de optimización, control de sensibilidad, savelist, payoff | Ver los archivos de optimización y sensibilidad de esta base. |
 | `.cmd` | Command script | Automatización; ver la tabla de ediciones. |
 | `.xmile` / `.stmx` | Intercambio XMILE | Soporte mejorado desde Vensim 8. Alcance exacto de importación y exportación: verificar. |
@@ -349,7 +349,7 @@ Señales de que un modelo necesita una edición superior:
 
 **Otras**: https://en.wikipedia.org/wiki/Vensim · https://onlinelibrary.wiley.com/doi/10.1002/sdr.1504 (XMILE, Eberlein) · https://www.iseesystems.com/connector/2020/spring.aspx · https://metasd.com/tag/vensim/ · https://www.linkedin.com/in/tom-fiddaman/
 
-**Repos locales usados** (`scratchpad/src/`):
+**Repositorios abiertos consultados**:
 - `test-models/tests/*/README.md`: versiones y fechas reales de Vensim usadas para generar resultados (6.3/6.4E Mac, 7.1/7.2/7.3.4 en precisión simple y doble, 8.0.9, 9.2.4, 9.3.1, 9.3.4, PLE 10.1.4).
 - `test-models/samples/teacup/teacup.mdl`: estructura del `.mdl` (ecuaciones, sketch y settings).
 - `pysd/docs/structure/vensim_translation.rst`, `pysd/pysd/translators/vensim/parsing_grammars/sketch.peg`.

@@ -45,7 +45,7 @@
 | Vía | Qué hace | Edición / requisito | Plataforma | Cuándo usarla |
 |---|---|---|---|---|
 | **Command script** (`.cmd`) | Lista de comandos `CATEGORIA>COMANDO\|args` ejecutados en lote por Vensim | DSS (según documentación) | Windows/macOS (donde corra Vensim DSS) | Lotes de escenarios, exportación de resultados, tareas repetitivas sin programar |
-| **Run configuration manager** (Vensim 10) | Guarda configuraciones de corrida y comandos pre/post-simulación | Vensim 10 (edición: verificar) | Escritorio | Repetir conjuntos de corridas "con un clic"; llamar a Python vía `PROCESS` |
+| **Run configuration tool** (desde 9.4) | Guarda configuraciones de corrida y comandos pre/post-simulación | DSS según `01-productos-licencias-versiones.md` (verificar) | Escritorio | Repetir conjuntos de corridas "con un clic"; llamar a Python vía `PROCESS` |
 | **Venapp** (`.vcd`) | Interfaz de pantallas/botones construida con los mismos comandos | DSS para crear | Windows (principalmente) | Aplicaciones para usuarios finales sin tocar el modelo |
 | **Vensim DLL** (`vendll32/64.dll`) | API C para cargar modelos, simular, leer/escribir valores desde otro programa | DSS (o runtime/redistribuible) | Windows | Acoplar con Python, Excel/VBA, C/C++, Java, SIG, optimizadores externos |
 | **PySD** | Traduce el `.mdl` a Python y simula **sin Vensim** | Ninguna (MIT, `pip install pysd`) | Cualquiera | Análisis en Python, Monte Carlo, ML, despliegue en servidores Linux |
@@ -78,7 +78,7 @@ REM Windows: el nombre del ejecutable depende de edición y bits (verificar en l
 ```
 
 4. Desde otro script/Venapp/DLL: `SPECIAL>RUNCOMMAND|archivo.cmd` **(categoría y sintaxis: verificar; existe la página "RUNCOMMAND" en la referencia)**.
-5. En Vensim 10, como comandos *pre/post* en el **Run configuration manager**.
+5. Como comandos *pre/post* en el **Run configuration tool** (desde 9.4; DSS según el archivo 01).
 
 Desde Python (lanzando Vensim como proceso; el `.cmd` debe terminar con `MENU>EXIT` para que el proceso finalice):
 
@@ -120,7 +120,7 @@ Leyenda: ✔ = confirmado en documentación de vensim.com (vía extractos de bú
 | `SPECIAL>VARSELECT\|título` | ✔ (Venapp) | Abre el diálogo para elegir variable. |
 | `SPECIAL>SETTITLE\|...` | ✔ (Venapp) | Cambia el título de la ventana. |
 | `SPECIAL>LOADAPPINT\|app.vcd@pantalla` | ◐ (Venapp) | Carga otra Venapp/pantalla (visto en World3). |
-| `PROCESS\|<ejecutable>\|WAIT\|<argumentos>` | ◐ | **Nuevo (Vensim 10):** ejecuta un programa externo (p. ej. Python); con `WAIT` espera a que termine. Devuelve 1 si tuvo éxito (siempre 1 si no se espera). Disponible en Venapps y command scripts. Prefijo de categoría probable `SPECIAL>` (**verificar**). |
+| `PROCESS\|<ejecutable>\|WAIT\|<argumentos>` | ◐ | **Nuevo (Vensim 10.1, según el archivo 01):** ejecuta un programa externo (p. ej. Python); con `WAIT` espera a que termine. Devuelve 1 si tuvo éxito (siempre 1 si no se espera). Disponible en Venapps y command scripts. Prefijo de categoría probable `SPECIAL>` (**verificar**). |
 | `RUNCOMMAND\|archivo.cmd` | ◐ | Ejecuta otro command script (categoría: verificar). |
 
 #### SIMULATE>
@@ -751,7 +751,7 @@ experiments, outcomes = perform_experiments(m, 200)
 ### 4.5 Integración "nativa" en Vensim 10
 
 Lo confirmado en vensim.com:
-- **Run configuration manager** (Vensim 10): guarda conjuntos de instrucciones para correr el modelo varias veces y ejecutar todas o algunas configuraciones con un clic; admite **comandos pre/post simulación** para exportar/importar datos "o ejecutar cosas como Python para procesar resultados".
+- **Run configuration tool** (introducido en 9.4 según las notas de versión del archivo 01; DSS): guarda conjuntos de instrucciones para correr el modelo varias veces y ejecutar todas o algunas configuraciones con un clic; admite **comandos pre/post simulación** para exportar/importar datos "o ejecutar cosas como Python para procesar resultados".
 - **Comando `PROCESS|<ejecutable>|WAIT|<argumentos>`** (Venapps y command scripts): lanza p. ej. `python.exe` con un script, esperando a que termine si se indica `WAIT`.
 
 ```text
@@ -834,7 +834,7 @@ BUTTON,"Print",20,95,20,0,L,Pp,PRINT>GR1
 | | `:MACRO:` | External functions |
 |---|---|---|
 | Dónde se define | En el propio `.mdl`, con ecuaciones Vensim | En una DLL Windows compilada (C/C++ u otro lenguaje que genere DLL con tipos C) |
-| Edición | Todas | DSS |
+| Edición | Pro/DSS (PLE y PLE Plus no definen macros; ver `01-productos-licencias-versiones.md` y `04-lenguaje-de-ecuaciones.md` §10.2; verificar para Pro) | DSS |
 | Portabilidad | Viaja con el modelo; PySD las soporta (SDEverywhere no: hay que reescribirlas) | Solo donde esté la DLL; PySD/SDE no las ejecutan |
 | Uso típico | Reutilizar estructura (p. ej. un retraso a medida, un stock con lógica) | Algoritmos externos, librerías numéricas, acceso a sistemas |
 
@@ -905,7 +905,7 @@ External functions (DSS):
 - DLL: https://www.vensim.com/documentation/dss_dll.html · Available DLL Functions https://www.vensim.com/documentation/dll_function_synopsis.html · vensim_command https://www.vensim.com/documentation/26170.html · vensim_tool_command https://www.vensim.com/documentation/26255.html · vensim_check_status https://www.vensim.com/documentation/26165.html · vensim_be_quiet https://www.vensim.com/documentation/26160.html · vensim_start_simulation https://www.vensim.com/documentation/26250.html · vensim_continue_simulation https://www.vensim.com/documentation/26175.html · vensim_get_info https://www.vensim.com/documentation/26200.html · vensim_get_varnames https://www.vensim.com/documentation/26225.html · vensim_get_data http://vensim.com/documentation/vensim_get_data.html · vensim_get_sens_at_time https://www.vensim.com/documentation/26205.html · vensim_get_vecvals https://www.vensim.com/documentation/26235.html · Installation Notes https://www.vensim.com/documentation/26045.html · DLL Visual Basic example https://www.vensim.com/documentation/26075.html · DLL Java http://vensim.com/documentation/26140.html · DLL Venapp and Command Changes http://vensim.com/documentation/dll_venapp_and_command_changes.html
 - External functions: https://www.vensim.com/documentation/25720.html · https://www.vensim.com/documentation/25725.html · https://www.vensim.com/documentation/25830.html · https://www.vensim.com/documentation/25840.html · https://www.vensim.com/documentation/25845.html · http://vensim.com/documentation/external_compiled.html · https://www.vensim.com/documentation/25745.html · https://www.vensim.com/documentation/25750.html · https://www.vensim.com/documentation/25825.html
 - Publicación / Model Reader: https://vensim.com/vensim-model-reader/ · https://www.vensim.com/documentation/vensim_model_reader.html · https://www.vensim.com/documentation/usr19_saving_to_a_binary_file.html · https://www.vensim.com/documentation/ug_publishing.html · Info/Password http://vensim.com/documentation/22170.html
-- Vensim 10: https://vensim.com/documentation/vensim-10.html · https://vensim.com/documentation/vensim-10_0_1.html · https://vensim.com/documentation/vensim-10_2_0.html · https://vensim.com/documentation/vensim-10_3.html · Run configuration manager https://www.vensim.com/documentation/run-configuration-tool.html · Emscripten https://vensim.com/documentation/1_-install-the-emscripten-sdk_.html · Hosting https://www.vensim.com/documentation/4_-create-files-for-hosting-on.html · API https://www.vensim.com/documentation/api.html · Limitations https://www.vensim.com/documentation/limitations.html · Workbench/Python tools https://vensim.com/workbench/
+- Vensim 10: https://vensim.com/documentation/vensim-10.html · https://vensim.com/documentation/vensim-10_0_1.html · https://vensim.com/documentation/vensim-10_2_0.html · https://vensim.com/documentation/vensim-10_3.html · Run configuration tool https://www.vensim.com/documentation/run-configuration-tool.html · Emscripten https://vensim.com/documentation/1_-install-the-emscripten-sdk_.html · Hosting https://www.vensim.com/documentation/4_-create-files-for-hosting-on.html · API https://www.vensim.com/documentation/api.html · Limitations https://www.vensim.com/documentation/limitations.html · Workbench/Python tools https://vensim.com/workbench/
 - Foro de Ventana: https://www.ventanasystems.co.uk/forum/viewtopic.php?t=7797 · https://www.ventanasystems.co.uk/forum/viewtopic.php?t=8375
 
 **Código y repositorios inspeccionados localmente:**
@@ -913,5 +913,5 @@ External functions (DSS):
 - `ema_workbench` 2.5.3 (PyPI): `connectors/vensimDLLwrapper.py`, `connectors/vensim.py` (tablas de `vartype`/`attrib`, comandos usados).
 - PySD 3.14.3 (PyPI) y repo `pysd/docs/*.rst`; ejemplos ejecutados con `test-models/samples/teacup/teacup.mdl`.
 - `simlin/test/metasd/WRLD3-03/WRLD3-03.VCD` (Venapp real), `.VGD`, `.CIN`, `SCEN01.VDF`; `pysimlin` 0.8.5 (`load_vdf` probado).
-- Mock C de la API de la DLL (scratchpad `work-auto/dlltest`) para validar el envoltorio ctypes.
+- Mock C de la API de la DLL (no incluido) para validar el envoltorio ctypes.
 - PyPI: `venpy` 0.2.3 (paquete no relacionado), ausencia de `vensim`/`pyvensim`.
