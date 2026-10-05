@@ -1,0 +1,208 @@
+{UTF-8}
+********************************************************
+	.limites
+********************************************************~
+		Limites al crecimiento: un bucle R (natalidad) y dos bucles B (efectos de densidad) con lookups normalizados.
+	|
+
+Poblacion= INTEG (
+	nacimientos-muertes,
+		poblacion inicial)
+	~	Animal [0,?]
+	~	Poblacion de una especie en un habitat con capacidad de carga fija.
+	|
+
+nacimientos=
+	Poblacion*fraccion normal de natalidad*efecto de la densidad sobre la natalidad(densidad percibida)
+	~	Animal/Year
+	~	Fraccion normal por multiplicador no lineal (formulacion 'efecto de X \
+		sobre Y').
+	|
+
+muertes=
+	Poblacion*fraccion normal de mortalidad*efecto de la densidad sobre la mortalidad(densidad percibida)
+	~	Animal/Year
+	~	Fraccion normal por multiplicador no lineal.
+	|
+
+fraccion normal de natalidad=
+	0.05
+	~	1/Year [0,0.2,0.005]
+	~	Fraccion de natalidad cuando la densidad relativa es 1 (punto de \
+		normalizacion).
+	|
+
+fraccion normal de mortalidad=
+	0.05
+	~	1/Year [0,0.2,0.005]
+	~	Fraccion de mortalidad cuando la densidad relativa es 1. Igual a la de \
+		natalidad: la capacidad de carga es el equilibrio.
+	|
+
+capacidad de carga=
+	10000
+	~	Animal [1000,20000,500]
+	~	Poblacion que el habitat sostiene en equilibrio (valor de referencia X \
+		normal).
+	|
+
+densidad relativa=
+	Poblacion/capacidad de carga
+	~	Dmnl
+	~	Entrada normalizada X/X normal de los lookups.
+	|
+
+densidad percibida=
+	SMOOTH3(densidad relativa, tiempo de percepcion de la densidad)
+	~	Dmnl
+	~	Retraso de informacion de tercer orden entre la densidad real y su efecto. \
+		Con 1 año el comportamiento es casi logistico; con 10-20 años aparece \
+		sobrepaso y oscilacion.
+	|
+
+tiempo de percepcion de la densidad=
+	1
+	~	Year [0.5,30,0.5]
+	~	Retraso con que la densidad afecta natalidad y mortalidad.
+	|
+
+efecto de la densidad sobre la natalidad(
+	[(0,0)-(2,2)],(0,2),(0.25,1.9),(0.5,1.7),(0.75,1.4),(1,1),(1.25,0.6),(1.5,0.35),(1.75,0.2),(2,0.1))
+	~	Dmnl
+	~	Normalizado: pasa por (1,1). Decreciente: el hacinamiento reduce la \
+		natalidad. Pendiente suave en los extremos.
+	|
+
+efecto de la densidad sobre la mortalidad(
+	[(0,0)-(2,2.8)],(0,0.5),(0.25,0.55),(0.5,0.65),(0.75,0.8),(1,1),(1.25,1.3),(1.5,1.7),(1.75,2.2),(2,2.8))
+	~	Dmnl
+	~	Normalizado: pasa por (1,1). Creciente: el hacinamiento aumenta la \
+		mortalidad.
+	|
+
+poblacion inicial=
+	100
+	~	Animal
+	~	Poblacion fundadora.
+	|
+
+fraccion neta de crecimiento=
+	ZIDZ(nacimientos-muertes, Poblacion)
+	~	1/Year
+	~	Tasa neta por individuo; cae de 0.075 1/Year a 0 a medida que la poblacion \
+		se acerca a la capacidad de carga.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 200
+	~	Year
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Year
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  =
+        TIME STEP
+	~	Year [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.125
+	~	Year [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*limites al crecimiento
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Poblacion,420,220,40,20,3,3,0,0,0,0,0,0
+12,2,48,230,220,10,8,0,3,0,0,-1,0,0,0
+1,3,5,1,4,0,0,22,0,0,0,-1--1--1,,1|(378,220)|
+1,4,5,2,100,0,0,22,0,0,0,-1--1--1,,1|(230,220)|
+11,5,48,320,220,6,8,34,3,0,0,1,0,0,0
+10,6,nacimientos,320,236,32,8,40,3,0,0,-1,0,0,0
+12,7,48,610,220,10,8,0,3,0,0,-1,0,0,0
+1,8,10,7,4,0,0,22,0,0,0,-1--1--1,,1|(610,220)|
+1,9,10,1,100,0,0,22,0,0,0,-1--1--1,,1|(462,220)|
+11,10,48,520,220,6,8,34,3,0,0,1,0,0,0
+10,11,muertes,520,236,21,8,40,3,0,0,-1,0,0,0
+10,12,fraccion normal de natalidad,240,120,53,14,8,3,0,0,0,0,0,0
+10,13,fraccion normal de mortalidad,600,120,53,14,8,3,0,0,0,0,0,0
+10,14,efecto de la densidad sobre la natalidad,260,360,50,20,8,3,0,0,0,0,0,0
+10,15,efecto de la densidad sobre la mortalidad,590,360,50,20,8,3,0,0,0,0,0,0
+10,16,densidad percibida,420,400,53,8,8,3,0,0,0,0,0,0
+10,17,densidad relativa,420,320,50,8,8,3,0,0,0,0,0,0
+10,18,capacidad de carga,560,450,53,8,8,3,0,0,0,0,0,0
+10,19,tiempo de percepcion de la densidad,300,470,47,20,8,3,0,0,0,0,0,0
+10,20,poblacion inicial,420,110,50,8,8,3,0,0,0,0,0,0
+10,21,fraccion neta de crecimiento,760,470,47,14,8,3,0,0,0,0,0,0
+10,22,nacimientos,680,400,32,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,23,muertes,850,400,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,24,Poblacion,760,550,27,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,25,1,5,1,0,43,0,0,64,0,-1--1--1,,1|(370,170)|
+1,26,1,10,1,0,43,0,0,64,0,-1--1--1,,1|(470,170)|
+1,27,12,5,0,0,43,0,0,64,0,-1--1--1,,1|(280,170)|
+1,28,13,10,0,0,43,0,0,64,0,-1--1--1,,1|(560,170)|
+1,29,14,5,0,0,43,0,0,64,0,-1--1--1,,1|(290,290)|
+1,30,15,10,0,0,43,0,0,64,0,-1--1--1,,1|(555,290)|
+1,31,1,17,0,0,43,0,0,64,0,-1--1--1,,1|(420,270)|
+1,32,18,17,0,0,45,0,0,64,0,-1--1--1,,1|(490,385)|
+1,33,17,16,0,0,43,0,0,64,0,-1--1--1,,1|(420,360)|
+1,34,19,16,0,0,0,0,0,64,0,-1--1--1,,1|(360,435)|
+1,35,16,14,0,0,45,0,0,64,0,-1--1--1,,1|(340,380)|
+1,36,16,15,0,0,43,0,0,64,0,-1--1--1,,1|(505,380)|
+1,37,20,1,0,0,0,0,0,64,1,-1--1--1,,1|(420,165)|
+1,38,22,21,0,0,43,0,0,64,0,-1--1--1,,1|(720,435)|
+1,39,23,21,0,0,45,0,0,64,0,-1--1--1,,1|(805,435)|
+1,40,24,21,0,0,45,0,0,64,0,-1--1--1,,1|(760,510)|
+12,41,0,350,200,15,15,5,4,0,0,-1,0,0,0
+R
+12,42,0,350,222,39,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 Reproduccion
+12,43,0,340,300,15,15,4,4,0,0,-1,0,0,0
+B
+12,44,0,340,322,65,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B1 Hacinamiento-natalidad
+12,45,0,500,300,15,15,5,4,0,0,-1,0,0,0
+B
+12,46,0,500,322,67,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B2 Hacinamiento-mortalidad
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+22:Animal,Animals
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:Poblacion
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:200
+26:200

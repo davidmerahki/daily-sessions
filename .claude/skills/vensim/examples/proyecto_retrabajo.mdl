@@ -1,0 +1,230 @@
+{UTF-8}
+********************************************************
+	.retrabajo
+********************************************************~
+		Ciclo de retrabajo (rework cycle) de un proyecto: el 'sindrome del 90 %'.
+	|
+
+Trabajo por hacer= INTEG (
+	descubrimiento de retrabajo-trabajo correcto-trabajo defectuoso,
+		alcance del proyecto)
+	~	Task [0,?]
+	~	Tareas pendientes (incluye el retrabajo ya descubierto).
+	|
+
+Trabajo correcto acumulado= INTEG (
+	trabajo correcto,
+		0)
+	~	Task [0,?]
+	~	Tareas terminadas sin errores.
+	|
+
+Retrabajo no descubierto= INTEG (
+	trabajo defectuoso-descubrimiento de retrabajo,
+		0)
+	~	Task [0,?]
+	~	Tareas que se creen terminadas pero tienen errores ocultos.
+	|
+
+tasa de trabajo=
+	MIN(capacidad de trabajo, Trabajo por hacer/tiempo minimo por tarea)
+	~	Task/Week
+	~	MIN implementa el control de primer orden: Trabajo por hacer nunca se \
+		vuelve negativo.
+	|
+
+capacidad de trabajo=
+	personal*productividad
+	~	Task/Week
+	~	
+	|
+
+personal=
+	20
+	~	Person [1,40,1]
+	~	
+	|
+
+productividad=
+	1
+	~	Task/(Person*Week) [0.2,3,0.1]
+	~	
+	|
+
+tiempo minimo por tarea=
+	1
+	~	Week
+	~	Duracion minima de una tarea (limita el flujo cuando queda poco trabajo).
+	|
+
+trabajo correcto=
+	tasa de trabajo*calidad
+	~	Task/Week
+	~	
+	|
+
+trabajo defectuoso=
+	tasa de trabajo*(1-calidad)
+	~	Task/Week
+	~	
+	|
+
+calidad=
+	0.7
+	~	Dmnl [0.3,1,0.05]
+	~	Fraccion del trabajo realizado sin errores.
+	|
+
+descubrimiento de retrabajo=
+	Retrabajo no descubierto/tiempo para descubrir retrabajo
+	~	Task/Week
+	~	Retraso material de primer orden: los errores se descubren en promedio \
+		tras este tiempo.
+	|
+
+tiempo para descubrir retrabajo=
+	20
+	~	Week [1,40,1]
+	~	Tiempo medio hasta detectar un error (pruebas tardias).
+	|
+
+alcance del proyecto=
+	1000
+	~	Task
+	~	
+	|
+
+progreso percibido=
+	(Trabajo correcto acumulado+Retrabajo no descubierto)/alcance del proyecto
+	~	Dmnl
+	~	Lo que el equipo cree terminado (incluye errores ocultos).
+	|
+
+progreso real=
+	Trabajo correcto acumulado/alcance del proyecto
+	~	Dmnl
+	~	
+	|
+
+brecha de percepcion=
+	progreso percibido-progreso real
+	~	Dmnl
+	~	Igual a Retrabajo no descubierto / alcance.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 200
+	~	Week
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Week
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  =
+        TIME STEP
+	~	Week [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.125
+	~	Week [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*ciclo de retrabajo
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Trabajo por hacer,250,250,40,20,3,3,0,0,0,0,0,0
+10,2,Trabajo correcto acumulado,620,250,40,20,3,3,0,0,0,0,0,0
+10,3,Retrabajo no descubierto,250,480,40,20,3,3,0,0,0,0,0,0
+1,4,6,2,4,0,0,22,0,0,0,-1--1--1,,1|(578,250)|
+1,5,6,1,100,0,0,22,0,0,0,-1--1--1,,1|(292,250)|
+11,6,48,440,250,6,8,34,3,0,0,1,0,0,0
+10,7,trabajo correcto,440,266,47,8,40,3,0,0,-1,0,0,0
+1,8,10,3,4,0,0,22,0,0,0,-1--1--1,,1|(225,458)|
+1,9,10,1,100,0,0,22,0,0,0,-1--1--1,,1|(225,272)|
+11,10,48,225,365,8,6,33,3,0,0,4,0,0,0
+10,11,trabajo defectuoso,164,365,53,8,40,3,0,0,-1,0,0,0
+1,12,14,1,4,0,0,22,0,0,0,-1--1--1,,1|(275,272)|
+1,13,14,3,100,0,0,22,0,0,0,-1--1--1,,1|(275,458)|
+11,14,48,275,365,8,6,33,3,0,0,4,0,0,0
+10,15,descubrimiento de retrabajo,333,365,50,14,40,3,0,0,-1,0,0,0
+10,16,tasa de trabajo,440,160,44,8,8,3,0,0,0,0,0,0
+10,17,capacidad de trabajo,440,90,35,14,8,3,0,0,0,0,0,0
+10,18,personal,330,40,24,8,8,3,0,0,0,0,0,0
+10,19,productividad,550,40,38,8,8,3,0,0,0,0,0,0
+10,20,tiempo minimo por tarea,210,120,50,14,8,3,0,0,0,0,0,0
+10,21,calidad,440,330,21,8,8,3,0,0,0,0,0,0
+10,22,tiempo para descubrir retrabajo,430,450,32,20,8,3,0,0,0,0,0,0
+10,23,alcance del proyecto,80,250,32,14,8,3,0,0,0,0,0,0
+10,24,alcance del proyecto,900,300,32,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,25,Retrabajo no descubierto,930,470,35,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,26,progreso percibido,800,400,53,8,8,3,0,0,0,0,0,0
+10,27,progreso real,800,170,38,8,8,3,0,0,0,0,0,0
+10,28,brecha de percepcion,960,230,29,14,8,3,0,0,0,0,0,0
+1,29,1,16,1,0,43,0,0,64,0,-1--1--1,,1|(320,170)|
+1,30,17,16,0,0,43,0,0,64,0,-1--1--1,,1|(440,125)|
+1,31,20,16,0,0,45,0,0,64,0,-1--1--1,,1|(325,140)|
+1,32,18,17,0,0,43,0,0,64,0,-1--1--1,,1|(385,65)|
+1,33,19,17,0,0,43,0,0,64,0,-1--1--1,,1|(495,65)|
+1,34,16,6,0,0,43,0,0,64,0,-1--1--1,,1|(440,205)|
+1,35,16,10,1,0,43,0,0,64,0,-1--1--1,,1|(300,300)|
+1,36,21,6,0,0,43,0,0,64,0,-1--1--1,,1|(440,290)|
+1,37,21,10,1,0,45,0,0,64,0,-1--1--1,,1|(330,400)|
+1,38,3,14,1,0,43,0,0,64,0,-1--1--1,,1|(340,420)|
+1,39,22,14,0,0,45,0,0,64,0,-1--1--1,,1|(352,407)|
+1,40,23,1,0,0,0,0,0,64,1,-1--1--1,,1|(165,250)|
+1,41,2,26,0,0,43,0,0,64,0,-1--1--1,,1|(710,325)|
+1,42,25,26,0,0,43,0,0,64,0,-1--1--1,,1|(865,435)|
+1,43,2,27,0,0,43,0,0,64,0,-1--1--1,,1|(710,210)|
+1,44,24,27,0,0,45,0,0,64,0,-1--1--1,,1|(850,235)|
+1,45,24,26,0,0,45,0,0,64,0,-1--1--1,,1|(850,350)|
+1,46,26,28,0,0,43,0,0,64,0,-1--1--1,,1|(880,315)|
+1,47,27,28,0,0,45,0,0,64,0,-1--1--1,,1|(880,200)|
+12,48,0,330,220,15,15,4,4,0,0,-1,0,0,0
+B
+12,49,0,330,242,67,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B1 Agotamiento del trabajo
+12,50,0,140,420,15,15,5,4,0,0,-1,0,0,0
+R
+12,51,0,140,442,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 Ciclo de retrabajo
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+22:Task,Tasks
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:progreso real
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:200
+26:200

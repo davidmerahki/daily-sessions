@@ -1,0 +1,4 @@
+# Traducciones que PySD genera junto a cada .mdl
+.claude/skills/vensim/examples/*.py
+__pycache__/
+*.pyc

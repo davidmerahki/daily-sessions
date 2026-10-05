@@ -1,0 +1,177 @@
+{UTF-8}
+********************************************************
+	.bass
+********************************************************~
+		Modelo de difusion de Bass (1969) en la formulacion de Sterman (2000), sec. 9.3.3.
+	|
+
+Adoptantes potenciales= INTEG (
+	-tasa de adopcion,
+		poblacion total-adoptantes iniciales)
+	~	Person [0,?]
+	~	Mercado aun no capturado.
+	|
+
+Adoptantes= INTEG (
+	tasa de adopcion,
+		adoptantes iniciales)
+	~	Person [0,?]
+	~	Clientes que ya adoptaron el producto.
+	|
+
+tasa de adopcion=
+	adopcion por publicidad+adopcion por boca a boca
+	~	Person/Year
+	~	Flujo total de adopcion.
+	|
+
+adopcion por publicidad=
+	efectividad de la publicidad*Adoptantes potenciales
+	~	Person/Year
+	~	Innovadores (coeficiente p de Bass). Arranca la difusion aun con \
+		Adoptantes = 0.
+	|
+
+adopcion por boca a boca=
+	tasa de contactos*fraccion de adopcion*Adoptantes potenciales*Adoptantes/poblacion total
+	~	Person/Year
+	~	Imitadores (coeficiente q = c*i de Bass).
+	|
+
+efectividad de la publicidad=
+	0.011
+	~	1/Year [0,0.1,0.001]
+	~	Fraccion de adoptantes potenciales que adopta por publicidad cada año (p).
+	|
+
+tasa de contactos=
+	100
+	~	1/Year [0,200,5]
+	~	Contactos por persona por año (c).
+	|
+
+fraccion de adopcion=
+	0.015
+	~	Dmnl [0,0.1,0.001]
+	~	Probabilidad de adoptar por contacto con un adoptante (i).
+	|
+
+poblacion total=
+	1e+06
+	~	Person
+	~	Tamaño del mercado N.
+	|
+
+adoptantes iniciales=
+	0
+	~	Person
+	~	Sin adoptantes iniciales: la publicidad inicia el proceso.
+	|
+
+fraccion de mercado=
+	Adoptantes/poblacion total
+	~	Dmnl
+	~	Penetracion de mercado.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 15
+	~	Year
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Year
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  =
+        TIME STEP
+	~	Year [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.015625
+	~	Year [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*bass
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Adoptantes potenciales,220,230,40,20,3,3,0,0,0,0,0,0
+10,2,Adoptantes,560,230,40,20,3,3,0,0,0,0,0,0
+1,3,5,2,4,0,0,22,0,0,0,-1--1--1,,1|(518,230)|
+1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(262,230)|
+11,5,48,390,230,6,8,34,3,0,0,1,0,0,0
+10,6,tasa de adopcion,390,246,47,8,40,3,0,0,-1,0,0,0
+10,7,adopcion por publicidad,300,360,35,14,8,3,0,0,0,0,0,0
+10,8,adopcion por boca a boca,520,360,50,14,8,3,0,0,0,0,0,0
+10,9,efectividad de la publicidad,200,450,50,14,8,3,0,0,0,0,0,0
+10,10,tasa de contactos,470,470,50,8,8,3,0,0,0,0,0,0
+10,11,fraccion de adopcion,600,470,32,14,8,3,0,0,0,0,0,0
+10,12,poblacion total,390,120,44,8,8,3,0,0,0,0,0,0
+10,13,adoptantes iniciales,560,120,29,14,8,3,0,0,0,0,0,0
+10,14,fraccion de mercado,720,330,32,14,8,3,0,0,0,0,0,0
+10,15,poblacion total,820,260,44,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,16,7,5,0,0,43,0,0,64,0,-1--1--1,,1|(345,295)|
+1,17,8,5,0,0,43,0,0,64,0,-1--1--1,,1|(455,295)|
+1,18,1,7,1,0,43,0,0,64,0,-1--1--1,,1|(240,310)|
+1,19,9,7,0,0,43,0,0,64,0,-1--1--1,,1|(250,405)|
+1,20,1,8,1,0,43,0,0,64,0,-1--1--1,,1|(380,300)|
+1,21,2,8,1,0,43,0,0,64,0,-1--1--1,,1|(580,310)|
+1,22,10,8,0,0,43,0,0,64,0,-1--1--1,,1|(495,415)|
+1,23,11,8,0,0,43,0,0,64,0,-1--1--1,,1|(560,415)|
+1,24,12,8,0,0,45,0,0,64,0,-1--1--1,,1|(455,240)|
+1,25,12,1,0,0,0,0,0,64,1,-1--1--1,,1|(305,175)|
+1,26,13,1,1,0,0,0,0,64,1,-1--1--1,,1|(400,170)|
+1,27,13,2,0,0,0,0,0,64,1,-1--1--1,,1|(560,175)|
+1,28,2,14,0,0,43,0,0,64,0,-1--1--1,,1|(640,280)|
+1,29,15,14,0,0,45,0,0,64,0,-1--1--1,,1|(770,295)|
+12,30,0,270,300,15,15,4,4,0,0,-1,0,0,0
+B
+12,31,0,270,322,67,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B1 Saturacion (publicidad)
+12,32,0,400,330,15,15,4,4,0,0,-1,0,0,0
+B
+12,33,0,400,352,70,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B2 Saturacion (boca a boca)
+12,34,0,530,300,15,15,5,4,0,0,-1,0,0,0
+R
+12,35,0,530,322,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 Boca a boca
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:Adoptantes
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:15
+26:15

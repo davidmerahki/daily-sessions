@@ -1,0 +1,315 @@
+{UTF-8}
+********************************************************
+	.cadena
+********************************************************~
+		Cadena de envejecimiento (aging chain) de tres cohortes, subindicada por region.
+	|
+
+Region:
+	norte, sur
+	~	
+	~	Rango de subindices: dos regiones con parametros distintos.
+	|
+
+Menores[Region]= INTEG (
+	nacimientos[Region]-maduracion[Region]-muertes de menores[Region],
+		menores iniciales[Region])
+	~	Person [0,?]
+	~	Cohorte 0-15 años.
+	|
+
+Adultos[Region]= INTEG (
+	maduracion[Region]+migracion neta[Region]-envejecimiento[Region]-muertes de adultos[Region],
+		adultos iniciales[Region])
+	~	Person [0,?]
+	~	Cohorte 15-65 años.
+	|
+
+Mayores[Region]= INTEG (
+	envejecimiento[Region]-muertes de mayores[Region],
+		mayores iniciales[Region])
+	~	Person [0,?]
+	~	Cohorte de 65 años y más.
+	|
+
+nacimientos[Region]=
+	Adultos[Region]*fecundidad[Region]
+	~	Person/Year
+	~	Bucle R: más adultos -> más nacimientos -> más menores -> más adultos (con \
+		retraso de 15 años).
+	|
+
+maduracion[Region]=
+	Menores[Region]/duracion de la infancia
+	~	Person/Year
+	~	Salida de primer orden: tiempo medio de residencia en la cohorte.
+	|
+
+envejecimiento[Region]=
+	Adultos[Region]/duracion de la adultez
+	~	Person/Year
+	~	Salida de primer orden hacia la cohorte de mayores.
+	|
+
+muertes de menores[Region]=
+	Menores[Region]*mortalidad infantil[Region]
+	~	Person/Year
+	~	
+	|
+
+muertes de adultos[Region]=
+	Adultos[Region]*mortalidad adulta
+	~	Person/Year
+	~	mortalidad adulta no tiene subindice: el mismo valor se aplica a todas las \
+		regiones.
+	|
+
+muertes de mayores[Region]=
+	Mayores[Region]/esperanza de vida de los mayores[Region]
+	~	Person/Year
+	~	
+	|
+
+migracion neta[norte]=
+	-flujo migratorio ~~|
+migracion neta[sur]=
+	flujo migratorio
+	~	Person/Year
+	~	Ecuaciones por elemento: lo que sale del norte entra al sur (se conserva la poblacion).
+	|
+
+flujo migratorio=
+	Adultos[norte]*fraccion de migracion
+	~	Person/Year
+	~	Adultos que migran de norte a sur cada año.
+	|
+
+fraccion de migracion=
+	0.004
+	~	1/Year [0,0.05,0.001]
+	~	
+	|
+
+fecundidad[Region]=
+	0.04, 0.025
+	~	1/Year
+	~	Nacimientos por adulto por año (norte, sur).
+	|
+
+mortalidad infantil[Region]=
+	0.004, 0.002
+	~	1/Year
+	~	
+	|
+
+mortalidad adulta=
+	0.003
+	~	1/Year
+	~	
+	|
+
+esperanza de vida de los mayores[Region]=
+	12, 16
+	~	Year
+	~	Permanencia media en la cohorte de mayores.
+	|
+
+duracion de la infancia=
+	15
+	~	Year
+	~	
+	|
+
+duracion de la adultez=
+	50
+	~	Year
+	~	
+	|
+
+menores iniciales[Region]=
+	300000, 150000
+	~	Person
+	~	
+	|
+
+adultos iniciales[Region]=
+	600000, 500000
+	~	Person
+	~	
+	|
+
+mayores iniciales[Region]=
+	80000, 120000
+	~	Person
+	~	
+	|
+
+poblacion total[Region]=
+	Menores[Region]+Adultos[Region]+Mayores[Region]
+	~	Person
+	~	
+	|
+
+poblacion total global=
+	SUM(poblacion total[Region!])
+	~	Person
+	~	Suma sobre el rango Region (operador !).
+	|
+
+fraccion de mayores[Region]=
+	ZIDZ(Mayores[Region], poblacion total[Region])
+	~	Dmnl
+	~	
+	|
+
+razon de dependencia[Region]=
+	ZIDZ(Menores[Region]+Mayores[Region], Adultos[Region])
+	~	Dmnl
+	~	Dependientes por adulto en edad de trabajar.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 100
+	~	Year
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Year
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  =
+        TIME STEP
+	~	Year [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.25
+	~	Year [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*cadena de envejecimiento
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Menores,300,220,40,20,3,3,0,0,0,0,0,0
+10,2,Adultos,520,220,40,20,3,3,0,0,0,0,0,0
+10,3,Mayores,740,220,40,20,3,3,0,0,0,0,0,0
+12,4,48,130,220,10,8,0,3,0,0,-1,0,0,0
+1,5,7,1,4,0,0,22,0,0,0,-1--1--1,,1|(258,220)|
+1,6,7,4,100,0,0,22,0,0,0,-1--1--1,,1|(130,220)|
+11,7,48,210,220,6,8,34,3,0,0,1,0,0,0
+10,8,nacimientos,210,236,32,8,40,3,0,0,-1,0,0,0
+1,9,11,2,4,0,0,22,0,0,0,-1--1--1,,1|(478,220)|
+1,10,11,1,100,0,0,22,0,0,0,-1--1--1,,1|(342,220)|
+11,11,48,410,220,6,8,34,3,0,0,1,0,0,0
+10,12,maduracion,410,236,29,8,40,3,0,0,-1,0,0,0
+1,13,15,3,4,0,0,22,0,0,0,-1--1--1,,1|(698,220)|
+1,14,15,2,100,0,0,22,0,0,0,-1--1--1,,1|(562,220)|
+11,15,48,630,220,6,8,34,3,0,0,1,0,0,0
+10,16,envejecimiento,630,236,41,8,40,3,0,0,-1,0,0,0
+12,17,48,300,360,10,8,0,3,0,0,-1,0,0,0
+1,18,20,17,4,0,0,22,0,0,0,-1--1--1,,1|(300,360)|
+1,19,20,1,100,0,0,22,0,0,0,-1--1--1,,1|(300,242)|
+11,20,48,300,300,8,6,33,3,0,0,4,0,0,0
+10,21,muertes de menores,361,300,53,8,40,3,0,0,-1,0,0,0
+12,22,48,520,360,10,8,0,3,0,0,-1,0,0,0
+1,23,25,22,4,0,0,22,0,0,0,-1--1--1,,1|(520,360)|
+1,24,25,2,100,0,0,22,0,0,0,-1--1--1,,1|(520,242)|
+11,25,48,520,300,8,6,33,3,0,0,4,0,0,0
+10,26,muertes de adultos,581,300,53,8,40,3,0,0,-1,0,0,0
+12,27,48,740,360,10,8,0,3,0,0,-1,0,0,0
+1,28,30,27,4,0,0,22,0,0,0,-1--1--1,,1|(740,360)|
+1,29,30,3,100,0,0,22,0,0,0,-1--1--1,,1|(740,242)|
+11,30,48,740,300,8,6,33,3,0,0,4,0,0,0
+10,31,muertes de mayores,801,300,53,8,40,3,0,0,-1,0,0,0
+12,32,48,520,70,10,8,0,3,0,0,-1,0,0,0
+1,33,35,2,4,0,0,22,0,0,0,-1--1--1,,1|(520,198)|
+1,34,35,32,100,0,0,22,0,0,0,-1--1--1,,1|(520,70)|
+11,35,48,520,140,8,6,33,3,0,0,4,0,0,0
+10,36,migracion neta,569,140,41,8,40,3,0,0,-1,0,0,0
+10,37,flujo migratorio,650,80,47,8,8,3,0,0,0,0,0,0
+10,38,fraccion de migracion,760,40,32,14,8,3,0,0,0,0,0,0
+10,39,fecundidad,120,120,29,8,8,3,0,0,0,0,0,0
+10,40,duracion de la infancia,410,160,41,14,8,3,0,0,0,0,0,0
+10,41,duracion de la adultez,690,170,41,14,8,3,0,0,0,0,0,0
+10,42,mortalidad infantil,200,330,29,14,8,3,0,0,0,0,0,0
+10,43,mortalidad adulta,420,340,50,8,8,3,0,0,0,0,0,0
+10,44,esperanza de vida de los mayores,880,300,50,14,8,3,0,0,0,0,0,0
+10,45,menores iniciales,300,420,50,8,8,3,0,0,0,0,0,0
+10,46,adultos iniciales,520,420,50,8,8,3,0,0,0,0,0,0
+10,47,mayores iniciales,740,420,50,8,8,3,0,0,0,0,0,0
+10,48,Menores,200,520,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,49,Mayores,360,520,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,50,Adultos,760,520,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+10,51,razon de dependencia,280,610,32,14,8,3,0,0,0,0,0,0
+10,52,poblacion total,560,640,44,8,8,3,0,0,0,0,0,0
+10,53,fraccion de mayores,420,700,32,14,8,3,0,0,0,0,0,0
+10,54,poblacion total global,760,700,44,14,8,3,0,0,0,0,0,0
+1,55,2,7,1,0,43,0,0,64,0,-1--1--1,,1|(365,95)|
+1,56,39,7,0,0,43,0,0,64,0,-1--1--1,,1|(165,170)|
+1,57,1,11,1,0,43,0,0,64,0,-1--1--1,,1|(355,250)|
+1,58,40,11,0,0,45,0,0,64,0,-1--1--1,,1|(410,190)|
+1,59,2,15,1,0,43,0,0,64,0,-1--1--1,,1|(575,250)|
+1,60,41,15,0,0,45,0,0,64,0,-1--1--1,,1|(660,195)|
+1,61,1,20,1,0,43,0,0,64,0,-1--1--1,,1|(260,270)|
+1,62,42,20,0,0,43,0,0,64,0,-1--1--1,,1|(250,315)|
+1,63,2,25,1,0,43,0,0,64,0,-1--1--1,,1|(480,270)|
+1,64,43,25,0,0,43,0,0,64,0,-1--1--1,,1|(470,320)|
+1,65,3,30,1,0,43,0,0,64,0,-1--1--1,,1|(700,270)|
+1,66,44,30,0,0,45,0,0,64,0,-1--1--1,,1|(810,300)|
+1,67,2,37,1,0,43,0,0,64,0,-1--1--1,,1|(600,120)|
+1,68,38,37,0,0,43,0,0,64,0,-1--1--1,,1|(705,60)|
+1,69,37,35,0,0,0,0,0,64,0,-1--1--1,,1|(585,110)|
+1,70,45,1,1,0,0,0,0,64,1,-1--1--1,,1|(330,330)|
+1,71,46,2,1,0,0,0,0,64,1,-1--1--1,,1|(560,330)|
+1,72,47,3,1,0,0,0,0,64,1,-1--1--1,,1|(780,330)|
+1,73,48,52,0,0,43,0,0,64,0,-1--1--1,,1|(380,580)|
+1,74,49,52,0,0,43,0,0,64,0,-1--1--1,,1|(460,580)|
+1,75,50,52,0,0,43,0,0,64,0,-1--1--1,,1|(660,580)|
+1,76,52,54,0,0,43,0,0,64,0,-1--1--1,,1|(660,670)|
+1,77,49,53,0,0,43,0,0,64,0,-1--1--1,,1|(390,610)|
+1,78,52,53,0,0,45,0,0,64,0,-1--1--1,,1|(490,670)|
+1,79,48,51,0,0,43,0,0,64,0,-1--1--1,,1|(240,565)|
+1,80,49,51,0,0,43,0,0,64,0,-1--1--1,,1|(320,565)|
+1,81,50,51,0,0,45,0,0,64,0,-1--1--1,,1|(520,565)|
+12,82,0,330,160,15,15,4,4,0,0,-1,0,0,0
+R
+12,83,0,330,182,75,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 Reproduccion (aging chain)
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:Adultos[Region]
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:100
+26:100
