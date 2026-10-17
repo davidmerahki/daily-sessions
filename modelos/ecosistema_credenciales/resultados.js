@@ -59,3 +59,35 @@ for (const [nombre, cambios] of PALANCAS) {
   const detalle = Object.entries(cambios).map(([k, v]) => `${k} ${+p(k).toFixed(4)} → ${+v.toFixed(4)}`).join(', ');
   console.log(`| ${nombre} (${detalle}) | ${KPI.map((k) => pct(r(k), base(k))).join(' | ')} |`);
 }
+
+// Táctica T1 (paid media caballo de Troya): está apagada en la base; aquí se enciende
+const t1 = (cambios = {}) => modelo.simular({ cambios: { 'activar paid media': 1, ...cambios } });
+const en = (r, mes, n) => r.serie(n)[r.tiempo.indexOf(mes)];
+const r0 = modelo.simular();
+const usd = (v) => `USD ${Math.round(v).toLocaleString('es-CO')}`;
+const ESCENARIOS_T1 = [
+  ['Supuestos de la táctica', {}],
+  ['4 cupos de virtualización por mes', { 'cupos de virtualizacion gratis por mes': 4 }],
+  ['Pauta de USD 3.000 al mes', { 'presupuesto base de paid media': 3000 }],
+  ['Sin virtualización gratis (solo leads)', { 'cupos de virtualizacion gratis por mes': 0 }],
+  ['Compra el 25 % al terminar la virtualización', { 'fraccion que compra al terminar la virtualizacion': 0.25 }],
+  ['Curso corto: virtualizar cuesta USD 500', { 'costo de una virtualizacion gratis': 500 }],
+  ['Curso corto + primera compra de USD 3.000', { 'costo de una virtualizacion gratis': 500, 'ingreso anual por cliente nuevo': 3000 }],
+  ['Reinvertir 50 % del ingreso en pauta (R8)', { 'fraccion de ingresos reinvertida': 0.5 }],
+];
+const c12 = en(r0, 12, 'Instituciones cliente'), c36 = en(r0, 36, 'Instituciones cliente');
+console.log(`\n| Escenario con T1 encendida | Clientes mes 12 (base ${Math.round(c12)}) | Clientes mes 36 (base ${Math.round(c36)}) `
+  + '| Clientes ganados por T1 (mes 36) | Gasto acumulado (mes 36) | Costo por cliente (mes 36) | Ingreso del 1.er año por dólar (mes 36) |'
+  + '\n|---|---|---|---|---|---|---|');
+for (const [nombre, cambios] of ESCENARIOS_T1) {
+  const r = t1(cambios);
+  const a = en(r, 12, 'Instituciones cliente'), b = en(r, 36, 'Instituciones cliente');
+  console.log(`| ${nombre} | ${Math.round(a)} (${pct(a, c12)}) | ${Math.round(b)} (${pct(b, c36)}) | ${Math.round(en(r, 36, 'Clientes ganados con paid media'))} `
+    + `| ${usd(en(r, 36, 'Gasto acumulado de la tactica'))} | ${usd(en(r, 36, 'costo por cliente de paid media'))} `
+    + `| ${en(r, 36, 'retorno anual por dolar invertido').toFixed(2).replace('.', ',')} |`);
+}
+const rt = t1();
+console.log(`\nPúblico de T1 (instituciones con emisor competidor): ${Math.round(en(rt, 0, 'instituciones con emisor competidor'))} al inicio, `
+  + `${Math.round(en(rt, 12, 'instituciones con emisor competidor'))} al mes 12 y ${Math.round(en(rt, 36, 'instituciones con emisor competidor'))} al mes 36.`);
+const pauta = en(rt, 36, 'presupuesto de paid media') * 36;
+console.log(`Parte del gasto de T1 que es virtualizar (mes 36): ${Math.round((1 - pauta / en(rt, 36, 'Gasto acumulado de la tactica')) * 100)} %.`);

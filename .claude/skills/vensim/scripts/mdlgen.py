@@ -135,6 +135,11 @@ class Sketch:
         # punto de anclaje de cada tuberia: borde del stock / centro de nube
         def anchor(eid, ex, ey):
             if self.kind[eid] == "stock":
+                if (abs(x - ex) > 42) if vertical else (abs(y - ey) > 22):
+                    # tuberia en L: este tramo sale por el lado del stock que mira a la valvula
+                    if abs(x - ex) * 22 >= abs(y - ey) * 42:
+                        return (ex + (42 if x > ex else -42), ey)
+                    return (ex, ey + (22 if y > ey else -22))
                 if vertical:
                     return (x, ey + (22 if y > ey else -22))
                 return (ex + (42 if x > ex else -42), y)

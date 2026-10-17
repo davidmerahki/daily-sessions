@@ -39,23 +39,26 @@ UNIDADES = (
 INSTITUCIONES = join(
     group("instituciones", "Adquisicion de instituciones: prospeccion, pilotos, clientes y churn."),
     level("Instituciones potenciales",
-          "pilotos no convertidos-inicio de pilotos",
+          "pilotos no convertidos-inicio de pilotos-inicio de virtualizaciones gratis",
           "instituciones en el mercado-clientes iniciales-pilotos iniciales", "Institucion",
           "Universidades e IES del mercado objetivo que aun no usan la plataforma.", "[0,?]"),
-    level("Instituciones en piloto", "inicio de pilotos-conversion de pilotos-pilotos no convertidos",
+    level("Instituciones en piloto",
+          "inicio de pilotos+virtualizaciones que pasan al pipeline-conversion de pilotos-pilotos no convertidos",
           "pilotos iniciales", "Institucion",
           "Instituciones probando la plataforma, normalmente desde una unidad academica "
           "(educacion continua o innovacion).", "[0,?]"),
-    level("Instituciones cliente", "conversion de pilotos-churn de instituciones",
+    level("Instituciones cliente", "conversion de pilotos+compras al terminar la virtualizacion-churn de instituciones",
           "clientes iniciales", "Institucion",
           "Instituciones con contrato activo (al menos una unidad academica emitiendo).", "[0,?]"),
     level("Instituciones perdidas", "churn de instituciones", "0", "Institucion",
           "Instituciones que fueron clientes y se fueron (no vuelven al mercado en el horizonte).", "[0,?]"),
     eq("inicio de pilotos",
-       "Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)",
+       "Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)"
+       "+propuestas de paid media sin cupo",
        "Institucion/Month",
        "Nuevos pilotos: prospeccion propia (outbound, eventos, marketing), boca a boca entre "
-       "instituciones (R1) y atraccion porque la credencial ya es moneda de movilidad (R6)."),
+       "instituciones (R1), atraccion porque la credencial ya es moneda de movilidad (R6) y leads "
+       "de la tactica de paid media."),
     eq("contagio institucional",
        "activar boca a boca institucional*efectividad del boca a boca institucional"
        "*Instituciones cliente/instituciones en el mercado",
@@ -118,7 +121,8 @@ UNIDADES_ACADEMICAS = join(
           "unidades iniciales", "Unidad",
           "Unidades academicas emitiendo credenciales (educacion continua, innovacion, facultades...).",
           "[0,?]"),
-    eq("unidades por nuevos clientes", "conversion de pilotos*unidades de entrada por cliente", "Unidad/Month",
+    eq("unidades por nuevos clientes",
+       "(conversion de pilotos+compras al terminar la virtualizacion)*unidades de entrada por cliente", "Unidad/Month",
        "Cada nuevo cliente entra con su unidad de entrada."),
     eq("unidades sin activar en clientes",
        "MAX(0,Instituciones cliente*unidades academicas por institucion-Unidades activas)", "Unidad",
@@ -326,7 +330,111 @@ INTERRUPTORES = join(
     eq("activar boca a boca empresarial", "1", "Dmnl", "Bucle R7.", "[0,1,1]"),
 )
 
-ECUACIONES = join(INSTITUCIONES, UNIDADES_ACADEMICAS, DOCENTES, ESTUDIANTES, EMPRESAS, ECOSISTEMA, INTERRUPTORES)
+# ---------------------------------------------------------------------------
+# 8. Táctica de paid media "caballo de Troya" (apagada en la base)
+# ---------------------------------------------------------------------------
+PAID_MEDIA = join(
+    group("tactica paid media",
+          "Tactica de paid media (caballo de Troya): merahki ofrece virtualizar gratis un curso a "
+          "instituciones que emiten con Certifie o Acredita, y POK trabaja esos leads."),
+    eq("activar paid media", "0", "Dmnl",
+       "INTERRUPTOR de la tactica: 1 la enciende (anuncio de merahki: si tu institucion emite con "
+       "Certifie o Acredita, virtualizamos un curso gratis). 0 = la base de HubSpot, sin la tactica.",
+       "[0,1,1]"),
+    eq("fraccion de potenciales con emisor competidor", "0.3", "Dmnl",
+       "SUPUESTO: parte de las instituciones potenciales que ya emite con otro proveedor. En las "
+       "llamadas, unas 16 de 50 cuentas tenian emisor (caso de uso UC1).", "[0,1,0.05]"),
+    eq("instituciones con emisor competidor",
+       "Instituciones potenciales*fraccion de potenciales con emisor competidor", "Institucion",
+       "Publico del anuncio. Se agota a medida que esas instituciones pasan a POK (bucle B5)."),
+    eq("presupuesto base de paid media", "1500", "USD/Month",
+       "SUPUESTO / PALANCA: pauta mensual (LinkedIn, Meta, Google).", "[0,10000,250]"),
+    eq("costo por lead", "60", "USD/Institucion",
+       "SUPUESTO: costo de que una institucion deje sus datos para pedir la virtualizacion "
+       "gratis.", "[10,300,5]"),
+    eq("fraccion de leads calificados", "0.4", "Dmnl",
+       "SUPUESTO: leads que de verdad emiten con Certifie o Acredita y pueden decidir.", "[0,1,0.05]"),
+    eq("alcance maximo mensual", "0.1", "1/Month",
+       "SUPUESTO: parte de las instituciones con emisor competidor que la pauta puede volver lead "
+       "calificado en un mes, por mucho que se invierta.", "[0,0.5,0.01]"),
+    eq("leads calificados de paid media",
+       "activar paid media*MIN(presupuesto de paid media/costo por lead*fraccion de leads calificados,"
+       "instituciones con emisor competidor*alcance maximo mensual)",
+       "Institucion/Month", "Instituciones que emiten con un competidor y piden la virtualizacion gratis."),
+    eq("cupos de virtualizacion gratis por mes", "2", "Institucion/Month",
+       "SUPUESTO / PALANCA: virtualizaciones gratis que merahki puede entregar por mes.", "[0,10,1]"),
+    eq("inicio de virtualizaciones gratis",
+       "MIN(leads calificados de paid media,cupos de virtualizacion gratis por mes)", "Institucion/Month",
+       "Instituciones que reciben la virtualizacion gratis. El curso se certifica con POK."),
+    level("Virtualizaciones gratis en curso",
+          "inicio de virtualizaciones gratis-compras al terminar la virtualizacion"
+          "-virtualizaciones que pasan al pipeline", "0", "Institucion",
+          "Instituciones con un curso en virtualizacion gratis por merahki.", "[0,?]"),
+    eq("duracion de la virtualizacion", "2", "Month", "SUPUESTO: promesa de 8 semanas de merahki.",
+       "[1,6,0.5]"),
+    eq("fraccion que compra al terminar la virtualizacion", "0.4", "Dmnl",
+       "SUPUESTO: instituciones que compran POK al terminar, con el curso ya certificado "
+       "con POK. Algo mas que el 33 % de los pilotos, por reciprocidad y porque ya vieron sus "
+       "credenciales verificadas.", "[0,1,0.05]"),
+    eq("compras al terminar la virtualizacion",
+       "Virtualizaciones gratis en curso/duracion de la virtualizacion"
+       "*fraccion que compra al terminar la virtualizacion", "Institucion/Month", "Pasan directo a cliente."),
+    eq("virtualizaciones que pasan al pipeline",
+       "Virtualizaciones gratis en curso/duracion de la virtualizacion"
+       "*(1-fraccion que compra al terminar la virtualizacion)", "Institucion/Month",
+       "No compran de inmediato y siguen en el pipeline de POK como pilotos."),
+    eq("fraccion de leads sin cupo que llegan a propuesta", "0.3", "Dmnl",
+       "SUPUESTO: leads sin cupo de virtualizacion que JD o Francely llevan hasta una "
+       "propuesta de POK.", "[0,1,0.05]"),
+    eq("propuestas de paid media sin cupo",
+       "(leads calificados de paid media-inicio de virtualizaciones gratis)"
+       "*fraccion de leads sin cupo que llegan a propuesta", "Institucion/Month",
+       "Leads sin cupo que entran al pipeline de POK como pilotos."),
+    level("Propuestas de paid media en curso",
+          "entrada de propuestas de paid media-salida de propuestas de paid media", "0", "Institucion",
+          "Seguimiento de los pilotos que vinieron de la tactica (ya estan contados en Instituciones "
+          "en piloto); sirve para atribuirle clientes y costo.", "[0,?]"),
+    eq("entrada de propuestas de paid media",
+       "propuestas de paid media sin cupo+virtualizaciones que pasan al pipeline", "Institucion/Month", ""),
+    eq("salida de propuestas de paid media", "Propuestas de paid media en curso/duracion del piloto",
+       "Institucion/Month", "Se deciden al mismo ritmo que el resto del pipeline."),
+    eq("clientes nuevos de paid media",
+       "compras al terminar la virtualizacion+salida de propuestas de paid media*fraccion de conversion de pilotos",
+       "Institucion/Month", ""),
+    level("Clientes ganados con paid media", "clientes nuevos de paid media", "0", "Institucion",
+          "Acumulado de clientes que trajo la tactica, sin descontar churn.", "[0,?]"),
+    eq("ingreso anual por cliente nuevo", "2000", "USD/Institucion",
+       "SUPUESTO: ingreso del primer ano de un cliente POK nuevo. En HubSpot el promedio sin "
+       "Uniandes es de unos USD 1.960; el paquete tipico es NFT de 1.000 credenciales por USD 1.500.",
+       "[500,10000,250]"),
+    eq("meses por ano", "12", "Month", ""),
+    eq("ingreso mensual de clientes de paid media",
+       "Clientes ganados con paid media*ingreso anual por cliente nuevo/meses por ano", "USD/Month", ""),
+    eq("fraccion de ingresos reinvertida", "0", "Dmnl",
+       "SUPUESTO: parte del ingreso de los clientes ganados que vuelve a la pauta (bucle R8). "
+       "0 = presupuesto fijo.", "[0,1,0.05]"),
+    eq("presupuesto de paid media",
+       "activar paid media*(presupuesto base de paid media+fraccion de ingresos reinvertida"
+       "*ingreso mensual de clientes de paid media)", "USD/Month", ""),
+    eq("costo de una virtualizacion gratis", "2000", "USD/Institucion",
+       "SUPUESTO / PALANCA: costo para merahki de virtualizar un curso (no el precio: el setup Starter "
+       "se vende en USD 2.975).", "[0,6000,250]"),
+    eq("gasto de la tactica",
+       "presupuesto de paid media+inicio de virtualizaciones gratis*costo de una virtualizacion gratis",
+       "USD/Month", "Pauta mas virtualizaciones regaladas."),
+    level("Gasto acumulado de la tactica", "gasto de la tactica", "0", "USD", "", "[0,?]"),
+    eq("costo por cliente de paid media",
+       "ZIDZ(Gasto acumulado de la tactica,Clientes ganados con paid media)", "USD/Institucion",
+       "CAC de la tactica."),
+    eq("retorno anual por dolar invertido",
+       "ZIDZ(Clientes ganados con paid media*ingreso anual por cliente nuevo,Gasto acumulado de la tactica)",
+       "Dmnl",
+       "Ingreso del primer ano de los clientes ganados por cada dolar gastado. Mayor que 1: la tactica "
+       "se paga en el primer ano."),
+)
+
+ECUACIONES = join(INSTITUCIONES, UNIDADES_ACADEMICAS, DOCENTES, ESTUDIANTES, EMPRESAS, ECOSISTEMA,
+                  INTERRUPTORES, PAID_MEDIA)
 
 
 # ---------------------------------------------------------------------------
@@ -337,21 +445,34 @@ VISTAS = [
     dict(
         titulo="1 instituciones",
         stocks={"Instituciones potenciales": (170, 300), "Instituciones en piloto": (480, 300),
-                "Instituciones cliente": (790, 300), "Instituciones perdidas": (1100, 300)},
+                "Instituciones cliente": (790, 300), "Instituciones perdidas": (1100, 300),
+                "Virtualizaciones gratis en curso": (480, 640)},
         flujos=[("inicio de pilotos", "Instituciones potenciales", "Instituciones en piloto", 325, 288, "above"),
                 ("pilotos no convertidos", "Instituciones en piloto", "Instituciones potenciales", 325, 313, "below"),
                 ("conversion de pilotos", "Instituciones en piloto", "Instituciones cliente", 635, 300, "below"),
-                ("churn de instituciones", "Instituciones cliente", "Instituciones perdidas", 945, 300, "below")],
+                ("churn de instituciones", "Instituciones cliente", "Instituciones perdidas", 945, 300, "below"),
+                # táctica de paid media: tuberías en L por debajo de la cadena principal
+                ("inicio de virtualizaciones gratis", "Instituciones potenciales", "Virtualizaciones gratis en curso",
+                 170, 640, "below"),
+                ("virtualizaciones que pasan al pipeline", "Virtualizaciones gratis en curso", "Instituciones en piloto",
+                 480, 530, "right", True),
+                ("compras al terminar la virtualizacion", "Virtualizaciones gratis en curso", "Instituciones cliente",
+                 790, 640, "below")],
         aux={"fraccion de prospeccion": (170, 175), "contagio institucional": (325, 175),
              "atraccion del ecosistema": (480, 175),
              "activar boca a boca institucional": (190, 85), "efectividad del boca a boca institucional": (340, 50),
              "instituciones en el mercado": (60, 420),
              "atraccion maxima por valor de la credencial": (470, 60),
              "activar flywheel del ecosistema": (800, 45),
-             "duracion del piloto": (480, 450), "fraccion de conversion de pilotos": (650, 450),
-             "pilotos iniciales": (350, 420), "clientes iniciales": (790, 420),
-             "fraccion de churn institucional": (900, 450), "reduccion maxima del churn por valor": (1130, 420)},
-        sombras={"Valor percibido de la credencial": (760, 170)},
+             "duracion del piloto": (580, 420), "fraccion de conversion de pilotos": (700, 450),
+             "pilotos iniciales": (350, 420), "clientes iniciales": (870, 390),
+             "fraccion de churn institucional": (950, 450), "reduccion maxima del churn por valor": (1130, 420),
+             "propuestas de paid media sin cupo": (330, 560),
+             "fraccion de leads sin cupo que llegan a propuesta": (250, 480),
+             "cupos de virtualizacion gratis por mes": (300, 740),
+             "duracion de la virtualizacion": (560, 750),
+             "fraccion que compra al terminar la virtualizacion": (680, 560)},
+        sombras={"Valor percibido de la credencial": (760, 170), "leads calificados de paid media": (60, 560)},
         bucles=[("R", 400, 230, "R1 boca a boca", False), ("R", 600, 230, "R6 ecosistema", False),
                 ("B", 250, 245, "B1 saturacion", True)],
     ),
@@ -368,7 +489,7 @@ VISTAS = [
              "unidades de entrada por cliente": (250, 430), "unidades iniciales": (420, 420),
              "fraccion de churn de unidades": (820, 410)},
         sombras={"conversion de pilotos": (200, 230), "Instituciones cliente": (980, 260),
-                 "churn de instituciones": (300, 540)},
+                 "churn de instituciones": (300, 540), "compras al terminar la virtualizacion": (130, 170)},
         bucles=[("R", 640, 260, "R2 land and expand", False), ("B", 420, 240, "B2 saturacion interna", True)],
     ),
     dict(
@@ -435,6 +556,30 @@ VISTAS = [
         sombras={"compartidas por titulares": (120, 180), "verificaciones de empresas": (120, 320),
                  "Empresas usuarias": (580, 120)},
         bucles=[],
+    ),
+    dict(
+        titulo="7 paid media",
+        stocks={"Propuestas de paid media en curso": (500, 400), "Clientes ganados con paid media": (1000, 400),
+                "Gasto acumulado de la tactica": (800, 640)},
+        flujos=[("entrada de propuestas de paid media", (220, 400), "Propuestas de paid media en curso",
+                 350, 400, "below"),
+                ("salida de propuestas de paid media", "Propuestas de paid media en curso", (700, 400),
+                 610, 400, "below"),
+                ("clientes nuevos de paid media", (860, 400), "Clientes ganados con paid media", 920, 400, "above"),
+                ("gasto de la tactica", (560, 640), "Gasto acumulado de la tactica", 680, 640, "below")],
+        aux={"activar paid media": (420, 50), "fraccion de potenciales con emisor competidor": (230, 40),
+             "instituciones con emisor competidor": (180, 130), "alcance maximo mensual": (80, 230),
+             "leads calificados de paid media": (400, 190), "costo por lead": (610, 60),
+             "fraccion de leads calificados": (630, 130), "presupuesto de paid media": (640, 250),
+             "presupuesto base de paid media": (820, 170), "fraccion de ingresos reinvertida": (1010, 120),
+             "ingreso mensual de clientes de paid media": (1000, 250), "ingreso anual por cliente nuevo": (1180, 300),
+             "meses por ano": (1180, 200), "costo de una virtualizacion gratis": (520, 740),
+             "costo por cliente de paid media": (1060, 600), "retorno anual por dolar invertido": (1060, 720)},
+        sombras={"Instituciones potenciales": (60, 60), "propuestas de paid media sin cupo": (150, 330),
+                 "virtualizaciones que pasan al pipeline": (150, 480), "duracion del piloto": (560, 300),
+                 "compras al terminar la virtualizacion": (780, 500), "fraccion de conversion de pilotos": (700, 330),
+                 "inicio de virtualizaciones gratis": (380, 640)},
+        bucles=[("R", 820, 320, "R8 pauta pagada", True), ("B", 300, 120, "B5 publico se agota", False)],
     ),
 ]
 

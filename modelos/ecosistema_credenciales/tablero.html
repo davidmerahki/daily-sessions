@@ -401,8 +401,8 @@
           <div id="palancas"></div>
         </section>
         <section id="sec-bucles">
-          <div class="panel-head"><h2>Flywheels</h2></div>
-          <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él.</p>
+          <div class="panel-head"><h2>Flywheels y tácticas</h2></div>
+          <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él. Las tácticas (T) empiezan apagadas: enciende una para ver su efecto.</p>
           <div id="bucles" style="display:grid;gap:12px"></div>
         </section>
         <section>
@@ -533,14 +533,14 @@
 	|
 
 Instituciones potenciales= INTEG (
-	pilotos no convertidos-inicio de pilotos,
+	pilotos no convertidos-inicio de pilotos-inicio de virtualizaciones gratis,
 		instituciones en el mercado-clientes iniciales-pilotos iniciales)
 	~	Institucion [0,?]
 	~	Universidades e IES del mercado objetivo que aun no usan la plataforma.
 	|
 
 Instituciones en piloto= INTEG (
-	inicio de pilotos-conversion de pilotos-pilotos no convertidos,
+	inicio de pilotos+virtualizaciones que pasan al pipeline-conversion de pilotos-pilotos no convertidos,
 		pilotos iniciales)
 	~	Institucion [0,?]
 	~	Instituciones probando la plataforma, normalmente desde una unidad \
@@ -548,7 +548,7 @@ Instituciones en piloto= INTEG (
 	|
 
 Instituciones cliente= INTEG (
-	conversion de pilotos-churn de instituciones,
+	conversion de pilotos+compras al terminar la virtualizacion-churn de instituciones,
 		clientes iniciales)
 	~	Institucion [0,?]
 	~	Instituciones con contrato activo (al menos una unidad academica \
@@ -564,11 +564,11 @@ Instituciones perdidas= INTEG (
 	|
 
 inicio de pilotos=
-	Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)
+	Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)+propuestas de paid media sin cupo
 	~	Institucion/Month
 	~	Nuevos pilotos: prospeccion propia (outbound, eventos, marketing), boca a \
-		boca entre instituciones (R1) y atraccion porque la credencial ya es \
-		moneda de movilidad (R6).
+		boca entre instituciones (R1), atraccion porque la credencial ya es moneda \
+		de movilidad (R6) y leads de la tactica de paid media.
 	|
 
 contagio institucional=
@@ -693,7 +693,7 @@ Unidades activas= INTEG (
 	|
 
 unidades por nuevos clientes=
-	conversion de pilotos*unidades de entrada por cliente
+	(conversion de pilotos+compras al terminar la virtualizacion)*unidades de entrada por cliente
 	~	Unidad/Month
 	~	Cada nuevo cliente entra con su unidad de entrada.
 	|
@@ -1270,6 +1270,228 @@ activar boca a boca empresarial=
 	|
 
 ********************************************************
+	.tactica paid media
+********************************************************~
+		Tactica de paid media (caballo de Troya): merahki ofrece virtualizar gratis un curso a instituciones que emiten con Certifie o Acredita, y POK trabaja esos leads.
+	|
+
+activar paid media=
+	0
+	~	Dmnl [0,1,1]
+	~	SUPUESTO / PALANCA: 1 enciende la tactica (anuncio de merahki: si tu \
+		institucion emite con Certifie o Acredita, virtualizamos un curso gratis). \
+		0 = la base de HubSpot, sin la tactica.
+	|
+
+fraccion de potenciales con emisor competidor=
+	0.3
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: parte de las instituciones potenciales que ya emite con otro \
+		proveedor. En las llamadas, unas 16 de 50 cuentas tenian emisor (caso de \
+		uso UC1).
+	|
+
+instituciones con emisor competidor=
+	Instituciones potenciales*fraccion de potenciales con emisor competidor
+	~	Institucion
+	~	Publico del anuncio. Se agota a medida que esas instituciones pasan a POK \
+		(bucle B5).
+	|
+
+presupuesto base de paid media=
+	1500
+	~	USD/Month [0,10000,250]
+	~	SUPUESTO / PALANCA: pauta mensual (LinkedIn, Meta, Google).
+	|
+
+costo por lead=
+	60
+	~	USD/Institucion [10,300,5]
+	~	SUPUESTO / PALANCA: costo de que una institucion deje sus datos para pedir \
+		la virtualizacion gratis.
+	|
+
+fraccion de leads calificados=
+	0.4
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: leads que de verdad emiten con Certifie o Acredita y pueden \
+		decidir.
+	|
+
+alcance maximo mensual=
+	0.1
+	~	1/Month [0,0.5,0.01]
+	~	SUPUESTO: parte de las instituciones con emisor competidor que la pauta \
+		puede volver lead calificado en un mes, por mucho que se invierta.
+	|
+
+leads calificados de paid media=
+	activar paid media*MIN(presupuesto de paid media/costo por lead*fraccion de leads calificados,instituciones con emisor competidor*alcance maximo mensual)
+	~	Institucion/Month
+	~	Instituciones que emiten con un competidor y piden la virtualizacion \
+		gratis.
+	|
+
+cupos de virtualizacion gratis por mes=
+	2
+	~	Institucion/Month [0,10,1]
+	~	SUPUESTO / PALANCA: virtualizaciones gratis que merahki puede entregar por \
+		mes.
+	|
+
+inicio de virtualizaciones gratis=
+	MIN(leads calificados de paid media,cupos de virtualizacion gratis por mes)
+	~	Institucion/Month
+	~	Instituciones que reciben la virtualizacion gratis. El curso se certifica \
+		con POK.
+	|
+
+Virtualizaciones gratis en curso= INTEG (
+	inicio de virtualizaciones gratis-compras al terminar la virtualizacion-virtualizaciones que pasan al pipeline,
+		0)
+	~	Institucion [0,?]
+	~	Instituciones con un curso en virtualizacion gratis por merahki.
+	|
+
+duracion de la virtualizacion=
+	2
+	~	Month [1,6,0.5]
+	~	SUPUESTO: promesa de 8 semanas de merahki.
+	|
+
+fraccion que compra al terminar la virtualizacion=
+	0.4
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA: instituciones que compran POK al terminar, con el \
+		curso ya certificado con POK. Algo mas que el 33 % de los pilotos, por \
+		reciprocidad y porque ya vieron sus credenciales verificadas.
+	|
+
+compras al terminar la virtualizacion=
+	Virtualizaciones gratis en curso/duracion de la virtualizacion*fraccion que compra al terminar la virtualizacion
+	~	Institucion/Month
+	~	Pasan directo a cliente.
+	|
+
+virtualizaciones que pasan al pipeline=
+	Virtualizaciones gratis en curso/duracion de la virtualizacion*(1-fraccion que compra al terminar la virtualizacion)
+	~	Institucion/Month
+	~	No compran de inmediato y siguen en el pipeline de POK como pilotos.
+	|
+
+fraccion de leads sin cupo que llegan a propuesta=
+	0.3
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA: leads sin cupo de virtualizacion que JD o Francely \
+		llevan hasta una propuesta de POK.
+	|
+
+propuestas de paid media sin cupo=
+	(leads calificados de paid media-inicio de virtualizaciones gratis)*fraccion de leads sin cupo que llegan a propuesta
+	~	Institucion/Month
+	~	Leads sin cupo que entran al pipeline de POK como pilotos.
+	|
+
+Propuestas de paid media en curso= INTEG (
+	entrada de propuestas de paid media-salida de propuestas de paid media,
+		0)
+	~	Institucion [0,?]
+	~	Seguimiento de los pilotos que vinieron de la tactica (ya estan contados \
+		en Instituciones en piloto); sirve para atribuirle clientes y costo.
+	|
+
+entrada de propuestas de paid media=
+	propuestas de paid media sin cupo+virtualizaciones que pasan al pipeline
+	~	Institucion/Month
+	~	
+	|
+
+salida de propuestas de paid media=
+	Propuestas de paid media en curso/duracion del piloto
+	~	Institucion/Month
+	~	Se deciden al mismo ritmo que el resto del pipeline.
+	|
+
+clientes nuevos de paid media=
+	compras al terminar la virtualizacion+salida de propuestas de paid media*fraccion de conversion de pilotos
+	~	Institucion/Month
+	~	
+	|
+
+Clientes ganados con paid media= INTEG (
+	clientes nuevos de paid media,
+		0)
+	~	Institucion [0,?]
+	~	Acumulado de clientes que trajo la tactica, sin descontar churn.
+	|
+
+ingreso anual por cliente nuevo=
+	2000
+	~	USD/Institucion [500,10000,250]
+	~	SUPUESTO / PALANCA: ingreso del primer ano de un cliente POK nuevo. En \
+		HubSpot el promedio sin Uniandes es de unos USD 1.960; el paquete tipico \
+		es NFT de 1.000 credenciales por USD 1.500.
+	|
+
+meses por ano=
+	12
+	~	Month
+	~	
+	|
+
+ingreso mensual de clientes de paid media=
+	Clientes ganados con paid media*ingreso anual por cliente nuevo/meses por ano
+	~	USD/Month
+	~	
+	|
+
+fraccion de ingresos reinvertida=
+	0
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA: parte del ingreso de los clientes ganados que vuelve a \
+		la pauta (bucle R8). 0 = presupuesto fijo.
+	|
+
+presupuesto de paid media=
+	activar paid media*(presupuesto base de paid media+fraccion de ingresos reinvertida*ingreso mensual de clientes de paid media)
+	~	USD/Month
+	~	
+	|
+
+costo de una virtualizacion gratis=
+	2000
+	~	USD/Institucion [0,6000,250]
+	~	SUPUESTO / PALANCA: costo para merahki de virtualizar un curso (no el \
+		precio: el setup Starter se vende en USD 2.975).
+	|
+
+gasto de la tactica=
+	presupuesto de paid media+inicio de virtualizaciones gratis*costo de una virtualizacion gratis
+	~	USD/Month
+	~	Pauta mas virtualizaciones regaladas.
+	|
+
+Gasto acumulado de la tactica= INTEG (
+	gasto de la tactica,
+		0)
+	~	USD [0,?]
+	~	
+	|
+
+costo por cliente de paid media=
+	ZIDZ(Gasto acumulado de la tactica,Clientes ganados con paid media)
+	~	USD/Institucion
+	~	CAC de la tactica.
+	|
+
+retorno anual por dolar invertido=
+	ZIDZ(Clientes ganados con paid media*ingreso anual por cliente nuevo,Gasto acumulado de la tactica)
+	~	Dmnl
+	~	Ingreso del primer ano de los clientes ganados por cada dolar gastado. \
+		Mayor que 1: la tactica se paga en el primer ano.
+	|
+
+********************************************************
 	.Control
 ********************************************************~
 		Simulation Control Parameters
@@ -1303,75 +1525,106 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
 10,2,Instituciones en piloto,480,300,40,20,3,3,0,0,0,0,0,0
 10,3,Instituciones cliente,790,300,40,20,3,3,0,0,0,0,0,0
 10,4,Instituciones perdidas,1100,300,40,20,3,3,0,0,0,0,0,0
-1,5,7,2,4,0,0,22,0,0,0,-1--1--1,,1|(438,288)|
-1,6,7,1,100,0,0,22,0,0,0,-1--1--1,,1|(212,288)|
-11,7,48,325,288,6,8,34,3,0,0,1,0,0,0
-10,8,inicio de pilotos,325,272,50,8,40,3,0,0,-1,0,0,0
-1,9,11,1,4,0,0,22,0,0,0,-1--1--1,,1|(212,313)|
-1,10,11,2,100,0,0,22,0,0,0,-1--1--1,,1|(438,313)|
-11,11,48,325,313,6,8,34,3,0,0,1,0,0,0
-10,12,pilotos no convertidos,325,335,32,14,40,3,0,0,-1,0,0,0
-1,13,15,3,4,0,0,22,0,0,0,-1--1--1,,1|(748,300)|
-1,14,15,2,100,0,0,22,0,0,0,-1--1--1,,1|(522,300)|
-11,15,48,635,300,6,8,34,3,0,0,1,0,0,0
-10,16,conversion de pilotos,635,322,38,14,40,3,0,0,-1,0,0,0
-1,17,19,4,4,0,0,22,0,0,0,-1--1--1,,1|(1058,300)|
-1,18,19,3,100,0,0,22,0,0,0,-1--1--1,,1|(832,300)|
-11,19,48,945,300,6,8,34,3,0,0,1,0,0,0
-10,20,churn de instituciones,945,322,38,14,40,3,0,0,-1,0,0,0
-10,21,fraccion de prospeccion,170,175,32,14,8,3,0,0,0,0,0,0
-10,22,contagio institucional,325,175,38,14,8,3,0,0,0,0,0,0
-10,23,atraccion del ecosistema,480,175,38,14,8,3,0,0,0,0,0,0
-10,24,activar boca a boca institucional,190,85,53,14,8,3,0,0,0,0,0,0
-10,25,efectividad del boca a boca institucional,340,50,44,20,8,3,0,0,0,0,0,0
-10,26,instituciones en el mercado,60,420,47,14,8,3,0,0,0,0,0,0
-10,27,atraccion maxima por valor de la credencial,470,60,47,20,8,3,0,0,0,0,0,0
-10,28,activar flywheel del ecosistema,800,45,47,14,8,3,0,0,0,0,0,0
-10,29,duracion del piloto,480,450,35,14,8,3,0,0,0,0,0,0
-10,30,fraccion de conversion de pilotos,650,450,38,20,8,3,0,0,0,0,0,0
-10,31,pilotos iniciales,350,420,50,8,8,3,0,0,0,0,0,0
-10,32,clientes iniciales,790,420,53,8,8,3,0,0,0,0,0,0
-10,33,fraccion de churn institucional,900,450,50,14,8,3,0,0,0,0,0,0
-10,34,reduccion maxima del churn por valor,1130,420,47,20,8,3,0,0,0,0,0,0
-1,35,26,1,0,0,0,0,0,64,1,-1--1--1,,1|(115,360)|
-1,36,32,1,0,0,0,0,0,64,1,-1--1--1,,1|(480,360)|
-1,37,31,1,0,0,0,0,0,64,1,-1--1--1,,1|(260,360)|
-1,38,31,2,0,0,0,0,0,64,1,-1--1--1,,1|(415,360)|
-1,39,32,3,0,0,0,0,0,64,1,-1--1--1,,1|(790,360)|
-1,40,1,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,294)|
-1,41,21,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,231)|
-1,42,22,7,0,0,43,0,0,64,0,-1--1--1,,1|(325,231)|
-1,43,23,7,0,0,43,0,0,64,0,-1--1--1,,1|(402,231)|
-1,44,2,11,0,0,43,0,0,64,0,-1--1--1,,1|(402,306)|
-1,45,29,11,0,0,45,0,0,64,0,-1--1--1,,1|(402,381)|
-1,46,30,11,0,0,45,0,0,64,0,-1--1--1,,1|(487,381)|
-1,47,2,15,0,0,43,0,0,64,0,-1--1--1,,1|(557,300)|
-1,48,29,15,0,0,45,0,0,64,0,-1--1--1,,1|(557,375)|
-1,49,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(642,375)|
-1,50,3,19,0,0,43,0,0,64,0,-1--1--1,,1|(867,300)|
-1,51,33,19,0,0,43,0,0,64,0,-1--1--1,,1|(922,375)|
-1,52,28,19,0,0,45,0,0,64,0,-1--1--1,,1|(872,172)|
-1,53,34,19,0,0,45,0,0,64,0,-1--1--1,,1|(1037,360)|
-10,54,Valor percibido de la credencial,760,170,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
-1,55,54,19,0,0,45,0,0,64,0,-1--1--1,,1|(852,235)|
-1,56,24,22,0,0,43,0,0,64,0,-1--1--1,,1|(257,130)|
-1,57,25,22,0,0,43,0,0,64,0,-1--1--1,,1|(332,112)|
-1,58,3,22,0,0,43,0,0,64,0,-1--1--1,,1|(557,237)|
-1,59,26,22,0,0,45,0,0,64,0,-1--1--1,,1|(192,297)|
-1,60,28,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,110)|
-1,61,27,23,0,0,43,0,0,64,0,-1--1--1,,1|(475,117)|
-1,62,54,23,0,0,43,0,0,64,0,-1--1--1,,1|(620,172)|
-12,63,0,400,230,15,15,5,4,0,0,-1,0,0,0
+10,5,Virtualizaciones gratis en curso,480,640,40,20,3,3,0,0,0,0,0,0
+1,6,8,2,4,0,0,22,0,0,0,-1--1--1,,1|(438,288)|
+1,7,8,1,100,0,0,22,0,0,0,-1--1--1,,1|(212,288)|
+11,8,48,325,288,6,8,34,3,0,0,1,0,0,0
+10,9,inicio de pilotos,325,272,50,8,40,3,0,0,-1,0,0,0
+1,10,12,1,4,0,0,22,0,0,0,-1--1--1,,1|(212,313)|
+1,11,12,2,100,0,0,22,0,0,0,-1--1--1,,1|(438,313)|
+11,12,48,325,313,6,8,34,3,0,0,1,0,0,0
+10,13,pilotos no convertidos,325,335,32,14,40,3,0,0,-1,0,0,0
+1,14,16,3,4,0,0,22,0,0,0,-1--1--1,,1|(748,300)|
+1,15,16,2,100,0,0,22,0,0,0,-1--1--1,,1|(522,300)|
+11,16,48,635,300,6,8,34,3,0,0,1,0,0,0
+10,17,conversion de pilotos,635,322,38,14,40,3,0,0,-1,0,0,0
+1,18,20,4,4,0,0,22,0,0,0,-1--1--1,,1|(1058,300)|
+1,19,20,3,100,0,0,22,0,0,0,-1--1--1,,1|(832,300)|
+11,20,48,945,300,6,8,34,3,0,0,1,0,0,0
+10,21,churn de instituciones,945,322,38,14,40,3,0,0,-1,0,0,0
+1,22,24,5,4,0,0,22,0,0,0,-1--1--1,,1|(438,640)|
+1,23,24,1,100,0,0,22,0,0,0,-1--1--1,,1|(170,322)|
+11,24,48,170,640,6,8,34,3,0,0,1,0,0,0
+10,25,inicio de virtualizaciones gratis,170,668,47,20,40,3,0,0,-1,0,0,0
+1,26,28,2,4,0,0,22,0,0,0,-1--1--1,,1|(480,322)|
+1,27,28,5,100,0,0,22,0,0,0,-1--1--1,,1|(480,618)|
+11,28,48,480,530,8,6,33,3,0,0,4,0,0,0
+10,29,virtualizaciones que pasan al pipeline,535,530,47,20,40,3,0,0,-1,0,0,0
+1,30,32,3,4,0,0,22,0,0,0,-1--1--1,,1|(790,322)|
+1,31,32,5,100,0,0,22,0,0,0,-1--1--1,,1|(522,640)|
+11,32,48,790,640,6,8,34,3,0,0,1,0,0,0
+10,33,compras al terminar la virtualizacion,790,668,41,20,40,3,0,0,-1,0,0,0
+10,34,fraccion de prospeccion,170,175,32,14,8,3,0,0,0,0,0,0
+10,35,contagio institucional,325,175,38,14,8,3,0,0,0,0,0,0
+10,36,atraccion del ecosistema,480,175,38,14,8,3,0,0,0,0,0,0
+10,37,activar boca a boca institucional,190,85,53,14,8,3,0,0,0,0,0,0
+10,38,efectividad del boca a boca institucional,340,50,44,20,8,3,0,0,0,0,0,0
+10,39,instituciones en el mercado,60,420,47,14,8,3,0,0,0,0,0,0
+10,40,atraccion maxima por valor de la credencial,470,60,47,20,8,3,0,0,0,0,0,0
+10,41,activar flywheel del ecosistema,800,45,47,14,8,3,0,0,0,0,0,0
+10,42,duracion del piloto,580,420,35,14,8,3,0,0,0,0,0,0
+10,43,fraccion de conversion de pilotos,700,450,38,20,8,3,0,0,0,0,0,0
+10,44,pilotos iniciales,350,420,50,8,8,3,0,0,0,0,0,0
+10,45,clientes iniciales,870,390,53,8,8,3,0,0,0,0,0,0
+10,46,fraccion de churn institucional,950,450,50,14,8,3,0,0,0,0,0,0
+10,47,reduccion maxima del churn por valor,1130,420,47,20,8,3,0,0,0,0,0,0
+10,48,propuestas de paid media sin cupo,330,560,53,14,8,3,0,0,0,0,0,0
+10,49,fraccion de leads sin cupo que llegan a propuesta,250,480,53,20,8,3,0,0,0,0,0,0
+10,50,cupos de virtualizacion gratis por mes,300,740,41,20,8,3,0,0,0,0,0,0
+10,51,duracion de la virtualizacion,560,750,41,14,8,3,0,0,0,0,0,0
+10,52,fraccion que compra al terminar la virtualizacion,680,560,53,20,8,3,0,0,0,0,0,0
+1,53,39,1,0,0,0,0,0,64,1,-1--1--1,,1|(115,360)|
+1,54,45,1,0,0,0,0,0,64,1,-1--1--1,,1|(520,345)|
+1,55,44,1,0,0,0,0,0,64,1,-1--1--1,,1|(260,360)|
+1,56,44,2,0,0,0,0,0,64,1,-1--1--1,,1|(415,360)|
+1,57,45,3,0,0,0,0,0,64,1,-1--1--1,,1|(830,345)|
+1,58,1,8,0,0,43,0,0,64,0,-1--1--1,,1|(247,294)|
+1,59,34,8,0,0,43,0,0,64,0,-1--1--1,,1|(247,231)|
+1,60,35,8,0,0,43,0,0,64,0,-1--1--1,,1|(325,231)|
+1,61,36,8,0,0,43,0,0,64,0,-1--1--1,,1|(402,231)|
+1,62,48,8,0,0,43,0,0,64,0,-1--1--1,,1|(327,424)|
+1,63,2,12,0,0,43,0,0,64,0,-1--1--1,,1|(402,306)|
+1,64,42,12,0,0,45,0,0,64,0,-1--1--1,,1|(452,366)|
+1,65,43,12,0,0,45,0,0,64,0,-1--1--1,,1|(512,381)|
+1,66,2,16,0,0,43,0,0,64,0,-1--1--1,,1|(557,300)|
+1,67,42,16,0,0,45,0,0,64,0,-1--1--1,,1|(607,360)|
+1,68,43,16,0,0,43,0,0,64,0,-1--1--1,,1|(667,375)|
+1,69,3,20,0,0,43,0,0,64,0,-1--1--1,,1|(867,300)|
+1,70,46,20,0,0,43,0,0,64,0,-1--1--1,,1|(947,375)|
+1,71,41,20,0,0,45,0,0,64,0,-1--1--1,,1|(872,172)|
+1,72,47,20,0,0,45,0,0,64,0,-1--1--1,,1|(1037,360)|
+10,73,Valor percibido de la credencial,760,170,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,74,73,20,0,0,45,0,0,64,0,-1--1--1,,1|(852,235)|
+10,75,leads calificados de paid media,60,560,50,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,76,75,24,0,0,43,0,0,64,0,-1--1--1,,1|(115,600)|
+1,77,50,24,0,0,0,0,0,64,0,-1--1--1,,1|(235,690)|
+1,78,5,28,0,0,43,0,0,64,0,-1--1--1,,1|(480,585)|
+1,79,51,28,0,0,0,0,0,64,0,-1--1--1,,1|(520,640)|
+1,80,52,28,0,0,0,0,0,64,0,-1--1--1,,1|(580,545)|
+1,81,5,32,0,0,43,0,0,64,0,-1--1--1,,1|(635,640)|
+1,82,51,32,0,0,0,0,0,64,0,-1--1--1,,1|(675,695)|
+1,83,52,32,0,0,0,0,0,64,0,-1--1--1,,1|(735,600)|
+1,84,37,35,0,0,43,0,0,64,0,-1--1--1,,1|(257,130)|
+1,85,38,35,0,0,43,0,0,64,0,-1--1--1,,1|(332,112)|
+1,86,3,35,0,0,43,0,0,64,0,-1--1--1,,1|(557,237)|
+1,87,39,35,0,0,45,0,0,64,0,-1--1--1,,1|(192,297)|
+1,88,41,36,0,0,43,0,0,64,0,-1--1--1,,1|(640,110)|
+1,89,40,36,0,0,43,0,0,64,0,-1--1--1,,1|(475,117)|
+1,90,73,36,0,0,43,0,0,64,0,-1--1--1,,1|(620,172)|
+1,91,75,48,0,0,43,0,0,64,0,-1--1--1,,1|(195,560)|
+1,92,24,48,0,0,45,0,0,64,0,-1--1--1,,1|(250,600)|
+1,93,49,48,0,0,0,0,0,64,0,-1--1--1,,1|(290,520)|
+12,94,0,400,230,15,15,5,4,0,0,-1,0,0,0
 R
-12,64,0,400,252,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+12,95,0,400,252,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
 R1 boca a boca
-12,65,0,600,230,15,15,5,4,0,0,-1,0,0,0
+12,96,0,600,230,15,15,5,4,0,0,-1,0,0,0
 R
-12,66,0,600,252,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+12,97,0,600,252,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
 R6 ecosistema
-12,67,0,250,245,15,15,4,4,0,0,-1,0,0,0
+12,98,0,250,245,15,15,4,4,0,0,-1,0,0,0
 B
-12,68,0,250,267,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+12,99,0,250,267,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
 B1 saturacion
 \\\---/// Sketch information - do not modify anything except names
 V300  Do not put anything below this section - it will be ignored
@@ -1410,32 +1663,34 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
 1,31,29,1,0,0,0,0,0,64,1,-1--1--1,,1|(470,370)|
 10,32,conversion de pilotos,200,230,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
 1,33,32,5,0,0,43,0,0,64,0,-1--1--1,,1|(280,275)|
-1,34,28,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,375)|
-1,35,22,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,170)|
-1,36,24,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,130)|
-1,37,25,10,0,0,43,0,0,64,0,-1--1--1,,1|(610,130)|
-1,38,26,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,162)|
-1,39,23,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,200)|
-1,40,1,15,0,0,43,0,0,64,0,-1--1--1,,1|(605,320)|
-1,41,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(755,365)|
-10,42,churn de instituciones,300,540,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
-1,43,42,20,0,0,43,0,0,64,0,-1--1--1,,1|(410,495)|
-1,44,1,20,0,0,43,0,0,64,0,-1--1--1,,1|(520,385)|
-10,45,Instituciones cliente,980,260,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
-1,46,45,20,0,0,45,0,0,64,0,-1--1--1,,1|(750,355)|
-1,47,45,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,200)|
-1,48,27,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,140)|
-1,49,1,22,0,0,45,0,0,64,0,-1--1--1,,1|(425,230)|
-1,50,1,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,260)|
-1,51,45,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,230)|
-1,52,27,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,170)|
-12,53,0,640,260,15,15,5,4,0,0,-1,0,0,0
+10,34,compras al terminar la virtualizacion,130,170,41,20,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,35,34,5,0,0,43,0,0,64,0,-1--1--1,,1|(245,245)|
+1,36,28,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,375)|
+1,37,22,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,170)|
+1,38,24,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,130)|
+1,39,25,10,0,0,43,0,0,64,0,-1--1--1,,1|(610,130)|
+1,40,26,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,162)|
+1,41,23,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,200)|
+1,42,1,15,0,0,43,0,0,64,0,-1--1--1,,1|(605,320)|
+1,43,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(755,365)|
+10,44,churn de instituciones,300,540,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,45,44,20,0,0,43,0,0,64,0,-1--1--1,,1|(410,495)|
+1,46,1,20,0,0,43,0,0,64,0,-1--1--1,,1|(520,385)|
+10,47,Instituciones cliente,980,260,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,48,47,20,0,0,45,0,0,64,0,-1--1--1,,1|(750,355)|
+1,49,47,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,200)|
+1,50,27,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,140)|
+1,51,1,22,0,0,45,0,0,64,0,-1--1--1,,1|(425,230)|
+1,52,1,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,260)|
+1,53,47,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,230)|
+1,54,27,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,170)|
+12,55,0,640,260,15,15,5,4,0,0,-1,0,0,0
 R
-12,54,0,640,282,46,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+12,56,0,640,282,46,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
 R2 land and expand
-12,55,0,420,240,15,15,4,4,0,0,-1,0,0,0
+12,57,0,420,240,15,15,4,4,0,0,-1,0,0,0
 B
-12,56,0,420,262,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+12,58,0,420,262,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
 B2 saturacion interna
 \\\---/// Sketch information - do not modify anything except names
 V300  Do not put anything below this section - it will be ignored
@@ -1675,6 +1930,94 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
 1,17,6,2,0,0,45,0,0,64,0,-1--1--1,,1|(670,315)|
 1,18,2,3,0,0,43,0,0,64,0,-1--1--1,,1|(710,250)|
 1,19,7,3,0,0,0,0,0,64,0,-1--1--1,,1|(840,195)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*7 paid media
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Propuestas de paid media en curso,500,400,40,20,3,3,0,0,0,0,0,0
+10,2,Clientes ganados con paid media,1000,400,40,20,3,3,0,0,0,0,0,0
+10,3,Gasto acumulado de la tactica,800,640,40,20,3,3,0,0,0,0,0,0
+12,4,48,220,400,10,8,0,3,0,0,-1,0,0,0
+1,5,7,1,4,0,0,22,0,0,0,-1--1--1,,1|(458,400)|
+1,6,7,4,100,0,0,22,0,0,0,-1--1--1,,1|(220,400)|
+11,7,48,350,400,6,8,34,3,0,0,1,0,0,0
+10,8,entrada de propuestas de paid media,350,428,53,20,40,3,0,0,-1,0,0,0
+12,9,48,700,400,10,8,0,3,0,0,-1,0,0,0
+1,10,12,9,4,0,0,22,0,0,0,-1--1--1,,1|(700,400)|
+1,11,12,1,100,0,0,22,0,0,0,-1--1--1,,1|(542,400)|
+11,12,48,610,400,6,8,34,3,0,0,1,0,0,0
+10,13,salida de propuestas de paid media,610,428,53,20,40,3,0,0,-1,0,0,0
+12,14,48,860,400,10,8,0,3,0,0,-1,0,0,0
+1,15,17,2,4,0,0,22,0,0,0,-1--1--1,,1|(958,400)|
+1,16,17,14,100,0,0,22,0,0,0,-1--1--1,,1|(860,400)|
+11,17,48,920,400,6,8,34,3,0,0,1,0,0,0
+10,18,clientes nuevos de paid media,920,378,53,14,40,3,0,0,-1,0,0,0
+12,19,48,560,640,10,8,0,3,0,0,-1,0,0,0
+1,20,22,3,4,0,0,22,0,0,0,-1--1--1,,1|(758,640)|
+1,21,22,19,100,0,0,22,0,0,0,-1--1--1,,1|(560,640)|
+11,22,48,680,640,6,8,34,3,0,0,1,0,0,0
+10,23,gasto de la tactica,680,662,32,14,40,3,0,0,-1,0,0,0
+10,24,activar paid media,420,50,53,8,8,3,0,0,0,0,0,0
+10,25,fraccion de potenciales con emisor competidor,230,40,50,20,8,3,0,0,0,0,0,0
+10,26,instituciones con emisor competidor,180,130,50,14,8,3,0,0,0,0,0,0
+10,27,alcance maximo mensual,80,230,41,14,8,3,0,0,0,0,0,0
+10,28,leads calificados de paid media,400,190,50,14,8,3,0,0,0,0,0,0
+10,29,costo por lead,610,60,41,8,8,3,0,0,0,0,0,0
+10,30,fraccion de leads calificados,630,130,50,14,8,3,0,0,0,0,0,0
+10,31,presupuesto de paid media,640,250,41,14,8,3,0,0,0,0,0,0
+10,32,presupuesto base de paid media,820,170,47,14,8,3,0,0,0,0,0,0
+10,33,fraccion de ingresos reinvertida,1010,120,32,20,8,3,0,0,0,0,0,0
+10,34,ingreso mensual de clientes de paid media,1000,250,53,20,8,3,0,0,0,0,0,0
+10,35,ingreso anual por cliente nuevo,1180,300,50,14,8,3,0,0,0,0,0,0
+10,36,meses por ano,1180,200,38,8,8,3,0,0,0,0,0,0
+10,37,costo de una virtualizacion gratis,520,740,41,20,8,3,0,0,0,0,0,0
+10,38,costo por cliente de paid media,1060,600,50,14,8,3,0,0,0,0,0,0
+10,39,retorno anual por dolar invertido,1060,720,50,14,8,3,0,0,0,0,0,0
+10,40,propuestas de paid media sin cupo,150,330,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,41,40,7,0,0,43,0,0,64,0,-1--1--1,,1|(250,365)|
+10,42,virtualizaciones que pasan al pipeline,150,480,47,20,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,43,42,7,0,0,43,0,0,64,0,-1--1--1,,1|(250,440)|
+1,44,1,12,0,0,43,0,0,64,0,-1--1--1,,1|(555,400)|
+10,45,duracion del piloto,560,300,35,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,46,45,12,0,0,0,0,0,64,0,-1--1--1,,1|(585,350)|
+10,47,compras al terminar la virtualizacion,780,500,41,20,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,48,47,17,0,0,43,0,0,64,0,-1--1--1,,1|(850,450)|
+1,49,12,17,0,0,43,0,0,64,0,-1--1--1,,1|(765,400)|
+10,50,fraccion de conversion de pilotos,700,330,38,20,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,51,50,17,0,0,0,0,0,64,0,-1--1--1,,1|(810,365)|
+1,52,31,22,0,0,43,0,0,64,0,-1--1--1,,1|(660,445)|
+10,53,inicio de virtualizaciones gratis,380,640,47,20,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,54,53,22,0,0,43,0,0,64,0,-1--1--1,,1|(530,640)|
+1,55,37,22,0,0,0,0,0,64,0,-1--1--1,,1|(600,690)|
+10,56,Instituciones potenciales,60,60,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,57,56,26,0,0,43,0,0,64,0,-1--1--1,,1|(120,95)|
+1,58,25,26,0,0,43,0,0,64,0,-1--1--1,,1|(205,85)|
+1,59,24,28,0,0,0,0,0,64,0,-1--1--1,,1|(410,120)|
+1,60,31,28,0,0,0,0,0,64,0,-1--1--1,,1|(520,220)|
+1,61,29,28,0,0,0,0,0,64,0,-1--1--1,,1|(505,125)|
+1,62,30,28,0,0,0,0,0,64,0,-1--1--1,,1|(515,160)|
+1,63,26,28,0,0,0,0,0,64,0,-1--1--1,,1|(290,160)|
+1,64,27,28,0,0,0,0,0,64,0,-1--1--1,,1|(240,210)|
+1,65,24,31,0,0,43,0,0,64,0,-1--1--1,,1|(530,150)|
+1,66,32,31,0,0,0,0,0,64,0,-1--1--1,,1|(730,210)|
+1,67,33,31,0,0,0,0,0,64,0,-1--1--1,,1|(825,185)|
+1,68,34,31,0,0,0,0,0,64,0,-1--1--1,,1|(820,250)|
+1,69,2,34,0,0,43,0,0,64,0,-1--1--1,,1|(1000,325)|
+1,70,35,34,0,0,0,0,0,64,0,-1--1--1,,1|(1090,275)|
+1,71,36,34,0,0,0,0,0,64,0,-1--1--1,,1|(1090,225)|
+1,72,3,38,0,0,0,0,0,64,0,-1--1--1,,1|(930,620)|
+1,73,2,38,0,0,0,0,0,64,0,-1--1--1,,1|(1030,500)|
+1,74,2,39,0,0,0,0,0,64,0,-1--1--1,,1|(1030,560)|
+1,75,35,39,0,0,0,0,0,64,0,-1--1--1,,1|(1120,510)|
+1,76,3,39,0,0,0,0,0,64,0,-1--1--1,,1|(930,680)|
+12,77,0,820,320,15,15,4,4,0,0,-1,0,0,0
+R
+12,78,0,820,342,39,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R8 pauta pagada
+12,79,0,300,120,15,15,5,4,0,0,-1,0,0,0
+B
+12,80,0,300,142,49,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B5 publico se agota
 ///---\\\
 :L<%^E!@
 1:Current.vdf
@@ -1715,7 +2058,7 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
 25:60
 26:60
 </script>
-<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.2 · punto de partida con HubSpot al 17-oct-2026", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales.", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
+<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.3 · punto de partida con HubSpot al 17-oct-2026", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales. La táctica T1 (paid media) está apagada en la base: enciéndela en «Flywheels y tácticas».", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}, {"variable": "Clientes ganados con paid media", "titulo": "Clientes ganados con paid media (T1)", "unidad": "instituciones"}, {"variable": "costo por cliente de paid media", "titulo": "Costo por cliente de la táctica T1", "unidad": "USD por institución"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}, "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. merahki anuncia: si tu institución emite con Certifie o Acredita, virtualizamos un curso gratis. Las virtualizaciones salen certificadas con POK y los leads sin cupo los trabaja el equipo de POK."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema", "tactica paid media": "Táctica T1: paid media"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial", "Clientes ganados con paid media", "Gasto acumulado de la tactica", "costo por cliente de paid media", "retorno anual por dolar invertido"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
 <script>/*
  * motor.js — intérprete mínimo de modelos Vensim (.mdl) en JavaScript.
  *

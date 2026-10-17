@@ -1,7 +1,7 @@
 {
   "titulo": "Flywheel de credenciales",
-  "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.2 · punto de partida con HubSpot al 17-oct-2026",
-  "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales.",
+  "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.3 · punto de partida con HubSpot al 17-oct-2026",
+  "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales. La táctica T1 (paid media) está apagada en la base: enciéndela en «Flywheels y tácticas».",
   "horizontes": [36, 60, 84, 120],
   "kpis": [
     {"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"},
@@ -15,7 +15,9 @@
     {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"},
     {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"},
     {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"},
-    {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}
+    {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"},
+    {"variable": "Clientes ganados con paid media", "titulo": "Clientes ganados con paid media (T1)", "unidad": "instituciones"},
+    {"variable": "costo por cliente de paid media", "titulo": "Costo por cliente de la táctica T1", "unidad": "USD por institución"}
   ],
   "restriccion": {
     "real": "emision de credenciales",
@@ -35,7 +37,8 @@
     "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."},
     "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."},
     "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."},
-    "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}
+    "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."},
+    "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. merahki anuncia: si tu institución emite con Certifie o Acredita, virtualizamos un curso gratis. Las virtualizaciones salen certificadas con POK y los leads sin cupo los trabaja el equipo de POK."}
   },
   "grupos": {
     "instituciones": "Instituciones",
@@ -43,9 +46,10 @@
     "docentes": "Docentes",
     "estudiantes": "Estudiantes",
     "empresas": "Empresas",
-    "ecosistema": "Ecosistema"
+    "ecosistema": "Ecosistema",
+    "tactica paid media": "Táctica T1: paid media"
   },
-  "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"],
+  "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial", "Clientes ganados con paid media", "Gasto acumulado de la tactica", "costo por cliente de paid media", "retorno anual por dolar invertido"],
   "diagrama": "diagrama_bucles.svg",
   "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."
 }

@@ -38,7 +38,8 @@ def comparar(ruta):
         return f"{os.path.basename(ruta)}: el motor no lo soporta -> {js['error']}"
     m = pysd.read_vensim(copia)
     interruptores = [c for c in m.doc["Real Name"] if norm(c).startswith("activar ")]
-    escenarios = [{}] + [{c: 0} for c in interruptores]
+    # cada interruptor invertido: apaga los bucles y enciende las tácticas que empiezan en 0
+    escenarios = [{}] + [{c: 1 - round(float(m[c]))} for c in interruptores]
     peor, donde = 0.0, None
     for esc in escenarios:
         js = motor(ruta, esc) if esc else js
