@@ -38,7 +38,7 @@
     "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."},
     "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."},
     "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."},
-    "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. merahki anuncia: si tu institución emite con Certifie o Acredita, virtualizamos un curso gratis. Las virtualizaciones salen certificadas con POK y los leads sin cupo los trabaja el equipo de POK."}
+    "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. Convocatoria de merahki para instituciones que emiten con Certifie o Acredita: cada mes, una gana la virtualización gratis de un curso corto de 10 horas, certificado con POK. El equipo de POK trabaja al resto de los registrados."}
   },
   "grupos": {
     "instituciones": "Instituciones",

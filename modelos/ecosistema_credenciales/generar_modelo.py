@@ -335,11 +335,13 @@ INTERRUPTORES = join(
 # ---------------------------------------------------------------------------
 PAID_MEDIA = join(
     group("tactica paid media",
-          "Tactica de paid media (caballo de Troya): merahki ofrece virtualizar gratis un curso a "
-          "instituciones que emiten con Certifie o Acredita, y POK trabaja esos leads."),
+          "Tactica de paid media (caballo de Troya): merahki abre una convocatoria para virtualizar gratis "
+          "un curso corto de 10 horas. Todos los que se registran participan, uno por mes gana, y POK "
+          "trabaja al resto de los leads."),
     eq("activar paid media", "0", "Dmnl",
-       "INTERRUPTOR de la tactica: 1 la enciende (anuncio de merahki: si tu institucion emite con "
-       "Certifie o Acredita, virtualizamos un curso gratis). 0 = la base de HubSpot, sin la tactica.",
+       "INTERRUPTOR de la tactica: 1 la enciende (convocatoria de merahki dirigida a instituciones que "
+       "emiten con Certifie o Acredita: un curso corto virtualizado gratis por mes). 0 = la base de "
+       "HubSpot, sin la tactica.",
        "[0,1,1]"),
     eq("fraccion de potenciales con emisor competidor", "0.3", "Dmnl",
        "SUPUESTO: parte de las instituciones potenciales que ya emite con otro proveedor. En las "
@@ -360,12 +362,13 @@ PAID_MEDIA = join(
     eq("leads calificados de paid media",
        "activar paid media*MIN(presupuesto de paid media/costo por lead*fraccion de leads calificados,"
        "instituciones con emisor competidor*alcance maximo mensual)",
-       "Institucion/Month", "Instituciones que emiten con un competidor y piden la virtualizacion gratis."),
-    eq("cupos de virtualizacion gratis por mes", "2", "Institucion/Month",
-       "SUPUESTO / PALANCA: virtualizaciones gratis que merahki puede entregar por mes.", "[0,10,1]"),
+       "Institucion/Month", "Instituciones que emiten con un competidor y se registran en la convocatoria."),
+    eq("cupos de virtualizacion gratis por mes", "1", "Institucion/Month",
+       "DECISION / PALANCA: una virtualizacion gratis por mes entre todos los registrados; el cupo "
+       "unico es el mensaje de escasez.", "[0,10,1]"),
     eq("inicio de virtualizaciones gratis",
        "MIN(leads calificados de paid media,cupos de virtualizacion gratis por mes)", "Institucion/Month",
-       "Instituciones que reciben la virtualizacion gratis. El curso se certifica con POK."),
+       "Ganadoras de la convocatoria: reciben la virtualizacion gratis y el curso se certifica con POK."),
     level("Virtualizaciones gratis en curso",
           "inicio de virtualizaciones gratis-compras al terminar la virtualizacion"
           "-virtualizaciones que pasan al pipeline", "0", "Institucion",
@@ -373,7 +376,7 @@ PAID_MEDIA = join(
     eq("duracion de la virtualizacion", "2", "Month", "SUPUESTO: promesa de 8 semanas de merahki.",
        "[1,6,0.5]"),
     eq("fraccion que compra al terminar la virtualizacion", "0.4", "Dmnl",
-       "SUPUESTO: instituciones que compran POK al terminar, con el curso ya certificado "
+       "SUPUESTO: instituciones ganadoras que compran POK al terminar, con el curso ya certificado "
        "con POK. Algo mas que el 33 % de los pilotos, por reciprocidad y porque ya vieron sus "
        "credenciales verificadas.", "[0,1,0.05]"),
     eq("compras al terminar la virtualizacion",
@@ -384,12 +387,12 @@ PAID_MEDIA = join(
        "*(1-fraccion que compra al terminar la virtualizacion)", "Institucion/Month",
        "No compran de inmediato y siguen en el pipeline de POK como pilotos."),
     eq("fraccion de leads sin cupo que llegan a propuesta", "0.3", "Dmnl",
-       "SUPUESTO: leads sin cupo de virtualizacion que JD o Francely llevan hasta una "
-       "propuesta de POK.", "[0,1,0.05]"),
+       "SUPUESTO: registrados que no ganan el cupo y que JD o Francely llevan hasta una propuesta de "
+       "POK.", "[0,1,0.05]"),
     eq("propuestas de paid media sin cupo",
        "(leads calificados de paid media-inicio de virtualizaciones gratis)"
        "*fraccion de leads sin cupo que llegan a propuesta", "Institucion/Month",
-       "Leads sin cupo que entran al pipeline de POK como pilotos."),
+       "Registrados que no ganan el cupo y entran al pipeline de POK como pilotos."),
     level("Propuestas de paid media en curso",
           "entrada de propuestas de paid media-salida de propuestas de paid media", "0", "Institucion",
           "Seguimiento de los pilotos que vinieron de la tactica (ya estan contados en Instituciones "
@@ -416,9 +419,9 @@ PAID_MEDIA = join(
     eq("presupuesto de paid media",
        "activar paid media*(presupuesto base de paid media+fraccion de ingresos reinvertida"
        "*ingreso mensual de clientes de paid media)", "USD/Month", ""),
-    eq("costo de una virtualizacion gratis", "2000", "USD/Institucion",
-       "SUPUESTO / PALANCA: costo para merahki de virtualizar un curso (no el precio: el setup Starter "
-       "se vende en USD 2.975).", "[0,6000,250]"),
+    eq("costo de una virtualizacion gratis", "1500", "USD/Institucion",
+       "SUPUESTO / PALANCA: costo para merahki de virtualizar un curso corto de 10 horas (no el precio: "
+       "merahki vendio un curso de 10 h a Uniandes en COP 12 M, unos USD 3.700).", "[0,6000,250]"),
     eq("gasto de la tactica",
        "presupuesto de paid media+inicio de virtualizaciones gratis*costo de una virtualizacion gratis",
        "USD/Month", "Pauta mas virtualizaciones regaladas."),

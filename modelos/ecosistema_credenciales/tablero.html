@@ -1272,15 +1272,15 @@ activar boca a boca empresarial=
 ********************************************************
 	.tactica paid media
 ********************************************************~
-		Tactica de paid media (caballo de Troya): merahki ofrece virtualizar gratis un curso a instituciones que emiten con Certifie o Acredita, y POK trabaja esos leads.
+		Tactica de paid media (caballo de Troya): merahki abre una convocatoria para virtualizar gratis un curso corto de 10 horas. Todos los que se registran participan, uno por mes gana, y POK trabaja al resto de los leads.
 	|
 
 activar paid media=
 	0
 	~	Dmnl [0,1,1]
-	~	SUPUESTO / PALANCA: 1 enciende la tactica (anuncio de merahki: si tu \
-		institucion emite con Certifie o Acredita, virtualizamos un curso gratis). \
-		0 = la base de HubSpot, sin la tactica.
+	~	INTERRUPTOR de la tactica: 1 la enciende (convocatoria de merahki dirigida \
+		a instituciones que emiten con Certifie o Acredita: un curso corto \
+		virtualizado gratis por mes). 0 = la base de HubSpot, sin la tactica.
 	|
 
 fraccion de potenciales con emisor competidor=
@@ -1307,8 +1307,8 @@ presupuesto base de paid media=
 costo por lead=
 	60
 	~	USD/Institucion [10,300,5]
-	~	SUPUESTO / PALANCA: costo de que una institucion deje sus datos para pedir \
-		la virtualizacion gratis.
+	~	SUPUESTO: costo de que una institucion deje sus datos para pedir la \
+		virtualizacion gratis.
 	|
 
 fraccion de leads calificados=
@@ -1328,22 +1328,22 @@ alcance maximo mensual=
 leads calificados de paid media=
 	activar paid media*MIN(presupuesto de paid media/costo por lead*fraccion de leads calificados,instituciones con emisor competidor*alcance maximo mensual)
 	~	Institucion/Month
-	~	Instituciones que emiten con un competidor y piden la virtualizacion \
-		gratis.
+	~	Instituciones que emiten con un competidor y se registran en la \
+		convocatoria.
 	|
 
 cupos de virtualizacion gratis por mes=
-	2
+	1
 	~	Institucion/Month [0,10,1]
-	~	SUPUESTO / PALANCA: virtualizaciones gratis que merahki puede entregar por \
-		mes.
+	~	DECISION / PALANCA: una virtualizacion gratis por mes entre todos los \
+		registrados; el cupo unico es el mensaje de escasez.
 	|
 
 inicio de virtualizaciones gratis=
 	MIN(leads calificados de paid media,cupos de virtualizacion gratis por mes)
 	~	Institucion/Month
-	~	Instituciones que reciben la virtualizacion gratis. El curso se certifica \
-		con POK.
+	~	Ganadoras de la convocatoria: reciben la virtualizacion gratis y el curso \
+		se certifica con POK.
 	|
 
 Virtualizaciones gratis en curso= INTEG (
@@ -1362,7 +1362,7 @@ duracion de la virtualizacion=
 fraccion que compra al terminar la virtualizacion=
 	0.4
 	~	Dmnl [0,1,0.05]
-	~	SUPUESTO / PALANCA: instituciones que compran POK al terminar, con el \
+	~	SUPUESTO: instituciones ganadoras que compran POK al terminar, con el \
 		curso ya certificado con POK. Algo mas que el 33 % de los pilotos, por \
 		reciprocidad y porque ya vieron sus credenciales verificadas.
 	|
@@ -1382,14 +1382,14 @@ virtualizaciones que pasan al pipeline=
 fraccion de leads sin cupo que llegan a propuesta=
 	0.3
 	~	Dmnl [0,1,0.05]
-	~	SUPUESTO / PALANCA: leads sin cupo de virtualizacion que JD o Francely \
-		llevan hasta una propuesta de POK.
+	~	SUPUESTO: registrados que no ganan el cupo y que JD o Francely llevan \
+		hasta una propuesta de POK.
 	|
 
 propuestas de paid media sin cupo=
 	(leads calificados de paid media-inicio de virtualizaciones gratis)*fraccion de leads sin cupo que llegan a propuesta
 	~	Institucion/Month
-	~	Leads sin cupo que entran al pipeline de POK como pilotos.
+	~	Registrados que no ganan el cupo y entran al pipeline de POK como pilotos.
 	|
 
 Propuestas de paid media en curso= INTEG (
@@ -1428,9 +1428,9 @@ Clientes ganados con paid media= INTEG (
 ingreso anual por cliente nuevo=
 	2000
 	~	USD/Institucion [500,10000,250]
-	~	SUPUESTO / PALANCA: ingreso del primer ano de un cliente POK nuevo. En \
-		HubSpot el promedio sin Uniandes es de unos USD 1.960; el paquete tipico \
-		es NFT de 1.000 credenciales por USD 1.500.
+	~	SUPUESTO: ingreso del primer ano de un cliente POK nuevo. En HubSpot el \
+		promedio sin Uniandes es de unos USD 1.960; el paquete tipico es NFT de \
+		1.000 credenciales por USD 1.500.
 	|
 
 meses por ano=
@@ -1448,8 +1448,8 @@ ingreso mensual de clientes de paid media=
 fraccion de ingresos reinvertida=
 	0
 	~	Dmnl [0,1,0.05]
-	~	SUPUESTO / PALANCA: parte del ingreso de los clientes ganados que vuelve a \
-		la pauta (bucle R8). 0 = presupuesto fijo.
+	~	SUPUESTO: parte del ingreso de los clientes ganados que vuelve a la pauta \
+		(bucle R8). 0 = presupuesto fijo.
 	|
 
 presupuesto de paid media=
@@ -1459,10 +1459,11 @@ presupuesto de paid media=
 	|
 
 costo de una virtualizacion gratis=
-	2000
+	1500
 	~	USD/Institucion [0,6000,250]
-	~	SUPUESTO / PALANCA: costo para merahki de virtualizar un curso (no el \
-		precio: el setup Starter se vende en USD 2.975).
+	~	SUPUESTO / PALANCA: costo para merahki de virtualizar un curso corto de 10 \
+		horas (no el precio: merahki vendio un curso de 10 h a Uniandes en COP 12 \
+		M, unos USD 3.700).
 	|
 
 gasto de la tactica=
@@ -2058,7 +2059,7 @@ B5 publico se agota
 25:60
 26:60
 </script>
-<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.3 · punto de partida con HubSpot al 17-oct-2026", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales. La táctica T1 (paid media) está apagada en la base: enciéndela en «Flywheels y tácticas».", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}, {"variable": "Clientes ganados con paid media", "titulo": "Clientes ganados con paid media (T1)", "unidad": "instituciones"}, {"variable": "costo por cliente de paid media", "titulo": "Costo por cliente de la táctica T1", "unidad": "USD por institución"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}, "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. merahki anuncia: si tu institución emite con Certifie o Acredita, virtualizamos un curso gratis. Las virtualizaciones salen certificadas con POK y los leads sin cupo los trabaja el equipo de POK."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema", "tactica paid media": "Táctica T1: paid media"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial", "Clientes ganados con paid media", "Gasto acumulado de la tactica", "costo por cliente de paid media", "retorno anual por dolar invertido"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
+<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.3 · punto de partida con HubSpot al 17-oct-2026", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales. La táctica T1 (paid media) está apagada en la base: enciéndela en «Flywheels y tácticas».", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}, {"variable": "Clientes ganados con paid media", "titulo": "Clientes ganados con paid media (T1)", "unidad": "instituciones"}, {"variable": "costo por cliente de paid media", "titulo": "Costo por cliente de la táctica T1", "unidad": "USD por institución"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}, "activar paid media": {"codigo": "T1", "nombre": "Paid media caballo de Troya", "descripcion": "Táctica, apagada en la base. Convocatoria de merahki para instituciones que emiten con Certifie o Acredita: cada mes, una gana la virtualización gratis de un curso corto de 10 horas, certificado con POK. El equipo de POK trabaja al resto de los registrados."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema", "tactica paid media": "Táctica T1: paid media"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial", "Clientes ganados con paid media", "Gasto acumulado de la tactica", "costo por cliente de paid media", "retorno anual por dolar invertido"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
 <script>/*
  * motor.js — intérprete mínimo de modelos Vensim (.mdl) en JavaScript.
  *
@@ -4393,7 +4394,8 @@ B5 publico se agota
       input.value = valorActual(c);
       const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al valor del modelo', title: 'Volver al valor del modelo', text: '↺' });
       const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, '')
-        .replace(/^DATO HubSpot( \/ PALANCA)?[.:]?\s*/i, 'Dato de HubSpot: '));
+        .replace(/^DATO HubSpot( \/ PALANCA)?[.:]?\s*/i, 'Dato de HubSpot: ')
+        .replace(/^DECISION( \/ PALANCA)?[.:]?\s*/i, 'Decisión del equipo: '));
       const box = el('div', { class: 'ctl' }, el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
         el('div', { class: 'ctl-row' }, input, reset), help ? el('p', { class: 'ctl-help', text: help }) : null);
       const pintar = () => { out.textContent = fmtValor(c, valorActual(c)); box.classList.toggle('cambiado', k in T.cambios); };

@@ -10,7 +10,7 @@ También está como `tablero.html` en esta carpeta, un solo archivo que se abre 
 
 > **HubSpot es la fuente de verdad del punto de partida.** Seis valores salen de HubSpot al 17-oct-2026: clientes, pilotos, prospección, conversión y duración de los pilotos, y unidades iniciales (ver [Punto de partida con datos de HubSpot](#punto-de-partida-con-datos-de-hubspot)). **El resto siguen siendo supuestos**, elegidos para que el comportamiento sea plausible y no medidos. El valor del modelo hoy está en su **estructura**: qué bucles existen y cómo interactúan (ver [Qué validar](#qué-validar-y-con-qué-datos)).
 
-> **v0.3 agrega la primera táctica, T1: paid media «caballo de Troya».** Está apagada en la base, así que los resultados de la base no cambian. Se enciende en el tablero (sección *Flywheels y tácticas*). Ver [Táctica T1](#táctica-t1-paid-media-caballo-de-troya).
+> **v0.3 agrega la primera táctica, T1: paid media «caballo de Troya»** (convocatoria con un cupo de virtualización gratis por mes). Está apagada en la base, así que los resultados de la base no cambian. Se enciende en el tablero (sección *Flywheels y tácticas*). Ver [Táctica T1](#táctica-t1-paid-media-caballo-de-troya).
 
 ## Contenido
 
@@ -144,49 +144,49 @@ Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenci
 
 ## Táctica T1: paid media «caballo de Troya»
 
-**La idea (David, 17-oct-2026).** merahki pauta un anuncio: *«Si tu institución emite con Certifie o Acredita, virtualizamos un curso gratis»*. El objetivo es juntar leads de instituciones que hoy emiten con esos dos proveedores y trabajarlos desde POK (caso de uso UC1, reemplazar un emisor cautivo).
+**La idea (David, 17-oct-2026).** merahki pauta una convocatoria dirigida a instituciones que emiten con Certifie o Acredita: *«Virtualizamos gratis un curso corto de 10 horas. Un cupo por mes»*. Todos los que se registran participan y uno por mes gana. El objetivo es juntar leads de instituciones que hoy emiten con otro proveedor y trabajarlos desde POK (caso de uso UC1, reemplazar un emisor cautivo). El cupo único es el mensaje de escasez.
 
 **Cómo está en el modelo:**
 1. **Público:** el 30 % de las instituciones potenciales emite con un competidor (159 al inicio). Se agota a medida que pasan a POK (B5).
-2. **Leads calificados:** pauta ÷ costo por lead × fracción calificada. Tienen un tope: la pauta no puede volver lead a más del 10 % del público por mes.
-3. **Virtualización gratis:** hasta 2 cupos por mes, por la capacidad de merahki. Dura 2 meses y el curso sale certificado con POK. Al terminar, el 40 % compra POK y el resto sigue en el pipeline como piloto.
-4. **Leads sin cupo:** el 30 % llega a una propuesta de POK y sigue el pipeline normal (33 % de conversión en 10,7 meses).
+2. **Registros calificados:** pauta ÷ costo por lead × fracción calificada. Tienen un tope: la pauta no puede volver lead a más del 10 % del público por mes.
+3. **Ganador del mes:** 1 virtualización gratis por mes. Dura 2 meses y el curso sale certificado con POK. Al terminar, el 40 % de los ganadores compra POK y el resto sigue en el pipeline como piloto.
+4. **Los que no ganan** son 9 de cada 10 registros calificados. El 30 % llega a una propuesta de POK y sigue el pipeline normal (33 % de conversión en 10,7 meses).
 5. **Atribución y costo:** un stock de seguimiento cuenta los pilotos que vinieron de T1. Así se calculan los clientes ganados, el gasto (pauta + costo de cada virtualización), el costo por cliente y el ingreso del primer año por dólar.
 6. **R8:** con `fraccion de ingresos reinvertida` > 0, parte del ingreso de esos clientes vuelve a la pauta.
 
-**Supuestos de T1** (todos para reemplazar con datos):
+**Supuestos de T1** (los cambia el tablero):
 
 | Supuesto | Valor | Dato que lo reemplaza |
 |---|---|---|
+| Cupos | 1 por mes | Decisión del equipo (17-oct-2026) |
+| Costo de virtualizar el curso de 10 h | USD 1.500 | Costo interno de merahki. Como referencia de precio, merahki vendió a Uniandes un curso de 10 h asincrónicas en COP 12 M (unos USD 3.700) |
 | Potenciales que emiten con un competidor | 30 % | En las llamadas, unas 16 de 50 cuentas ya tenían emisor (UC1). Mejor: contar en LinkedIn las instituciones colombianas cuyas insignias muestran Certifie o Acredita |
 | Pauta | USD 1.500/mes | Presupuesto aprobado |
-| Costo por lead y fracción calificada | USD 60; 40 % | Las primeras 4 semanas de campaña |
+| Costo por lead y fracción calificada | USD 60; 40 % | Las primeras 4 semanas de campaña. La escasez puede bajar el costo por lead y también la calidad |
 | Tope de alcance | 10 % del público por mes | Las primeras 4 semanas de campaña |
-| Cupos de virtualización | 2/mes | Capacidad real del equipo de merahki |
-| Costo de una virtualización | USD 2.000 | Costo interno de merahki (el setup Starter se vende en USD 2.975) |
-| Duración y compra al terminar | 2 meses; 40 % | Las primeras virtualizaciones |
-| Leads sin cupo que llegan a propuesta | 30 % | HubSpot, con el campo «Estrategia y táctica» (`#paid-media`) |
+| Duración y compra del ganador al terminar | 2 meses; 40 % | Los primeros ganadores |
+| Registrados sin cupo que llegan a propuesta | 30 % | HubSpot, con el campo «Estrategia y táctica» (`#paid-media`) |
 | Ingreso del primer año por cliente nuevo | USD 2.000 | HubSpot: el promedio ganado sin Uniandes es de unos USD 1.960 |
 
 **Resultados** (`node modelos/ecosistema_credenciales/resultados.js`):
 
 | Escenario con T1 encendida | Clientes mes 12 (base 42) | Clientes mes 36 (base 120) | Clientes ganados por T1 (mes 36) | Gasto acumulado (mes 36) | Costo por cliente (mes 36) | Ingreso del 1.er año por dólar (mes 36) |
 |---|---|---|---|---|---|---|
-| Supuestos de la táctica | 54 (+29 %) | 163 (+36 %) | 56 | USD 198.000 | USD 3.514 | 0,57 |
-| 4 cupos de virtualización por mes | 62 (+48 %) | 188 (+56 %) | 87 | USD 342.000 | USD 3.918 | 0,51 |
-| Pauta de USD 3.000 al mes | 56 (+33 %) | 166 (+38 %) | 61 | USD 252.000 | USD 4.128 | 0,48 |
-| Sin virtualización gratis (solo leads) | 46 (+10 %) | 138 (+15 %) | 25 | USD 54.000 | USD 2.141 | 0,93 |
-| Compra el 25 % al terminar la virtualización | 52 (+23 %) | 156 (+30 %) | 49 | USD 198.000 | USD 4.078 | 0,49 |
-| Curso corto: virtualizar cuesta USD 500 | 54 (+29 %) | 163 (+36 %) | 56 | USD 90.000 | USD 1.597 | 1,25 |
-| Curso corto + primera compra de USD 3.000 | 54 (+29 %) | 163 (+36 %) | 56 | USD 90.000 | USD 1.597 | 1,88 |
-| Reinvertir 50 % del ingreso en pauta (R8) | 55 (+30 %) | 165 (+37 %) | 59 | USD 275.668 | USD 4.669 | 0,43 |
+| Diseño decidido: 1 cupo al mes, curso de 10 h que cuesta USD 1.500 | 50 (+19 %) | 151 (+25 %) | 41 | USD 108.000 | USD 2.647 | 0,76 |
+| El curso cuesta USD 500 | 50 (+19 %) | 151 (+25 %) | 41 | USD 72.000 | USD 1.764 | 1,13 |
+| El curso cuesta USD 3.700 (lo que se cobró a Uniandes) | 50 (+19 %) | 151 (+25 %) | 41 | USD 187.200 | USD 4.588 | 0,44 |
+| Todos los registrados reciben algo: 50 % llega a propuesta | 53 (+25 %) | 160 (+34 %) | 55 | USD 108.000 | USD 1.956 | 1,02 |
+| Ganador elegido por criterios: compra el 60 % | 52 (+23 %) | 155 (+29 %) | 46 | USD 108.000 | USD 2.348 | 0,85 |
+| Las dos anteriores juntas | 54 (+29 %) | 165 (+37 %) | 60 | USD 108.000 | USD 1.789 | 1,12 |
+| Escasez: lead a USD 40, pero solo 30 % calificado | 51 (+21 %) | 152 (+27 %) | 43 | USD 108.000 | USD 2.513 | 0,80 |
+| Versión anterior (v0.3): 2 cupos a USD 2.000 | 54 (+29 %) | 163 (+36 %) | 56 | USD 198.000 | USD 3.514 | 0,57 |
 
 **Lecturas (válidas solo con estos supuestos):**
-1. **T1 suma clientes:** +29 % al mes 12 y +36 % al mes 36.
-2. **El freno son los cupos de merahki, no la pauta.** Duplicar los cupos sube los clientes del mes 12 de +29 % a +48 %. Duplicar la pauta solo llega a +33 %.
-3. **Lo caro es el regalo, no el anuncio.** El 73 % del gasto es virtualizar. A USD 2.000 por virtualización, cada cliente cuesta unos USD 3.500 y deja unos USD 2.000 el primer año. Si el regalo es un curso corto de USD 500, el costo baja a unos USD 1.600 y la táctica se paga en el primer año.
-4. **El público es chico y se agota.** De 159 instituciones con emisor competidor quedan 121 al mes 12 y 75 al mes 36. Funciona como campaña de 12 a 18 meses, no como canal permanente.
-5. **Reinvertir el ingreso en pauta no ayuda.** Con los cupos y el público como freno, más pauta solo sube el costo por cliente.
+1. **Con un cupo, T1 suma +19 % de clientes al mes 12 y +25 % al mes 36.** Cuesta la mitad que la versión de 2 cupos.
+2. **El que pesa es el que no gana.** Son 9 de cada 10 registros. Si todos reciben algo que los lleve a una propuesta (de 30 % a 50 %), T1 suma +34 % al mes 36 y se paga en el primer año.
+3. **El costo real del curso decide si T1 se paga.** Con los supuestos del diseño, se paga en el primer año si virtualizar cuesta menos de USD 767. Si además todos reciben algo y el ganador se elige por criterios, el límite sube a USD 1.853.
+4. **El público es chico y se agota.** De 159 instituciones con emisor competidor quedan 80 al mes 36. Es una campaña de 12 a 18 meses, no un canal permanente.
+5. **Reinvertir el ingreso en pauta no ayuda.** Con el cupo y el público como freno, más pauta solo sube el costo por cliente.
 
 ## Qué validar y con qué datos
 

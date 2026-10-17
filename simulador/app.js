@@ -1173,7 +1173,8 @@
       input.value = valorActual(c);
       const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al valor del modelo', title: 'Volver al valor del modelo', text: '↺' });
       const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, '')
-        .replace(/^DATO HubSpot( \/ PALANCA)?[.:]?\s*/i, 'Dato de HubSpot: '));
+        .replace(/^DATO HubSpot( \/ PALANCA)?[.:]?\s*/i, 'Dato de HubSpot: ')
+        .replace(/^DECISION( \/ PALANCA)?[.:]?\s*/i, 'Decisión del equipo: '));
       const box = el('div', { class: 'ctl' }, el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
         el('div', { class: 'ctl-row' }, input, reset), help ? el('p', { class: 'ctl-help', text: help }) : null);
       const pintar = () => { out.textContent = fmtValor(c, valorActual(c)); box.classList.toggle('cambiado', k in T.cambios); };
