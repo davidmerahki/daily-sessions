@@ -1,0 +1,2368 @@
+<title>Flywheel de credenciales</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: panel de palancas fijo a la izquierda (como el panel de SyntheSim) y lienzo de resultados a la derecha; en teléfono se apilan. */
+  :root {
+    --bg: #f4f6f9;
+    --surface: #fcfcfd;
+    --ink: #0f1729;
+    --ink-2: #4a5468;
+    --muted: #6f7889;
+    --grid: #e3e6ec;
+    --line: #c9ced8;
+    --accent: #2a78d6;
+    --accent-wash: rgba(42, 120, 214, 0.10);
+    --base: #9aa3b2;
+    --good: #006300;
+    --bad: #b42d2d;
+    --warn-bg: #fff4dc;
+    --warn-ink: #7a4b00;
+    --ok-bg: #e7f5e7;
+    --ok-ink: #0b5d0b;
+    --ring: rgba(15, 23, 41, 0.10);
+    --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+      --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
+      --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+      --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+    --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
+    --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+    --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 40px;
+  }
+  .page { max-width: 1320px; margin: 0 auto; display: grid; gap: 20px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: 0.005em; }
+  h1 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+  h2 { font-size: 19px; }
+  h3 { font-size: 15px; }
+  p { margin: 0; }
+  .eyebrow { font-family: var(--font-data); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  header.top { display: grid; gap: 8px; max-width: 78ch; }
+  header.top .lead { color: var(--ink-2); font-size: 15px; }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+  .kpi-label { color: var(--ink-2); font-size: 13px; }
+  .kpi-value { font-size: 30px; font-weight: 600; line-height: 1.1; }
+  .kpi-delta { font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+  .kpi-delta.up { color: var(--good); }
+  .kpi-delta.down { color: var(--bad); }
+  .estado { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; justify-self: start; }
+  .estado.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .estado.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .estado svg { flex: none; }
+
+  /* Área de trabajo */
+  .workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px;
+    display: grid; gap: 18px; position: sticky; top: calc(12px + env(safe-area-inset-top, 0px));
+    max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain;
+  }
+  .panel section { display: grid; gap: 12px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; background: transparent; color: var(--ink-2); padding: 7px 4px; font: 500 12.5px var(--font-body); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .seg button:focus-visible, .btn:focus-visible, input:focus-visible, summary:focus-visible, .chart:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .btn { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 6px 10px; font: 500 12.5px var(--font-body); cursor: pointer; }
+  .btn:hover { background: var(--accent-wash); }
+  .ctl { display: grid; gap: 4px; }
+  .ctl-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .ctl label { font-size: 13px; font-weight: 500; }
+  .ctl output { font-family: var(--font-data); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ctl.cambiado output { color: var(--accent); font-weight: 500; }
+  .ctl-help { font-size: 12px; color: var(--muted); }
+  .ctl-row { display: flex; gap: 8px; align-items: center; }
+  .ctl input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .reset-one { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; visibility: hidden; }
+  .ctl.cambiado .reset-one { visibility: visible; }
+  details.grupo { border-top: 1px solid var(--grid); padding-top: 10px; }
+  details.grupo summary { cursor: pointer; font-weight: 600; font-size: 13px; list-style-position: inside; }
+  details.grupo[open] summary { margin-bottom: 10px; }
+  details.grupo .cuerpo, #palancas { display: grid; gap: 16px; }
+  .bucle { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; }
+  .codigo { font-family: var(--font-data); font-size: 11.5px; font-weight: 500; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 1px 7px; }
+  .bucle.off .codigo { border-color: var(--line); color: var(--muted); }
+  .bucle-nombre { font-size: 13px; font-weight: 500; }
+  .bucle-desc { grid-column: 2 / 4; font-size: 12px; color: var(--muted); }
+  .switch { appearance: none; width: 34px; height: 20px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; margin: 0; transition: background 0.15s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
+  .switch:checked { background: var(--accent); }
+  .switch:checked::after { transform: translateX(14px); }
+
+  main { display: grid; gap: 20px; min-width: 0; }
+  .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+  .key.esc { border-color: var(--accent); }
+  .key.base { border-color: var(--base); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 18px 20px; }
+  .chart { margin: 0; display: grid; gap: 6px; min-width: 0; border-radius: 8px; }
+  .chart figcaption { display: grid; gap: 1px; }
+  .chart-title { font-weight: 600; font-size: 13.5px; }
+  .chart-read { font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.4em; }
+  .chart-read b { color: var(--ink); font-weight: 500; }
+  .chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+  .ax { fill: var(--muted); font-family: var(--font-data); font-size: 9.5px; }
+  .gridl { stroke: var(--grid); stroke-width: 1; }
+  .basel { stroke: var(--line); stroke-width: 1; }
+  .l-esc { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .l-base { fill: none; stroke: var(--base); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+  .cross { stroke: var(--ink-2); stroke-width: 1; }
+
+  .aporte-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .aporte-head select { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  .barras { display: grid; gap: 8px; }
+  .barra { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 56px; gap: 10px; align-items: center; }
+  .barra-label { font-size: 13px; display: flex; gap: 8px; align-items: center; min-width: 0; }
+  .barra-label span:last-child { overflow-wrap: anywhere; }
+  .track { height: 18px; position: relative; }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .barra.off .fill { background: var(--line); }
+  .barra-val { font-family: var(--font-data); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+  .nota { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
+
+  figure.mapa { margin: 0; display: grid; gap: 10px; }
+  .mapa-svg { overflow-x: auto; color: var(--ink-2); }
+  .mapa-svg svg { width: 100%; min-width: 620px; height: auto; display: block; }
+  .cld .cld-nodos rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+  .cld .cld-nodos text { fill: var(--ink); font-family: var(--font-body); font-weight: 500; }
+  .cld .cld-etiquetas text { font-family: var(--font-body); fill: var(--muted); }
+  .cld .cld-bucles circle { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+  .cld .cld-bucles text { fill: var(--ink-2); font-family: var(--font-body); }
+  .cld .cld-bucles .cld-codigo { fill: var(--accent); font-family: var(--font-data); font-weight: 500; }
+  .cld .cld-bucles .cld-b circle { stroke: var(--muted); }
+  .cld .cld-bucles .cld-b .cld-codigo { fill: var(--muted); }
+  .cld [data-loop] { transition: opacity 0.2s; }
+  .cld .apagado { opacity: 0.18; }
+  figcaption.cap { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
+
+  .tabla-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--muted); font-weight: 500; font-family: var(--font-data); font-size: 11.5px; }
+  td { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  td:first-child { font-family: var(--font-body); }
+  details.tabla summary { cursor: pointer; font-weight: 600; }
+  footer { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+  .error { background: var(--warn-bg); color: var(--warn-ink); padding: 12px 16px; border-radius: 10px; }
+
+  @media (max-width: 860px) {
+    .workspace { grid-template-columns: minmax(0, 1fr); }
+    .panel { position: static; max-height: none; }
+    .barra { grid-template-columns: minmax(0, 1fr) 56px; }
+    .barra .track { grid-column: 1 / 3; grid-row: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <span class="eyebrow" id="antetitulo"></span>
+    <h1 id="titulo"></h1>
+    <p class="lead" id="bajada"></p>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Resultados al final del horizonte"></section>
+  <div id="restriccion"></div>
+
+  <div class="workspace">
+    <aside class="panel" aria-label="Palancas y supuestos">
+      <section>
+        <div class="panel-head"><h2>Horizonte</h2></div>
+        <div class="seg" id="horizonte" role="group" aria-label="Horizonte de simulación"></div>
+      </section>
+      <section>
+        <div class="panel-head"><h2>Palancas</h2><button class="btn" id="restablecer" type="button">Restablecer todo</button></div>
+        <div id="palancas" class="cuerpo"></div>
+      </section>
+      <section id="sec-bucles">
+        <div class="panel-head"><h2>Flywheels</h2></div>
+        <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él.</p>
+        <div id="bucles" style="display:grid;gap:12px"></div>
+      </section>
+      <section>
+        <div class="panel-head"><h2>Supuestos</h2></div>
+        <div id="supuestos"></div>
+      </section>
+    </aside>
+
+    <main>
+      <section class="card" aria-labelledby="h-res">
+        <div class="aporte-head">
+          <h2 id="h-res">Trayectorias</h2>
+          <div class="leyenda"><span><i class="key esc"></i>Escenario actual</span><span><i class="key base"></i>Base (supuestos de partida)</span></div>
+        </div>
+        <div class="charts" id="charts"></div>
+        <p class="nota">Pasa el cursor (o usa las flechas sobre un gráfico) para leer cualquier mes; todos los gráficos siguen el mismo mes.</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-aporte">
+        <div class="aporte-head">
+          <h2 id="h-aporte">¿Cuánto aporta cada flywheel?</h2>
+          <label>Medir sobre <select id="metrica"></select></label>
+        </div>
+        <div class="barras" id="barras"></div>
+        <p class="nota" id="nota-aporte"></p>
+      </section>
+
+      <section class="card" id="sec-mapa" aria-labelledby="h-mapa">
+        <h2 id="h-mapa">Mapa de bucles</h2>
+        <figure class="mapa">
+          <div class="mapa-svg" id="mapa"><svg viewBox="0 0 800 530" role="img" aria-label="Mapa de bucles: la credencial emitida por las unidades académicas llega a estudiantes y empresas; su uso le da valor, y ese valor atrae y retiene instituciones, cerrando el flywheel del ecosistema (R6). Bucles internos: R1 referidos entre instituciones, R2 contagio entre unidades, R3 hábito del estudiante, R4 docentes que se certifican, R5 talento verificable para empresas, R7 boca a boca empresarial. B1 saturación del mercado y B4 capacidad docente frenan el crecimiento." xmlns="http://www.w3.org/2000/svg" class="cld">
+  <defs>
+    <marker id="cld-punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <!-- enlaces del anillo principal (R6) -->
+  <g class="cld-enlaces" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#cld-punta)">
+    <line x1="307" y1="100" x2="441" y2="100"/>
+    <line x1="590" y1="123" x2="646" y2="246"/>
+    <line x1="660" y1="294" x2="603" y2="406"/>
+    <line x1="505" y1="437" x2="419" y2="460" data-loop="activar flywheel empresas"/>
+    <line x1="265" y1="458" x2="203" y2="404"/>
+    <line x1="130" y1="356" x2="130" y2="256"/>
+    <line x1="728" y1="92" x2="728" y2="246"/>
+    <line x1="508" y1="424" x2="214" y2="386"/>
+    <path d="M152,206 Q160,150 196,124" data-loop="activar flywheel del ecosistema"/>
+    <path d="M636,406 Q712,380 716,296" data-loop="activar habito estudiantil"/>
+    <path d="M206,244 Q420,300 520,406" data-loop="activar habito estudiantil"/>
+  </g>
+
+  <!-- etiquetas de los enlaces -->
+  <g class="cld-etiquetas" font-size="11.5" fill="currentColor">
+    <text x="374" y="90" text-anchor="middle">entran por una unidad</text>
+    <text x="608" y="190" text-anchor="end">emiten</text>
+    <text x="740" y="160">generan</text>
+    <text x="740" y="174">evidencias</text>
+    <text x="640" y="352" text-anchor="end">certifican</text>
+    <text x="462" y="470" text-anchor="middle" data-loop="activar flywheel empresas">talento visible</text>
+    <text x="222" y="444" text-anchor="end">verifican</text>
+    <text x="140" y="309">hacen moneda</text>
+    <text x="360" y="393" text-anchor="middle">comparten</text>
+    <text x="146" y="160" text-anchor="end" data-loop="activar flywheel del ecosistema">atrae y</text>
+    <text x="146" y="174" text-anchor="end" data-loop="activar flywheel del ecosistema">retiene</text>
+    <text x="722" y="372" data-loop="activar habito estudiantil">piden más</text>
+    <text x="722" y="386" data-loop="activar habito estudiantil">credenciales</text>
+    <text x="400" y="300" text-anchor="middle" data-loop="activar habito estudiantil">más solicitudes y uso</text>
+  </g>
+
+  <!-- bucles que se refuerzan a sí mismos (autolazos) -->
+  <g fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#cld-punta)">
+    <path d="M157,90 C118,66 118,134 157,110" data-loop="activar boca a boca institucional"/>
+    <path d="M508,78 C498,38 552,38 542,78" data-loop="activar expansion interna"/>
+    <path d="M714,50 C704,12 758,12 748,50" data-loop="activar compromiso docente"/>
+    <path d="M267,462 C230,446 230,496 267,480" data-loop="activar boca a boca empresarial"/>
+  </g>
+
+  <!-- nodos -->
+  <g class="cld-nodos" font-size="13" text-anchor="middle">
+    <g><rect x="155" y="78" width="150" height="44" rx="10"/><text x="230" y="97">Instituciones</text><text x="230" y="113">cliente</text></g>
+    <g><rect x="445" y="78" width="150" height="44" rx="10"/><text x="520" y="97">Unidades</text><text x="520" y="113">académicas activas</text></g>
+    <g><rect x="660" y="50" width="130" height="40" rx="10"/><text x="725" y="75">Docentes</text></g>
+    <g><rect x="605" y="248" width="150" height="44" rx="10"/><text x="680" y="267">Credenciales</text><text x="680" y="283">emitidas</text></g>
+    <g><rect x="505" y="408" width="150" height="44" rx="10"/><text x="580" y="427">Estudiantes con</text><text x="580" y="443">credencial</text></g>
+    <g><rect x="265" y="448" width="152" height="44" rx="10"/><text x="341" y="467">Empresas que buscan</text><text x="341" y="483">por competencias</text></g>
+    <g><rect x="70" y="358" width="140" height="44" rx="10"/><text x="140" y="377">Uso y</text><text x="140" y="393">verificación</text></g>
+    <g><rect x="55" y="208" width="150" height="44" rx="10"/><text x="130" y="227">Valor de la</text><text x="130" y="243">credencial</text></g>
+  </g>
+
+  <!-- identificadores de bucle -->
+  <g class="cld-bucles" font-size="12" text-anchor="middle">
+    <g data-loop="activar flywheel del ecosistema"><circle cx="390" cy="215" r="22"/><text x="390" y="220" class="cld-codigo">R6</text><text x="390" y="255">credencial como moneda</text></g>
+    <g data-loop="activar boca a boca institucional"><circle cx="98" cy="100" r="14"/><text x="98" y="104" class="cld-codigo">R1</text><text x="98" y="132">referidos</text></g>
+    <g data-loop="activar expansion interna"><circle cx="476" cy="40" r="14"/><text x="476" y="44" class="cld-codigo">R2</text><text x="456" y="44" text-anchor="end">contagio interno</text></g>
+    <g data-loop="activar compromiso docente"><circle cx="680" cy="22" r="14"/><text x="680" y="26" class="cld-codigo">R4</text><text x="658" y="26" text-anchor="end">se certifican</text></g>
+    <g data-loop="activar habito estudiantil"><circle cx="672" cy="342" r="14"/><text x="672" y="346" class="cld-codigo">R3</text></g>
+    <g data-loop="activar flywheel empresas"><circle cx="520" cy="490" r="14"/><text x="520" y="494" class="cld-codigo">R5</text><text x="542" y="494" text-anchor="start">talento verificable</text></g>
+    <g data-loop="activar boca a boca empresarial"><circle cx="212" cy="500" r="14"/><text x="212" y="504" class="cld-codigo">R7</text><text x="190" y="504" text-anchor="end">boca a boca</text></g>
+    <g class="cld-b"><circle cx="300" cy="160" r="14"/><text x="300" y="164" class="cld-codigo">B1</text><text x="318" y="164" text-anchor="start">mercado se agota</text></g>
+    <g class="cld-b"><circle cx="690" cy="205" r="14"/><text x="690" y="209" class="cld-codigo">B4</text></g>
+  </g>
+</svg>
+</div>
+          <figcaption class="cap">Todas las flechas son relaciones positivas (+): más de una variable lleva a más de la siguiente. Los bucles R se refuerzan; B1 (el mercado potencial se agota) y B4 (la capacidad docente limita la emisión) frenan el crecimiento. Los bucles apagados en el panel se atenúan.</figcaption>
+        </figure>
+      </section>
+
+      <section class="card">
+        <details class="tabla">
+          <summary>Tabla anual del escenario actual</summary>
+          <div class="tabla-wrap"><table id="tabla"></table></div>
+        </details>
+      </section>
+
+      <footer>
+        <span id="pie"></span>
+        <span>Los resultados describen la lógica del modelo con sus supuestos; no son un pronóstico.</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script type="text/plain" id="modelo-mdl">{UTF-8}
+********************************************************
+	.instituciones
+********************************************************~
+		Adquisicion de instituciones: prospeccion, pilotos, clientes y churn.
+	|
+
+Instituciones potenciales= INTEG (
+	pilotos no convertidos-inicio de pilotos,
+		instituciones en el mercado-clientes iniciales-pilotos iniciales)
+	~	Institucion [0,?]
+	~	Universidades e IES del mercado objetivo que aun no usan la plataforma.
+	|
+
+Instituciones en piloto= INTEG (
+	inicio de pilotos-conversion de pilotos-pilotos no convertidos,
+		pilotos iniciales)
+	~	Institucion [0,?]
+	~	Instituciones probando la plataforma, normalmente desde una unidad \
+		academica (educacion continua o innovacion).
+	|
+
+Instituciones cliente= INTEG (
+	conversion de pilotos-churn de instituciones,
+		clientes iniciales)
+	~	Institucion [0,?]
+	~	Instituciones con contrato activo (al menos una unidad academica \
+		emitiendo).
+	|
+
+Instituciones perdidas= INTEG (
+	churn de instituciones,
+		0)
+	~	Institucion [0,?]
+	~	Instituciones que fueron clientes y se fueron (no vuelven al mercado en el \
+		horizonte).
+	|
+
+inicio de pilotos=
+	Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)
+	~	Institucion/Month
+	~	Nuevos pilotos: prospeccion propia (outbound, eventos, marketing), boca a \
+		boca entre instituciones (R1) y atraccion porque la credencial ya es \
+		moneda de movilidad (R6).
+	|
+
+contagio institucional=
+	activar boca a boca institucional*efectividad del boca a boca institucional*Instituciones cliente/instituciones en el mercado
+	~	1/Month
+	~	Fraccion mensual de potenciales que inician piloto por referencia de \
+		clientes (Bass).
+	|
+
+atraccion del ecosistema=
+	activar flywheel del ecosistema*atraccion maxima por valor de la credencial*Valor percibido de la credencial
+	~	1/Month
+	~	Fraccion mensual de potenciales que buscan la plataforma porque \
+		estudiantes y empresas ya piden la credencial (bucle R6).
+	|
+
+conversion de pilotos=
+	Instituciones en piloto/duracion del piloto*fraccion de conversion de pilotos
+	~	Institucion/Month
+	~	Pilotos que firman contrato.
+	|
+
+pilotos no convertidos=
+	Instituciones en piloto/duracion del piloto*(1-fraccion de conversion de pilotos)
+	~	Institucion/Month
+	~	Pilotos que no convierten y vuelven al mercado potencial.
+	|
+
+churn de instituciones=
+	Instituciones cliente*fraccion de churn institucional*(1-activar flywheel del ecosistema*reduccion maxima del churn por valor*Valor percibido de la credencial)
+	~	Institucion/Month
+	~	Instituciones que dejan la plataforma. Cuanto mas vale la credencial \
+		(datos de competencias, empleabilidad, marketing), menos churn.
+	|
+
+instituciones en el mercado=
+	600
+	~	Institucion [100,3000,50]
+	~	SUPUESTO: tamano del mercado objetivo.
+	|
+
+clientes iniciales=
+	25
+	~	Institucion [0,200,1]
+	~	SUPUESTO: clientes al inicio de la simulacion.
+	|
+
+pilotos iniciales=
+	5
+	~	Institucion [0,50,1]
+	~	SUPUESTO: pilotos en curso al inicio.
+	|
+
+fraccion de prospeccion=
+	0.003
+	~	1/Month [0,0.02,0.0005]
+	~	SUPUESTO / PALANCA: fraccion mensual de potenciales que inician piloto por \
+		la prospeccion propia (0.003 = 0.3 % al mes).
+	|
+
+efectividad del boca a boca institucional=
+	0.05
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO: inicio de pilotos por mes y por potencial si todo el mercado \
+		fuera cliente.
+	|
+
+atraccion maxima por valor de la credencial=
+	0.02
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: fraccion mensual de potenciales que llega sola cuando la \
+		credencial vale el maximo.
+	|
+
+duracion del piloto=
+	4
+	~	Month [1,12,1]
+	~	SUPUESTO: meses desde el inicio del piloto hasta la decision.
+	|
+
+fraccion de conversion de pilotos=
+	0.5
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA: pilotos que firman.
+	|
+
+fraccion de churn institucional=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: churn mensual de instituciones sin efecto del valor (0.01 ~ 11 % \
+		al ano).
+	|
+
+reduccion maxima del churn por valor=
+	0.6
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: cuanto se reduce el churn cuando la credencial vale el maximo.
+	|
+
+********************************************************
+	.unidades academicas
+********************************************************~
+		Land and expand: cada institucion cliente entra por una unidad y se expande a otras.
+	|
+
+Unidades activas= INTEG (
+	unidades por nuevos clientes+expansion interna-churn de unidades-unidades perdidas con instituciones,
+		unidades iniciales)
+	~	Unidad [0,?]
+	~	Unidades academicas emitiendo credenciales (educacion continua, \
+		innovacion, facultades...).
+	|
+
+unidades por nuevos clientes=
+	conversion de pilotos*unidades de entrada por cliente
+	~	Unidad/Month
+	~	Cada nuevo cliente entra con su unidad de entrada.
+	|
+
+unidades sin activar en clientes=
+	MAX(0,Instituciones cliente*unidades academicas por institucion-Unidades activas)
+	~	Unidad
+	~	Unidades de las instituciones cliente que todavia no emiten: el espacio de \
+		expansion.
+	|
+
+penetracion interna=
+	ZIDZ(Unidades activas,Instituciones cliente*unidades academicas por institucion)
+	~	Dmnl
+	~	Fraccion de las unidades de los clientes que ya emiten.
+	|
+
+expansion interna=
+	unidades sin activar en clientes*(fraccion de expansion institucional+activar expansion interna*efectividad del contagio interno*penetracion interna)
+	~	Unidad/Month
+	~	Nuevas unidades dentro de clientes: por decision central \
+		(vicerrectoria/rectoria) y por contagio entre unidades (bucle R2).
+	|
+
+churn de unidades=
+	Unidades activas*fraccion de churn de unidades
+	~	Unidad/Month
+	~	Unidades que dejan de emitir aunque la institucion siga siendo cliente.
+	|
+
+unidades perdidas con instituciones=
+	churn de instituciones*ZIDZ(Unidades activas,Instituciones cliente)
+	~	Unidad/Month
+	~	Unidades que se van cuando su institucion abandona.
+	|
+
+unidades iniciales=
+	40
+	~	Unidad [0,500,5]
+	~	SUPUESTO: unidades emitiendo al inicio.
+	|
+
+unidades academicas por institucion=
+	8
+	~	Unidad/Institucion [1,30,1]
+	~	SUPUESTO: unidades potenciales por institucion (educacion continua, \
+		innovacion, facultades, talento humano...).
+	|
+
+unidades de entrada por cliente=
+	1
+	~	Unidad/Institucion [1,5,1]
+	~	Unidades con las que entra un cliente nuevo.
+	|
+
+fraccion de expansion institucional=
+	0.004
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO / PALANCA: expansion por decision central (vicerrectores, \
+		rectores) por mes.
+	|
+
+efectividad del contagio interno=
+	0.06
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO: expansion por contagio entre unidades si toda la institucion ya \
+		emitiera.
+	|
+
+fraccion de churn de unidades=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: churn mensual de unidades.
+	|
+
+********************************************************
+	.docentes
+********************************************************~
+		Los docentes generan las evidencias de emision y tambien se certifican.
+	|
+
+Docentes activos= INTEG (
+	incorporacion neta de docentes,
+		unidades iniciales*docentes por unidad*fraccion base de docentes comprometidos)
+	~	Docente [0,?]
+	~	Docentes que generan evidencias en la plataforma.
+	|
+
+Docentes certificados= INTEG (
+	certificacion de docentes-salida de docentes certificados,
+		0)
+	~	Docente [0,?]
+	~	Docentes con credenciales propias de competencias (talento de la \
+		universidad).
+	|
+
+incorporacion neta de docentes=
+	(docentes comprometidos deseados-Docentes activos)/tiempo de adopcion docente
+	~	Docente/Month
+	~	Ajuste gradual hacia los docentes que deberian estar usando la plataforma.
+	|
+
+docentes comprometidos deseados=
+	Unidades activas*docentes por unidad*fraccion de docentes comprometidos
+	~	Docente
+	~	
+	|
+
+fraccion de docentes comprometidos=
+	MIN(fraccion maxima de docentes comprometidos,fraccion base de docentes comprometidos*(1+activar compromiso docente*efecto de la certificacion en el compromiso*fraccion de docentes certificados))
+	~	Dmnl
+	~	Los docentes que se certifican se vuelven promotores y comprometen a mas \
+		colegas (bucle R4).
+	|
+
+fraccion de docentes certificados=
+	ZIDZ(MIN(Docentes certificados,Docentes activos),Docentes activos)
+	~	Dmnl
+	~	
+	|
+
+certificacion de docentes=
+	MAX(0,Docentes activos-Docentes certificados)*fraccion mensual de certificacion docente
+	~	Docente/Month
+	~	Docentes que certifican sus propias competencias.
+	|
+
+salida de docentes certificados=
+	Docentes certificados/permanencia de docentes
+	~	Docente/Month
+	~	Rotacion de docentes certificados.
+	|
+
+capacidad de emision=
+	Docentes activos*evidencias por docente
+	~	Credencial/Month
+	~	Credenciales que los docentes pueden respaldar con evidencias por mes \
+		(bucle B4).
+	|
+
+docentes por unidad=
+	30
+	~	Docente/Unidad [5,200,5]
+	~	SUPUESTO.
+	|
+
+fraccion base de docentes comprometidos=
+	0.3
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA.
+	|
+
+fraccion maxima de docentes comprometidos=
+	0.9
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+efecto de la certificacion en el compromiso=
+	1
+	~	Dmnl [0,3,0.1]
+	~	SUPUESTO: con todos los docentes certificados el compromiso se duplica (1 \
+		= +100 %).
+	|
+
+tiempo de adopcion docente=
+	6
+	~	Month [1,24,1]
+	~	SUPUESTO / PALANCA (capacitacion, onboarding).
+	|
+
+fraccion mensual de certificacion docente=
+	0.02
+	~	1/Month [0,0.2,0.005]
+	~	SUPUESTO / PALANCA.
+	|
+
+permanencia de docentes=
+	60
+	~	Month [12,240,12]
+	~	SUPUESTO.
+	|
+
+evidencias por docente=
+	15
+	~	Credencial/(Docente*Month) [1,100,1]
+	~	SUPUESTO: credenciales por docente y mes que se pueden respaldar con \
+		evidencias.
+	|
+
+********************************************************
+	.estudiantes
+********************************************************~
+		Emision de credenciales y habito de los estudiantes.
+	|
+
+Credenciales emitidas= INTEG (
+	emision de credenciales+credenciales docentes,
+		credenciales iniciales)
+	~	Credencial [0,?]
+	~	Acumulado de credenciales emitidas.
+	|
+
+Titulares activos= INTEG (
+	nuevos titulares-desactivacion de titulares,
+		titulares iniciales)
+	~	Persona [0,?]
+	~	Estudiantes y egresados que usan o comparten activamente sus credenciales.
+	|
+
+demanda institucional de credenciales=
+	Unidades activas*emision programada por unidad
+	~	Credencial/Month
+	~	Emisiones que las unidades planean (cursos, programas, eventos).
+	|
+
+demanda estudiantil de credenciales=
+	activar habito estudiantil*Titulares activos*solicitudes por titular*Valor percibido de la credencial
+	~	Credencial/Month
+	~	Disparador del habito: necesito demostrar una competencia y pido la \
+		credencial (bucle R3).
+	|
+
+demanda de credenciales=
+	demanda institucional de credenciales+demanda estudiantil de credenciales
+	~	Credencial/Month
+	~	
+	|
+
+emision de credenciales=
+	MIN(demanda de credenciales,capacidad de emision)
+	~	Credencial/Month
+	~	Lo que se emite: la demanda, salvo que falten docentes que generen \
+		evidencias.
+	|
+
+credenciales docentes=
+	certificacion de docentes*credenciales por docente certificado
+	~	Credencial/Month
+	~	
+	|
+
+nuevos titulares=
+	emision de credenciales*fraccion de emisiones a nuevos titulares/credenciales por titular nuevo
+	~	Persona/Month
+	~	Personas que reciben su primera credencial.
+	|
+
+desactivacion de titulares=
+	Titulares activos/tiempo de uso activo
+	~	Persona/Month
+	~	Titulares que dejan de usar sus credenciales.
+	|
+
+tiempo de uso activo=
+	tiempo base de uso activo*(1+activar habito estudiantil*extension del uso por valor*Valor percibido de la credencial)
+	~	Month
+	~	Recompensa del habito: si la credencial sirve, se sigue usando por mas \
+		tiempo.
+	|
+
+compartidas por titulares=
+	Titulares activos*usos por titular
+	~	Uso/Month
+	~	Credenciales compartidas o presentadas (LinkedIn, wallets, postulaciones).
+	|
+
+credenciales iniciales=
+	50000
+	~	Credencial [0,1e+06,10000]
+	~	SUPUESTO.
+	|
+
+titulares iniciales=
+	20000
+	~	Persona [0,500000,5000]
+	~	SUPUESTO.
+	|
+
+emision programada por unidad=
+	120
+	~	Credencial/(Unidad*Month) [10,1000,10]
+	~	SUPUESTO / PALANCA.
+	|
+
+solicitudes por titular=
+	0.05
+	~	Credencial/(Persona*Month) [0,0.5,0.01]
+	~	SUPUESTO: credenciales adicionales que un titular pide por mes cuando la \
+		credencial vale el maximo.
+	|
+
+fraccion de emisiones a nuevos titulares=
+	0.5
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: parte de las credenciales que va a personas sin credenciales \
+		previas.
+	|
+
+credenciales por titular nuevo=
+	1
+	~	Credencial/Persona [1,5,1]
+	~	
+	|
+
+credenciales por docente certificado=
+	3
+	~	Credencial/Docente [1,10,1]
+	~	SUPUESTO.
+	|
+
+tiempo base de uso activo=
+	18
+	~	Month [3,60,1]
+	~	SUPUESTO.
+	|
+
+extension del uso por valor=
+	1
+	~	Dmnl [0,3,0.1]
+	~	SUPUESTO: con valor maximo el tiempo de uso activo se duplica.
+	|
+
+usos por titular=
+	0.1
+	~	Uso/(Persona*Month) [0,1,0.01]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.empresas
+********************************************************~
+		Sector productivo: busqueda de talento por credenciales y competencias.
+	|
+
+Empresas potenciales= INTEG (
+	churn de empresas-adopcion de empresas,
+		empresas en el mercado-empresas iniciales)
+	~	Empresa [0,?]
+	~	Empresas (talento humano) que aun no buscan talento por credenciales.
+	|
+
+Empresas usuarias= INTEG (
+	adopcion de empresas-churn de empresas,
+		empresas iniciales)
+	~	Empresa [0,?]
+	~	Empresas que buscan y verifican talento por credenciales.
+	|
+
+adopcion de empresas=
+	Empresas potenciales*(fraccion de prospeccion de empresas+contagio empresarial+atraccion por talento)
+	~	Empresa/Month
+	~	
+	|
+
+contagio empresarial=
+	activar boca a boca empresarial*efectividad del boca a boca empresarial*Empresas usuarias/empresas en el mercado
+	~	1/Month
+	~	Bucle R7.
+	|
+
+atraccion por talento=
+	activar flywheel empresas*atraccion maxima por talento*probabilidad de encontrar talento
+	~	1/Month
+	~	Cuanto mas talento verificable hay, mas empresas buscan por credenciales \
+		(bucle R5).
+	|
+
+probabilidad de encontrar talento=
+	Titulares activos/(Titulares activos+talento de referencia)
+	~	Dmnl
+	~	Probabilidad de que una busqueda encuentre un candidato con la competencia \
+		(saturante).
+	|
+
+churn de empresas=
+	Empresas usuarias*fraccion de churn de empresas*(1-reduccion del churn por exito*probabilidad de encontrar talento)
+	~	Empresa/Month
+	~	Las empresas que no encuentran talento abandonan.
+	|
+
+busquedas de talento=
+	Empresas usuarias*busquedas por empresa
+	~	Busqueda/Month
+	~	
+	|
+
+contrataciones por credencial=
+	busquedas de talento*probabilidad de encontrar talento*contrataciones por busqueda exitosa
+	~	Contratacion/Month
+	~	
+	|
+
+verificaciones de empresas=
+	busquedas de talento*verificaciones por busqueda
+	~	Uso/Month
+	~	Credenciales verificadas por reclutadores.
+	|
+
+dias de contratacion ahorrados=
+	contrataciones por credencial*dias ahorrados por contratacion
+	~	Dia/Month
+	~	Recompensa para la empresa: menor tiempo de contratacion.
+	|
+
+empresas en el mercado=
+	3000
+	~	Empresa [100,50000,100]
+	~	SUPUESTO.
+	|
+
+empresas iniciales=
+	15
+	~	Empresa [0,500,5]
+	~	SUPUESTO.
+	|
+
+fraccion de prospeccion de empresas=
+	0.001
+	~	1/Month [0,0.02,0.0005]
+	~	SUPUESTO / PALANCA.
+	|
+
+efectividad del boca a boca empresarial=
+	0.05
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO.
+	|
+
+atraccion maxima por talento=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO.
+	|
+
+talento de referencia=
+	200000
+	~	Persona [10000,2e+06,10000]
+	~	SUPUESTO: titulares activos con los que la mitad de las busquedas \
+		encuentra candidato.
+	|
+
+fraccion de churn de empresas=
+	0.03
+	~	1/Month [0,0.1,0.005]
+	~	SUPUESTO.
+	|
+
+reduccion del churn por exito=
+	0.8
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+busquedas por empresa=
+	4
+	~	Busqueda/(Empresa*Month) [0,50,1]
+	~	SUPUESTO.
+	|
+
+contrataciones por busqueda exitosa=
+	0.3
+	~	Contratacion/Busqueda [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+verificaciones por busqueda=
+	5
+	~	Uso/Busqueda [0,50,1]
+	~	SUPUESTO.
+	|
+
+dias ahorrados por contratacion=
+	15
+	~	Dia/Contratacion [0,60,1]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.ecosistema
+********************************************************~
+		Valor de la credencial como moneda de movilidad academica y laboral.
+	|
+
+uso de credenciales=
+	compartidas por titulares+verificaciones de empresas
+	~	Uso/Month
+	~	Cuanto se usan las credenciales en el mercado.
+	|
+
+valor indicado de la credencial=
+	1-EXP(-(peso del uso*uso de credenciales/uso de referencia+(1-peso del uso)*Empresas usuarias/empresas de referencia))
+	~	Dmnl
+	~	Valor de la credencial (0 a 1) segun su uso y cuantas empresas la \
+		reconocen; satura en 1.
+	|
+
+Valor percibido de la credencial=
+	SMOOTH3(valor indicado de la credencial,tiempo de percepcion del valor)
+	~	Dmnl
+	~	El mercado tarda en notar el valor (retraso de percepcion).
+	|
+
+uso de referencia=
+	100000
+	~	Uso/Month [10000,1e+06,10000]
+	~	SUPUESTO: uso mensual con el que la credencial es moneda.
+	|
+
+empresas de referencia=
+	300
+	~	Empresa [50,5000,50]
+	~	SUPUESTO: empresas que hacen de la credencial un estandar.
+	|
+
+peso del uso=
+	0.5
+	~	Dmnl [0,1,0.1]
+	~	SUPUESTO.
+	|
+
+tiempo de percepcion del valor=
+	12
+	~	Month [1,36,1]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.interruptores
+********************************************************~
+		Apagar un bucle (0) muestra cuanto aporta al crecimiento.
+	|
+
+activar boca a boca institucional=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R1.
+	|
+
+activar expansion interna=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R2 (contagio entre unidades).
+	|
+
+activar habito estudiantil=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R3.
+	|
+
+activar compromiso docente=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R4.
+	|
+
+activar flywheel empresas=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R5.
+	|
+
+activar flywheel del ecosistema=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R6 (atraccion y retencion por valor).
+	|
+
+activar boca a boca empresarial=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R7.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 60
+	~	Month
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Month
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 1
+	~	Month [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.125
+	~	Month [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*1 instituciones
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Instituciones potenciales,170,300,40,20,3,3,0,0,0,0,0,0
+10,2,Instituciones en piloto,480,300,40,20,3,3,0,0,0,0,0,0
+10,3,Instituciones cliente,790,300,40,20,3,3,0,0,0,0,0,0
+10,4,Instituciones perdidas,1100,300,40,20,3,3,0,0,0,0,0,0
+1,5,7,2,4,0,0,22,0,0,0,-1--1--1,,1|(438,288)|
+1,6,7,1,100,0,0,22,0,0,0,-1--1--1,,1|(212,288)|
+11,7,48,325,288,6,8,34,3,0,0,1,0,0,0
+10,8,inicio de pilotos,325,272,50,8,40,3,0,0,-1,0,0,0
+1,9,11,1,4,0,0,22,0,0,0,-1--1--1,,1|(212,313)|
+1,10,11,2,100,0,0,22,0,0,0,-1--1--1,,1|(438,313)|
+11,11,48,325,313,6,8,34,3,0,0,1,0,0,0
+10,12,pilotos no convertidos,325,335,32,14,40,3,0,0,-1,0,0,0
+1,13,15,3,4,0,0,22,0,0,0,-1--1--1,,1|(748,300)|
+1,14,15,2,100,0,0,22,0,0,0,-1--1--1,,1|(522,300)|
+11,15,48,635,300,6,8,34,3,0,0,1,0,0,0
+10,16,conversion de pilotos,635,322,38,14,40,3,0,0,-1,0,0,0
+1,17,19,4,4,0,0,22,0,0,0,-1--1--1,,1|(1058,300)|
+1,18,19,3,100,0,0,22,0,0,0,-1--1--1,,1|(832,300)|
+11,19,48,945,300,6,8,34,3,0,0,1,0,0,0
+10,20,churn de instituciones,945,322,38,14,40,3,0,0,-1,0,0,0
+10,21,fraccion de prospeccion,170,175,32,14,8,3,0,0,0,0,0,0
+10,22,contagio institucional,325,175,38,14,8,3,0,0,0,0,0,0
+10,23,atraccion del ecosistema,480,175,38,14,8,3,0,0,0,0,0,0
+10,24,activar boca a boca institucional,190,85,53,14,8,3,0,0,0,0,0,0
+10,25,efectividad del boca a boca institucional,340,50,44,20,8,3,0,0,0,0,0,0
+10,26,instituciones en el mercado,60,420,47,14,8,3,0,0,0,0,0,0
+10,27,atraccion maxima por valor de la credencial,470,60,47,20,8,3,0,0,0,0,0,0
+10,28,activar flywheel del ecosistema,800,45,47,14,8,3,0,0,0,0,0,0
+10,29,duracion del piloto,480,450,35,14,8,3,0,0,0,0,0,0
+10,30,fraccion de conversion de pilotos,650,450,38,20,8,3,0,0,0,0,0,0
+10,31,pilotos iniciales,350,420,50,8,8,3,0,0,0,0,0,0
+10,32,clientes iniciales,790,420,53,8,8,3,0,0,0,0,0,0
+10,33,fraccion de churn institucional,900,450,50,14,8,3,0,0,0,0,0,0
+10,34,reduccion maxima del churn por valor,1130,420,47,20,8,3,0,0,0,0,0,0
+1,35,26,1,0,0,0,0,0,64,1,-1--1--1,,1|(115,360)|
+1,36,32,1,0,0,0,0,0,64,1,-1--1--1,,1|(480,360)|
+1,37,31,1,0,0,0,0,0,64,1,-1--1--1,,1|(260,360)|
+1,38,31,2,0,0,0,0,0,64,1,-1--1--1,,1|(415,360)|
+1,39,32,3,0,0,0,0,0,64,1,-1--1--1,,1|(790,360)|
+1,40,1,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,294)|
+1,41,21,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,231)|
+1,42,22,7,0,0,43,0,0,64,0,-1--1--1,,1|(325,231)|
+1,43,23,7,0,0,43,0,0,64,0,-1--1--1,,1|(402,231)|
+1,44,2,11,0,0,43,0,0,64,0,-1--1--1,,1|(402,306)|
+1,45,29,11,0,0,45,0,0,64,0,-1--1--1,,1|(402,381)|
+1,46,30,11,0,0,45,0,0,64,0,-1--1--1,,1|(487,381)|
+1,47,2,15,0,0,43,0,0,64,0,-1--1--1,,1|(557,300)|
+1,48,29,15,0,0,45,0,0,64,0,-1--1--1,,1|(557,375)|
+1,49,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(642,375)|
+1,50,3,19,0,0,43,0,0,64,0,-1--1--1,,1|(867,300)|
+1,51,33,19,0,0,43,0,0,64,0,-1--1--1,,1|(922,375)|
+1,52,28,19,0,0,45,0,0,64,0,-1--1--1,,1|(872,172)|
+1,53,34,19,0,0,45,0,0,64,0,-1--1--1,,1|(1037,360)|
+10,54,Valor percibido de la credencial,760,170,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,55,54,19,0,0,45,0,0,64,0,-1--1--1,,1|(852,235)|
+1,56,24,22,0,0,43,0,0,64,0,-1--1--1,,1|(257,130)|
+1,57,25,22,0,0,43,0,0,64,0,-1--1--1,,1|(332,112)|
+1,58,3,22,0,0,43,0,0,64,0,-1--1--1,,1|(557,237)|
+1,59,26,22,0,0,45,0,0,64,0,-1--1--1,,1|(192,297)|
+1,60,28,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,110)|
+1,61,27,23,0,0,43,0,0,64,0,-1--1--1,,1|(475,117)|
+1,62,54,23,0,0,43,0,0,64,0,-1--1--1,,1|(620,172)|
+12,63,0,400,230,15,15,5,4,0,0,-1,0,0,0
+R
+12,64,0,400,252,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 boca a boca
+12,65,0,600,230,15,15,5,4,0,0,-1,0,0,0
+R
+12,66,0,600,252,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R6 ecosistema
+12,67,0,250,245,15,15,4,4,0,0,-1,0,0,0
+B
+12,68,0,250,267,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B1 saturacion
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*2 unidades academicas
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Unidades activas,520,320,40,20,3,3,0,0,0,0,0,0
+12,2,48,220,320,10,8,0,3,0,0,-1,0,0,0
+1,3,5,1,4,0,0,22,0,0,0,-1--1--1,,1|(478,320)|
+1,4,5,2,100,0,0,22,0,0,0,-1--1--1,,1|(220,320)|
+11,5,48,360,320,6,8,34,3,0,0,1,0,0,0
+10,6,unidades por nuevos clientes,360,342,44,14,40,3,0,0,-1,0,0,0
+12,7,48,520,90,10,8,0,3,0,0,-1,0,0,0
+1,8,10,1,4,0,0,22,0,0,0,-1--1--1,,1|(520,298)|
+1,9,10,7,100,0,0,22,0,0,0,-1--1--1,,1|(520,90)|
+11,10,48,520,200,8,6,33,3,0,0,4,0,0,0
+10,11,expansion interna,578,200,50,8,40,3,0,0,-1,0,0,0
+12,12,48,840,320,10,8,0,3,0,0,-1,0,0,0
+1,13,15,12,4,0,0,22,0,0,0,-1--1--1,,1|(840,320)|
+1,14,15,1,100,0,0,22,0,0,0,-1--1--1,,1|(562,320)|
+11,15,48,690,320,6,8,34,3,0,0,1,0,0,0
+10,16,churn de unidades,690,336,50,8,40,3,0,0,-1,0,0,0
+12,17,48,520,560,10,8,0,3,0,0,-1,0,0,0
+1,18,20,17,4,0,0,22,0,0,0,-1--1--1,,1|(520,560)|
+1,19,20,1,100,0,0,22,0,0,0,-1--1--1,,1|(520,342)|
+11,20,48,520,450,8,6,33,3,0,0,4,0,0,0
+10,21,unidades perdidas con instituciones,578,450,50,14,40,3,0,0,-1,0,0,0
+10,22,unidades sin activar en clientes,330,140,35,20,8,3,0,0,0,0,0,0
+10,23,penetracion interna,760,200,32,14,8,3,0,0,0,0,0,0
+10,24,fraccion de expansion institucional,330,60,38,20,8,3,0,0,0,0,0,0
+10,25,activar expansion interna,700,60,50,14,8,3,0,0,0,0,0,0
+10,26,efectividad del contagio interno,760,125,47,14,8,3,0,0,0,0,0,0
+10,27,unidades academicas por institucion,980,140,41,20,8,3,0,0,0,0,0,0
+10,28,unidades de entrada por cliente,250,430,32,20,8,3,0,0,0,0,0,0
+10,29,unidades iniciales,420,420,53,8,8,3,0,0,0,0,0,0
+10,30,fraccion de churn de unidades,820,410,50,14,8,3,0,0,0,0,0,0
+1,31,29,1,0,0,0,0,0,64,1,-1--1--1,,1|(470,370)|
+10,32,conversion de pilotos,200,230,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,33,32,5,0,0,43,0,0,64,0,-1--1--1,,1|(280,275)|
+1,34,28,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,375)|
+1,35,22,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,170)|
+1,36,24,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,130)|
+1,37,25,10,0,0,43,0,0,64,0,-1--1--1,,1|(610,130)|
+1,38,26,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,162)|
+1,39,23,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,200)|
+1,40,1,15,0,0,43,0,0,64,0,-1--1--1,,1|(605,320)|
+1,41,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(755,365)|
+10,42,churn de instituciones,300,540,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,43,42,20,0,0,43,0,0,64,0,-1--1--1,,1|(410,495)|
+1,44,1,20,0,0,43,0,0,64,0,-1--1--1,,1|(520,385)|
+10,45,Instituciones cliente,980,260,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,46,45,20,0,0,45,0,0,64,0,-1--1--1,,1|(750,355)|
+1,47,45,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,200)|
+1,48,27,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,140)|
+1,49,1,22,0,0,45,0,0,64,0,-1--1--1,,1|(425,230)|
+1,50,1,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,260)|
+1,51,45,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,230)|
+1,52,27,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,170)|
+12,53,0,640,260,15,15,5,4,0,0,-1,0,0,0
+R
+12,54,0,640,282,46,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R2 land and expand
+12,55,0,420,240,15,15,4,4,0,0,-1,0,0,0
+B
+12,56,0,420,262,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B2 saturacion interna
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*3 docentes
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Docentes activos,380,300,40,20,3,3,0,0,0,0,0,0
+10,2,Docentes certificados,800,300,40,20,3,3,0,0,0,0,0,0
+12,3,48,120,300,10,8,0,3,0,0,-1,0,0,0
+1,4,6,1,4,0,0,22,0,0,0,-1--1--1,,1|(338,300)|
+1,5,6,3,100,0,0,22,0,0,0,-1--1--1,,1|(120,300)|
+11,6,48,240,300,6,8,34,3,0,0,1,0,0,0
+10,7,incorporacion neta de docentes,240,322,53,14,40,3,0,0,-1,0,0,0
+12,8,48,800,90,10,8,0,3,0,0,-1,0,0,0
+1,9,11,2,4,0,0,22,0,0,0,-1--1--1,,1|(800,278)|
+1,10,11,8,100,0,0,22,0,0,0,-1--1--1,,1|(800,90)|
+11,11,48,800,190,8,6,33,3,0,0,4,0,0,0
+10,12,certificacion de docentes,855,190,47,14,40,3,0,0,-1,0,0,0
+12,13,48,1080,300,10,8,0,3,0,0,-1,0,0,0
+1,14,16,13,4,0,0,22,0,0,0,-1--1--1,,1|(1080,300)|
+1,15,16,2,100,0,0,22,0,0,0,-1--1--1,,1|(842,300)|
+11,16,48,950,300,6,8,34,3,0,0,1,0,0,0
+10,17,salida de docentes certificados,950,322,53,14,40,3,0,0,-1,0,0,0
+10,18,docentes comprometidos deseados,240,160,38,20,8,3,0,0,0,0,0,0
+10,19,fraccion de docentes comprometidos,430,120,38,20,8,3,0,0,0,0,0,0
+10,20,fraccion maxima de docentes comprometidos,430,30,53,20,8,3,0,0,0,0,0,0
+10,21,fraccion base de docentes comprometidos,240,60,47,20,8,3,0,0,0,0,0,0
+10,22,activar compromiso docente,640,40,53,14,8,3,0,0,0,0,0,0
+10,23,efecto de la certificacion en el compromiso,640,110,47,20,8,3,0,0,0,0,0,0
+10,24,fraccion de docentes certificados,600,210,35,20,8,3,0,0,0,0,0,0
+10,25,docentes por unidad,90,120,35,14,8,3,0,0,0,0,0,0
+10,26,tiempo de adopcion docente,200,430,53,14,8,3,0,0,0,0,0,0
+10,27,fraccion mensual de certificacion docente,980,120,47,20,8,3,0,0,0,0,0,0
+10,28,permanencia de docentes,950,420,41,14,8,3,0,0,0,0,0,0
+10,29,capacidad de emision,380,470,35,14,8,3,0,0,0,0,0,0
+10,30,evidencias por docente,560,500,41,14,8,3,0,0,0,0,0,0
+10,31,unidades iniciales,580,400,53,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,32,31,1,0,0,0,0,0,64,1,-1--1--1,,1|(480,350)|
+1,33,25,1,0,0,0,0,0,64,1,-1--1--1,,1|(235,210)|
+1,34,21,1,0,0,0,0,0,64,1,-1--1--1,,1|(310,180)|
+1,35,18,6,0,0,43,0,0,64,0,-1--1--1,,1|(240,230)|
+1,36,1,6,0,0,45,0,0,64,0,-1--1--1,,1|(310,300)|
+1,37,26,6,0,0,45,0,0,64,0,-1--1--1,,1|(220,365)|
+1,38,1,11,0,0,43,0,0,64,0,-1--1--1,,1|(590,245)|
+1,39,2,11,0,0,45,0,0,64,0,-1--1--1,,1|(800,245)|
+1,40,27,11,0,0,43,0,0,64,0,-1--1--1,,1|(890,155)|
+1,41,2,16,0,0,43,0,0,64,0,-1--1--1,,1|(875,300)|
+1,42,28,16,0,0,45,0,0,64,0,-1--1--1,,1|(950,360)|
+10,43,Unidades activas,70,220,47,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,44,43,18,0,0,43,0,0,64,0,-1--1--1,,1|(155,190)|
+1,45,25,18,0,0,43,0,0,64,0,-1--1--1,,1|(165,140)|
+1,46,19,18,0,0,43,0,0,64,0,-1--1--1,,1|(335,140)|
+1,47,20,19,0,0,0,0,0,64,0,-1--1--1,,1|(430,75)|
+1,48,21,19,0,0,43,0,0,64,0,-1--1--1,,1|(335,90)|
+1,49,22,19,0,0,43,0,0,64,0,-1--1--1,,1|(535,80)|
+1,50,23,19,0,0,43,0,0,64,0,-1--1--1,,1|(535,115)|
+1,51,24,19,0,0,43,0,0,64,0,-1--1--1,,1|(515,165)|
+1,52,2,24,0,0,43,0,0,64,0,-1--1--1,,1|(700,255)|
+1,53,1,24,0,0,45,0,0,64,0,-1--1--1,,1|(490,255)|
+1,54,1,29,0,0,43,0,0,64,0,-1--1--1,,1|(380,385)|
+1,55,30,29,0,0,43,0,0,64,0,-1--1--1,,1|(470,485)|
+12,56,0,520,270,15,15,5,4,0,0,-1,0,0,0
+R
+12,57,0,520,292,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R4 compromiso docente
+12,58,0,300,230,15,15,4,4,0,0,-1,0,0,0
+B
+12,59,0,300,252,23,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B3 ajuste
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*4 estudiantes
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Credenciales emitidas,720,200,40,20,3,3,0,0,0,0,0,0
+10,2,Titulares activos,720,480,40,20,3,3,0,0,0,0,0,0
+12,3,48,380,200,10,8,0,3,0,0,-1,0,0,0
+1,4,6,1,4,0,0,22,0,0,0,-1--1--1,,1|(678,200)|
+1,5,6,3,100,0,0,22,0,0,0,-1--1--1,,1|(380,200)|
+11,6,48,550,200,6,8,34,3,0,0,1,0,0,0
+10,7,emision de credenciales,550,178,35,14,40,3,0,0,-1,0,0,0
+12,8,48,1000,200,10,8,0,3,0,0,-1,0,0,0
+1,9,11,1,4,0,0,22,0,0,0,-1--1--1,,1|(762,200)|
+1,10,11,8,100,0,0,22,0,0,0,-1--1--1,,1|(1000,200)|
+11,11,48,870,200,6,8,34,3,0,0,1,0,0,0
+10,12,credenciales docentes,870,178,35,14,40,3,0,0,-1,0,0,0
+12,13,48,380,480,10,8,0,3,0,0,-1,0,0,0
+1,14,16,2,4,0,0,22,0,0,0,-1--1--1,,1|(678,480)|
+1,15,16,13,100,0,0,22,0,0,0,-1--1--1,,1|(380,480)|
+11,16,48,550,480,6,8,34,3,0,0,1,0,0,0
+10,17,nuevos titulares,550,496,47,8,40,3,0,0,-1,0,0,0
+12,18,48,1060,480,10,8,0,3,0,0,-1,0,0,0
+1,19,21,18,4,0,0,22,0,0,0,-1--1--1,,1|(1060,480)|
+1,20,21,2,100,0,0,22,0,0,0,-1--1--1,,1|(762,480)|
+11,21,48,890,480,6,8,34,3,0,0,1,0,0,0
+10,22,desactivacion de titulares,890,502,47,14,40,3,0,0,-1,0,0,0
+10,23,demanda institucional de credenciales,230,110,47,20,8,3,0,0,0,0,0,0
+10,24,emision programada por unidad,230,30,53,14,8,3,0,0,0,0,0,0
+10,25,demanda estudiantil de credenciales,300,360,41,20,8,3,0,0,0,0,0,0
+10,26,demanda de credenciales,380,280,35,14,8,3,0,0,0,0,0,0
+10,27,activar habito estudiantil,110,420,41,14,8,3,0,0,0,0,0,0
+10,28,solicitudes por titular,150,330,44,14,8,3,0,0,0,0,0,0
+10,29,credenciales por docente certificado,1040,110,47,20,8,3,0,0,0,0,0,0
+10,30,fraccion de emisiones a nuevos titulares,470,580,53,20,8,3,0,0,0,0,0,0
+10,31,credenciales por titular nuevo,640,600,47,14,8,3,0,0,0,0,0,0
+10,32,tiempo de uso activo,890,590,38,14,8,3,0,0,0,0,0,0
+10,33,tiempo base de uso activo,800,660,53,14,8,3,0,0,0,0,0,0
+10,34,extension del uso por valor,1000,660,50,14,8,3,0,0,0,0,0,0
+10,35,compartidas por titulares,1000,380,44,14,8,3,0,0,0,0,0,0
+10,36,usos por titular,1080,300,47,8,8,3,0,0,0,0,0,0
+10,37,credenciales iniciales,720,90,35,14,8,3,0,0,0,0,0,0
+10,38,titulares iniciales,640,380,27,14,8,3,0,0,0,0,0,0
+1,39,37,1,0,0,0,0,0,64,1,-1--1--1,,1|(720,145)|
+1,40,38,2,0,0,0,0,0,64,1,-1--1--1,,1|(680,430)|
+1,41,26,6,0,0,43,0,0,64,0,-1--1--1,,1|(465,240)|
+10,42,capacidad de emision,550,90,35,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,43,42,6,0,0,43,0,0,64,0,-1--1--1,,1|(550,145)|
+10,44,certificacion de docentes,1000,40,47,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,45,44,11,0,0,43,0,0,64,0,-1--1--1,,1|(935,120)|
+1,46,29,11,0,0,43,0,0,64,0,-1--1--1,,1|(955,155)|
+1,47,6,16,0,0,43,0,0,64,0,-1--1--1,,1|(550,340)|
+1,48,30,16,0,0,43,0,0,64,0,-1--1--1,,1|(510,530)|
+1,49,31,16,0,0,45,0,0,64,0,-1--1--1,,1|(595,540)|
+1,50,2,21,0,0,43,0,0,64,0,-1--1--1,,1|(805,480)|
+1,51,32,21,0,0,45,0,0,64,0,-1--1--1,,1|(890,535)|
+10,52,Unidades activas,60,60,47,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,53,52,23,0,0,43,0,0,64,0,-1--1--1,,1|(145,85)|
+1,54,24,23,0,0,43,0,0,64,0,-1--1--1,,1|(230,70)|
+1,55,27,25,0,0,43,0,0,64,0,-1--1--1,,1|(205,390)|
+1,56,2,25,0,0,43,0,0,64,0,-1--1--1,,1|(510,420)|
+1,57,28,25,0,0,43,0,0,64,0,-1--1--1,,1|(225,345)|
+10,58,Valor percibido de la credencial,430,420,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,59,58,25,0,0,43,0,0,64,0,-1--1--1,,1|(365,390)|
+1,60,23,26,0,0,43,0,0,64,0,-1--1--1,,1|(305,195)|
+1,61,25,26,0,0,43,0,0,64,0,-1--1--1,,1|(340,320)|
+1,62,33,32,0,0,43,0,0,64,0,-1--1--1,,1|(845,625)|
+1,63,27,32,0,0,43,0,0,64,0,-1--1--1,,1|(500,505)|
+1,64,34,32,0,0,43,0,0,64,0,-1--1--1,,1|(945,625)|
+1,65,58,32,0,0,43,0,0,64,0,-1--1--1,,1|(660,505)|
+1,66,2,35,0,0,43,0,0,64,0,-1--1--1,,1|(860,430)|
+1,67,36,35,0,0,43,0,0,64,0,-1--1--1,,1|(1040,340)|
+12,68,0,480,400,15,15,5,4,0,0,-1,0,0,0
+R
+12,69,0,480,422,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R3 habito estudiantil
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*5 empresas
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Empresas potenciales,200,320,40,20,3,3,0,0,0,0,0,0
+10,2,Empresas usuarias,620,320,40,20,3,3,0,0,0,0,0,0
+1,3,5,2,4,0,0,22,0,0,0,-1--1--1,,1|(578,308)|
+1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(242,308)|
+11,5,48,410,308,6,8,34,3,0,0,1,0,0,0
+10,6,adopcion de empresas,410,286,32,14,40,3,0,0,-1,0,0,0
+1,7,9,1,4,0,0,22,0,0,0,-1--1--1,,1|(242,333)|
+1,8,9,2,100,0,0,22,0,0,0,-1--1--1,,1|(578,333)|
+11,9,48,410,333,6,8,34,3,0,0,1,0,0,0
+10,10,churn de empresas,410,349,50,8,40,3,0,0,-1,0,0,0
+10,11,fraccion de prospeccion de empresas,200,190,41,20,8,3,0,0,0,0,0,0
+10,12,contagio empresarial,360,180,32,14,8,3,0,0,0,0,0,0
+10,13,atraccion por talento,530,180,38,14,8,3,0,0,0,0,0,0
+10,14,activar boca a boca empresarial,230,90,47,14,8,3,0,0,0,0,0,0
+10,15,efectividad del boca a boca empresarial,380,50,44,20,8,3,0,0,0,0,0,0
+10,16,empresas en el mercado,80,440,41,14,8,3,0,0,0,0,0,0
+10,17,activar flywheel empresas,560,60,47,14,8,3,0,0,0,0,0,0
+10,18,atraccion maxima por talento,720,70,47,14,8,3,0,0,0,0,0,0
+10,19,probabilidad de encontrar talento,820,220,50,14,8,3,0,0,0,0,0,0
+10,20,talento de referencia,1000,200,29,14,8,3,0,0,0,0,0,0
+10,21,fraccion de churn de empresas,300,470,50,14,8,3,0,0,0,0,0,0
+10,22,reduccion del churn por exito,500,480,44,14,8,3,0,0,0,0,0,0
+10,23,empresas iniciales,620,440,53,8,8,3,0,0,0,0,0,0
+10,24,busquedas de talento,840,360,35,14,8,3,0,0,0,0,0,0
+10,25,busquedas por empresa,1010,320,38,14,8,3,0,0,0,0,0,0
+10,26,contrataciones por credencial,840,470,53,14,8,3,0,0,0,0,0,0
+10,27,contrataciones por busqueda exitosa,1030,440,53,14,8,3,0,0,0,0,0,0
+10,28,verificaciones de empresas,840,570,50,14,8,3,0,0,0,0,0,0
+10,29,verificaciones por busqueda,1030,560,53,14,8,3,0,0,0,0,0,0
+10,30,dias de contratacion ahorrados,650,600,35,20,8,3,0,0,0,0,0,0
+10,31,dias ahorrados por contratacion,450,620,53,14,8,3,0,0,0,0,0,0
+1,32,16,1,0,0,0,0,0,64,1,-1--1--1,,1|(140,380)|
+1,33,23,1,0,0,0,0,0,64,1,-1--1--1,,1|(410,380)|
+1,34,23,2,0,0,0,0,0,64,1,-1--1--1,,1|(620,380)|
+1,35,1,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,314)|
+1,36,11,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,249)|
+1,37,12,5,0,0,43,0,0,64,0,-1--1--1,,1|(385,244)|
+1,38,13,5,0,0,43,0,0,64,0,-1--1--1,,1|(470,244)|
+1,39,2,9,0,0,43,0,0,64,0,-1--1--1,,1|(515,326)|
+1,40,21,9,0,0,43,0,0,64,0,-1--1--1,,1|(355,401)|
+1,41,22,9,0,0,45,0,0,64,0,-1--1--1,,1|(455,406)|
+1,42,19,9,0,0,45,0,0,64,0,-1--1--1,,1|(615,276)|
+1,43,14,12,0,0,43,0,0,64,0,-1--1--1,,1|(295,135)|
+1,44,15,12,0,0,43,0,0,64,0,-1--1--1,,1|(370,115)|
+1,45,2,12,0,0,43,0,0,64,0,-1--1--1,,1|(490,250)|
+1,46,16,12,0,0,45,0,0,64,0,-1--1--1,,1|(220,310)|
+1,47,17,13,0,0,43,0,0,64,0,-1--1--1,,1|(545,120)|
+1,48,18,13,0,0,43,0,0,64,0,-1--1--1,,1|(625,125)|
+1,49,19,13,0,0,43,0,0,64,0,-1--1--1,,1|(675,200)|
+10,50,Titulares activos,1000,110,50,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,51,50,19,0,0,43,0,0,64,0,-1--1--1,,1|(910,165)|
+1,52,20,19,0,0,45,0,0,64,0,-1--1--1,,1|(910,210)|
+1,53,2,24,0,0,43,0,0,64,0,-1--1--1,,1|(730,340)|
+1,54,25,24,0,0,43,0,0,64,0,-1--1--1,,1|(925,340)|
+1,55,24,26,0,0,43,0,0,64,0,-1--1--1,,1|(840,415)|
+1,56,19,26,0,0,43,0,0,64,0,-1--1--1,,1|(830,345)|
+1,57,27,26,0,0,43,0,0,64,0,-1--1--1,,1|(935,455)|
+1,58,24,28,0,0,43,0,0,64,0,-1--1--1,,1|(840,465)|
+1,59,29,28,0,0,43,0,0,64,0,-1--1--1,,1|(935,565)|
+1,60,26,30,0,0,43,0,0,64,0,-1--1--1,,1|(745,535)|
+1,61,31,30,0,0,43,0,0,64,0,-1--1--1,,1|(550,610)|
+12,62,0,480,250,15,15,5,4,0,0,-1,0,0,0
+R
+12,63,0,480,272,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R7 boca a boca
+12,64,0,700,260,15,15,4,4,0,0,-1,0,0,0
+R
+12,65,0,700,282,26,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R5 talento
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*6 ecosistema
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,uso de credenciales,330,250,35,14,8,3,0,0,0,0,0,0
+10,2,valor indicado de la credencial,580,250,50,14,8,3,0,0,0,0,0,0
+10,3,Valor percibido de la credencial,840,250,53,14,8,3,0,0,0,0,0,0
+10,4,uso de referencia,450,380,50,8,8,3,0,0,0,0,0,0
+10,5,peso del uso,600,400,35,8,8,3,0,0,0,0,0,0
+10,6,empresas de referencia,760,380,32,14,8,3,0,0,0,0,0,0
+10,7,tiempo de percepcion del valor,840,140,41,20,8,3,0,0,0,0,0,0
+10,8,compartidas por titulares,120,180,44,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,9,8,1,0,0,43,0,0,64,0,-1--1--1,,1|(225,215)|
+10,10,verificaciones de empresas,120,320,50,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,11,10,1,0,0,43,0,0,64,0,-1--1--1,,1|(225,285)|
+1,12,5,2,0,0,45,0,0,64,0,-1--1--1,,1|(590,325)|
+1,13,1,2,0,0,43,0,0,64,0,-1--1--1,,1|(455,250)|
+1,14,4,2,0,0,45,0,0,64,0,-1--1--1,,1|(515,315)|
+10,15,Empresas usuarias,580,120,50,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,16,15,2,0,0,43,0,0,64,0,-1--1--1,,1|(580,185)|
+1,17,6,2,0,0,45,0,0,64,0,-1--1--1,,1|(670,315)|
+1,18,2,3,0,0,43,0,0,64,0,-1--1--1,,1|(710,250)|
+1,19,7,3,0,0,0,0,0,64,0,-1--1--1,,1|(840,195)|
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+22:Institucion,Instituciones
+22:Unidad,Unidades
+22:Docente,Docentes
+22:Credencial,Credenciales
+22:Persona,Personas
+22:Empresa,Empresas
+22:Busqueda,Busquedas
+22:Uso,Usos
+22:Contratacion,Contrataciones
+22:Dia,Dias
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:Instituciones cliente
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:60
+26:60
+</script>
+<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.1", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Todos los valores de partida son supuestos para corregir con datos reales.", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
+<script>/*
+ * motor.js — intérprete mínimo de modelos Vensim (.mdl) en JavaScript.
+ *
+ * Lee la sección de ecuaciones de un .mdl y simula con integración de Euler,
+ * igual que Vensim con su método por defecto. Funciona en el navegador
+ * (window.Motor) y en Node (require('./motor.js')).
+ *
+ *   const modelo = Motor.leer(textoMdl);
+ *   const r = modelo.simular({ cambios: { 'fraccion de prospeccion': 0.006 } });
+ *   r.tiempo            // [0, 1, 2, ...] según SAVEPER
+ *   r.serie('Instituciones cliente')  // valores en cada instante guardado
+ *
+ * Subconjunto soportado: constantes, auxiliares, INTEG, lookups (tabla(x) y
+ * WITH LOOKUP), operadores + - * / ^, comparaciones, :AND: :OR: :NOT:, y las
+ * funciones ABS EXP LN LOG SQRT SIN COS TAN MIN MAX INTEGER MODULO QUANTUM
+ * XIDZ ZIDZ IF THEN ELSE STEP RAMP PULSE PULSE TRAIN INITIAL ACTIVE INITIAL
+ * SMOOTH SMOOTHI SMOOTH3 SMOOTH3I DELAY1 DELAY1I DELAY3 DELAY3I.
+ * Sin subíndices, macros ni datos externos: si el modelo los usa, leer() lanza
+ * un error que dice qué falta.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === 'object' && module.exports) module.exports = fabrica();
+  else raiz.Motor = fabrica();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const norm = (s) => s.replace(/["]/g, '').replace(/[\s_]+/g, ' ').trim().toLowerCase();
+
+  // ------------------------------------------------------------------ léxico
+  const KEYWORDS = { ':AND:': 'and', ':OR:': 'or', ':NOT:': 'not', ':NA:': 'na' };
+
+  function tokenizar(src) {
+    const t = [];
+    let i = 0;
+    while (i < src.length) {
+      const c = src[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (c === '{') { i = src.indexOf('}', i) + 1 || src.length; continue; } // comentario en línea
+      if (c === ':') {
+        const m = src.slice(i).match(/^:[A-Z ]+:/i);
+        if (!m) throw new Error(`símbolo ':' inesperado en «${src}»`);
+        const k = KEYWORDS[m[0].toUpperCase()];
+        if (!k) throw new Error(`palabra clave no soportada ${m[0]}`);
+        t.push({ tipo: 'op', v: k }); i += m[0].length; continue;
+      }
+      const num = src.slice(i).match(/^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/);
+      if (num) { t.push({ tipo: 'num', v: parseFloat(num[0]) }); i += num[0].length; continue; }
+      const dos = src.slice(i, i + 2);
+      if (dos === '<>' || dos === '<=' || dos === '>=') { t.push({ tipo: 'op', v: dos }); i += 2; continue; }
+      if ('+-*/^(),=<>[]'.includes(c)) { t.push({ tipo: 'op', v: c }); i++; continue; }
+      if (c === '"') {
+        const fin = src.indexOf('"', i + 1);
+        t.push({ tipo: 'id', v: norm(src.slice(i + 1, fin)) }); i = fin + 1; continue;
+      }
+      const m = src.slice(i).match(/^[A-Za-z_$À-ɏ][\w $'À-ɏ.&%]*/);
+      if (m) { t.push({ tipo: 'id', v: norm(m[0]) }); i += m[0].length; continue; }
+      throw new Error(`carácter inesperado «${c}» en «${src}»`);
+    }
+    return t;
+  }
+
+  // -------------------------------------------------------------- sintaxis
+  // Precedencia (de menor a mayor): :OR:, :AND:, comparación, + -, * /, unario (- + :NOT:), ^
+  function analizar(src, comoTabla = false) {
+    const t = tokenizar(src);
+    let p = 0;
+    const ver = () => t[p];
+    const es = (v) => t[p] && t[p].tipo === 'op' && t[p].v === v;
+    const esperar = (v) => { if (!es(v)) throw new Error(`se esperaba «${v}» en «${src}»`); p++; };
+
+    function o() { let a = y(); while (es('or')) { p++; a = { op: 'or', a, b: y() }; } return a; }
+    function y() { let a = cmp(); while (es('and')) { p++; a = { op: 'and', a, b: cmp() }; } return a; }
+    function cmp() {
+      let a = suma();
+      while (ver() && ver().tipo === 'op' && ['=', '<>', '<', '>', '<=', '>='].includes(ver().v)) {
+        const op = t[p++].v; a = { op, a, b: suma() };
+      }
+      return a;
+    }
+    function suma() {
+      let a = prod();
+      while (es('+') || es('-')) { const op = t[p++].v; a = { op, a, b: prod() }; }
+      return a;
+    }
+    function prod() {
+      let a = unario();
+      while (es('*') || es('/')) { const op = t[p++].v; a = { op, a, b: unario() }; }
+      return a;
+    }
+    function unario() {
+      if (es('-')) { p++; return { op: 'neg', a: unario() }; }
+      if (es('+')) { p++; return unario(); }
+      if (es('not')) { p++; return { op: 'not', a: unario() }; }
+      return pot();
+    }
+    function pot() {
+      const a = prim();
+      if (es('^')) { p++; return { op: '^', a, b: unario() }; }
+      return a;
+    }
+    function prim() {
+      const k = ver();
+      if (!k) throw new Error(`expresión incompleta: «${src}»`);
+      if (k.tipo === 'num') { p++; return { num: k.v }; }
+      if (es('na')) { p++; return { num: -1.298074214633707e33 }; }
+      if (es('(')) { p++; const e = o(); esperar(')'); return e; }
+      if (k.tipo === 'id') {
+        p++;
+        if (es('(')) {
+          p++;
+          const args = [];
+          if (!es(')')) {
+            args.push(argumento(k.v, 0));
+            while (es(',')) { p++; args.push(argumento(k.v, args.length)); }
+          }
+          esperar(')');
+          return { fn: k.v, args };
+        }
+        if (es('[')) throw new Error(`subíndices no soportados (${k.v})`);
+        return { id: k.v };
+      }
+      throw new Error(`token inesperado «${k.v}» en «${src}»`);
+    }
+    function argumento(fn, i) {
+      if (fn === 'with lookup' && i === 1) return { tabla: tablaArg() };
+      return o();
+    }
+    function numero() {
+      let s = 1;
+      if (es('-')) { p++; s = -1; } else if (es('+')) p++;
+      const k = ver();
+      if (!k || k.tipo !== 'num') throw new Error(`se esperaba un número en la tabla de «${src}»`);
+      p++; return s * k.v;
+    }
+    function par() { esperar('('); const x = numero(); esperar(','); const yv = numero(); esperar(')'); return [x, yv]; }
+    function puntos() {
+      const pts = [];
+      if (es('[')) { p++; par(); esperar('-'); par(); esperar(']'); if (es(',')) p++; }
+      while (es('(')) { pts.push(par()); if (es(',')) p++; }
+      return pts;
+    }
+    function tablaArg() { esperar('('); const pts = puntos(); esperar(')'); return pts; }
+
+    if (comoTabla) {
+      const pts = tablaArg();
+      if (p !== t.length) throw new Error(`sobra texto en la tabla «${src}»`);
+      return pts;
+    }
+    const ast = o();
+    if (p !== t.length) throw new Error(`sobra texto en «${src}»`);
+    return ast;
+  }
+
+  // ------------------------------------------------------- lectura del .mdl
+  function separarArgs(s) {
+    const partes = []; let nivel = 0, actual = '';
+    for (const c of s) {
+      if (c === ',' && nivel === 0) { partes.push(actual); actual = ''; continue; }
+      if (c === '(' || c === '[') nivel++;
+      if (c === ')' || c === ']') nivel--;
+      actual += c;
+    }
+    partes.push(actual);
+    return partes.map((x) => x.trim());
+  }
+
+  function leer(texto) {
+    const fin = texto.indexOf('\\\\\\---///');
+    let eqs = (fin >= 0 ? texto.slice(0, fin) : texto).replace(/^﻿?\{UTF-8\}/, '');
+    eqs = eqs.replace(/\\\r?\n/g, ' ');
+    const vars = new Map();
+    let grupo = '';
+    for (const bruto of eqs.split('|')) {
+      const bloque = bruto.trim();
+      if (!bloque) continue;
+      if (bloque.startsWith('*')) {
+        const m = bloque.match(/\n\s*\.([^\n~]+)/);
+        if (m) grupo = m[1].trim();
+        continue;
+      }
+      const campos = bloque.split('~');
+      const def = campos[0].trim();
+      const unidadesTxt = (campos[1] || '').trim();
+      const comentario = (campos[2] || '').replace(/\s+/g, ' ').trim();
+      let rango = null, unidades = unidadesTxt;
+      const mr = unidadesTxt.match(/^(.*?)\s*\[([^\]]*)\]\s*$/);
+      if (mr) {
+        unidades = mr[1].trim();
+        const r = mr[2].split(',').map((x) => (x.trim() === '?' ? null : parseFloat(x)));
+        rango = { min: r[0], max: r[1], paso: r.length > 2 ? r[2] : null };
+      }
+      const base = { unidades, comentario, rango, grupo };
+      if (/:=|\bGET\s|:INTERPOLATE:|:RAW:|:HOLD BACKWARD:|:LOOK FORWARD:/i.test(def)) {
+        throw new Error(`variables de datos no soportadas: ${def.slice(0, 60)}`);
+      }
+      if (/^\s*:MACRO:/i.test(def)) throw new Error('macros no soportados');
+      const eqi = def.search(/==|=/);
+      if (eqi < 0) {
+        // lookup: nombre( [(x0,y0)-(x1,y1)], (x,y), ... )
+        const pi = def.indexOf('(');
+        if (pi < 0) {
+          if (/:/.test(def)) throw new Error(`subíndices no soportados: ${def.slice(0, 60)}`);
+          throw new Error(`ecuación no reconocida: ${def.slice(0, 60)}`);
+        }
+        const nombre = norm(def.slice(0, pi));
+        const puntos = analizar(def.slice(pi), true);
+        vars.set(nombre, { ...base, nombre: def.slice(0, pi).trim(), tipo: 'tabla', puntos });
+        continue;
+      }
+      const lhs = def.slice(0, eqi).trim();
+      const rhs = def.slice(def[eqi + 1] === '=' ? eqi + 2 : eqi + 1).trim();
+      if (/[\[:]/.test(lhs)) throw new Error(`subíndices o :EXCEPT: no soportados: ${lhs}`);
+      const nombre = norm(lhs);
+      const integ = rhs.match(/^INTEG\s*\(([\s\S]*)\)\s*$/i);
+      if (integ) {
+        const [flujo, ini] = separarArgs(integ[1]);
+        vars.set(nombre, { ...base, nombre: lhs, tipo: 'nivel', flujo: analizar(flujo), inicial: analizar(ini) });
+      } else {
+        const ast = analizar(rhs);
+        const tipo = ast.num !== undefined || (ast.op === 'neg' && ast.a.num !== undefined) ? 'constante' : 'auxiliar';
+        vars.set(nombre, { ...base, nombre: lhs, tipo, expr: ast });
+      }
+    }
+    for (const c of ['initial time', 'final time', 'time step']) {
+      if (!vars.has(c)) throw new Error(`falta la variable de control ${c.toUpperCase()}`);
+    }
+    return new Modelo(vars);
+  }
+
+  // ------------------------------------------------------------ simulación
+  const tablaEval = (pts, x) => {
+    if (x <= pts[0][0]) return pts[0][1];
+    const n = pts.length - 1;
+    if (x >= pts[n][0]) return pts[n][1];
+    for (let i = 1; i <= n; i++) {
+      if (x <= pts[i][0]) {
+        const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+        return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+      }
+    }
+    return pts[n][1];
+  };
+  const ESTADO = new Set(['smooth', 'smoothi', 'smooth3', 'smooth3i', 'delay1', 'delay1i', 'delay3', 'delay3i',
+    'initial', 'active initial']);
+
+  class Modelo {
+    constructor(vars) {
+      this.vars = vars;
+      // cada llamada a una función con estado recibe un índice fijo
+      this.nEstados = 0;
+      const marcar = (n) => {
+        if (!n || typeof n !== 'object') return;
+        if (n.fn && ESTADO.has(n.fn)) n.slot = this.nEstados++;
+        for (const k of ['a', 'b']) marcar(n[k]);
+        (n.args || []).forEach(marcar);
+      };
+      for (const v of vars.values()) { marcar(v.expr); marcar(v.flujo); marcar(v.inicial); }
+      for (const v of vars.values()) this._verificar(v);
+    }
+
+    _verificar(v) {
+      const rec = (n) => {
+        if (!n || typeof n !== 'object') return;
+        if (n.id !== undefined && n.id !== 'time' && !this.vars.has(n.id)) {
+          throw new Error(`«${v.nombre}» usa «${n.id}», que no está definida`);
+        }
+        if (n.fn !== undefined && !FUNCIONES[n.fn] && !ESTADO.has(n.fn) && !(this.vars.get(n.fn) || {}).puntos) {
+          throw new Error(`función no soportada: ${n.fn.toUpperCase()} (en «${v.nombre}»)`);
+        }
+        for (const k of ['a', 'b']) rec(n[k]);
+        (n.args || []).forEach(rec);
+      };
+      rec(v.expr); rec(v.flujo); rec(v.inicial);
+    }
+
+    /** Constantes con su rango, unidades, comentario y grupo (para construir sliders). */
+    constantes() {
+      return [...this.vars.values()].filter((v) => v.tipo === 'constante' &&
+        !['initial time', 'final time', 'time step', 'saveper'].includes(norm(v.nombre)))
+        .map((v) => ({ nombre: v.nombre, valor: v.expr.op === 'neg' ? -v.expr.a.num : v.expr.num,
+          unidades: v.unidades, comentario: v.comentario, rango: v.rango, grupo: v.grupo }));
+    }
+
+    niveles() { return [...this.vars.values()].filter((v) => v.tipo === 'nivel').map((v) => v.nombre); }
+
+    variable(nombre) { return this.vars.get(norm(nombre)); }
+
+    /**
+     * Simula el modelo. opciones.cambios: { nombre: valor } para constantes.
+     * opciones.final: tiempo final alternativo. Devuelve { tiempo, serie(nombre), valores }.
+     */
+    simular(opciones = {}) {
+      const cambios = new Map(Object.entries(opciones.cambios || {}).map(([k, v]) => [norm(k), v]));
+      for (const k of cambios.keys()) {
+        if (!this.vars.has(k)) throw new Error(`no existe la variable «${k}»`);
+      }
+      const vars = this.vars;
+      const constante = (k) => cambios.has(k) ? cambios.get(k) : null;
+      let tiempo = 0;
+      let memo = new Map();
+      const enCurso = new Set();
+      const niveles = new Map(); // nombre -> valor actual
+      const estados = new Array(this.nEstados).fill(null); // arrays de estado por slot
+      const derivadas = [];
+      let inicializando = true;
+
+      const valor = (k) => {
+        if (k === 'time') return tiempo;
+        const c = constante(k);
+        if (c !== null) return c;
+        if (memo.has(k)) return memo.get(k);
+        const v = vars.get(k);
+        if (v.tipo === 'nivel') {
+          if (!niveles.has(k)) {
+            if (enCurso.has(k)) throw new Error(`ecuaciones simultáneas al inicializar «${v.nombre}»`);
+            enCurso.add(k); niveles.set(k, ev(v.inicial)); enCurso.delete(k);
+          }
+          return niveles.get(k);
+        }
+        if (v.tipo === 'tabla') throw new Error(`la tabla «${v.nombre}» se usa sin argumento`);
+        if (enCurso.has(k)) throw new Error(`ecuaciones simultáneas: «${v.nombre}» depende de sí misma sin un nivel`);
+        enCurso.add(k);
+        const r = ev(v.expr);
+        enCurso.delete(k);
+        memo.set(k, r);
+        return r;
+      };
+
+      const dt = () => valor('time step');
+      const ev = (n) => {
+        if (n.num !== undefined) return n.num;
+        if (n.id !== undefined) return valor(n.id);
+        if (n.fn !== undefined) return llamar(n);
+        const a = ev(n.a);
+        switch (n.op) {
+          case 'neg': return -a;
+          case 'not': return a ? 0 : 1;
+        }
+        const b = ev(n.b);
+        switch (n.op) {
+          case '+': return a + b;
+          case '-': return a - b;
+          case '*': return a * b;
+          case '/': return a / b;
+          case '^': return Math.pow(a, b);
+          case '=': return a === b ? 1 : 0;
+          case '<>': return a !== b ? 1 : 0;
+          case '<': return a < b ? 1 : 0;
+          case '>': return a > b ? 1 : 0;
+          case '<=': return a <= b ? 1 : 0;
+          case '>=': return a >= b ? 1 : 0;
+          case 'and': return a && b ? 1 : 0;
+          case 'or': return a || b ? 1 : 0;
+        }
+        throw new Error(`operador desconocido ${n.op}`);
+      };
+
+      const llamar = (n) => {
+        const f = n.fn;
+        const tabla = vars.get(f);
+        if (tabla && tabla.tipo === 'tabla') return tablaEval(tabla.puntos, ev(n.args[0]));
+        if (ESTADO.has(f)) return conEstado(n);
+        if (f === 'if then else') {
+          // Vensim evalúa ambas ramas: las funciones con estado de la rama no
+          // elegida siguen evolucionando.
+          const c = ev(n.args[0]), si = ev(n.args[1]), no = ev(n.args[2]);
+          return c ? si : no;
+        }
+        if (f === 'with lookup') return tablaEval(n.args[1].tabla, ev(n.args[0]));
+        return FUNCIONES[f](n.args.map(ev), { tiempo, dt: dt() });
+      };
+
+      // Funciones con estado: el estado se crea al primer uso (inicialización)
+      // y su derivada se calcula en cada paso junto con las de los niveles.
+      const conEstado = (n) => {
+        const f = n.fn, s = n.slot, A = n.args;
+        let st = estados[s];
+        if (f === 'initial') {
+          if (st === null) { st = estados[s] = [ev(A[0])]; }
+          return st[0];
+        }
+        if (f === 'active initial') {
+          return inicializando ? ev(A[1]) : ev(A[0]);
+        }
+        const orden = f.startsWith('smooth3') || f.startsWith('delay3') ? 3 : 1;
+        const material = f.startsWith('delay');
+        const entrada = ev(A[0]);
+        const T = ev(A[1]);
+        if (st === null) {
+          const ini = f.endsWith('i') ? ev(A[2]) : entrada;
+          st = estados[s] = new Array(orden).fill(material ? ini * T / orden : ini);
+          derivadas.push({ slot: s, n });
+        }
+        n.ultimo = { entrada, T };
+        return material ? st[orden - 1] / (T / orden) : st[orden - 1];
+      };
+
+      const derivadaEstado = (d) => {
+        const n = d.n, st = estados[d.slot];
+        const f = n.fn;
+        const orden = st.length;
+        const material = f.startsWith('delay');
+        const { entrada, T } = n.ultimo;
+        const tau = T / orden;
+        const der = new Array(orden);
+        if (material) {
+          let flujo = entrada;
+          for (let i = 0; i < orden; i++) { const sale = st[i] / tau; der[i] = flujo - sale; flujo = sale; }
+        } else {
+          let prev = entrada;
+          for (let i = 0; i < orden; i++) { der[i] = (prev - st[i]) / tau; prev = st[i]; }
+        }
+        return der;
+      };
+
+      // control
+      const t0 = valor('initial time');
+      const tf = opciones.final !== undefined ? opciones.final : valor('final time');
+      const paso = valor('time step');
+      const saveper = vars.has('saveper') ? valor('saveper') : paso;
+      const nPasos = Math.round((tf - t0) / paso);
+      const cadaN = Math.max(1, Math.round(saveper / paso));
+      tiempo = t0;
+      memo = new Map();
+
+      const nombres = [...vars.keys()].filter((k) => vars.get(k).tipo !== 'tabla');
+      const serie = new Map(nombres.map((k) => [k, []]));
+      const tiempos = [];
+      const nivelesK = nombres.filter((k) => vars.get(k).tipo === 'nivel');
+
+      for (let i = 0; i <= nPasos; i++) {
+        tiempo = t0 + i * paso;
+        memo = new Map();
+        if (inicializando) {
+          for (const k of nombres) valor(k); // fija niveles y estados iniciales
+          inicializando = false;
+          memo = new Map();
+        }
+        for (const k of nombres) valor(k);
+        if (i % cadaN === 0 || i === nPasos) {
+          tiempos.push(tiempo);
+          for (const k of nombres) serie.get(k).push(valor(k));
+        }
+        if (i === nPasos) break;
+        // Euler: calcular todas las derivadas con los valores de t, luego actualizar
+        const dNiv = nivelesK.map((k) => ev(vars.get(k).flujo));
+        const dEst = derivadas.map(derivadaEstado);
+        nivelesK.forEach((k, j) => niveles.set(k, niveles.get(k) + paso * dNiv[j]));
+        derivadas.forEach((d, j) => { const st = estados[d.slot]; for (let q = 0; q < st.length; q++) st[q] += paso * dEst[j][q]; });
+      }
+      return {
+        tiempo: tiempos,
+        serie: (nombre) => {
+          const s = serie.get(norm(nombre));
+          if (!s) throw new Error(`no existe la variable «${nombre}»`);
+          return s;
+        },
+        nombres: nombres.map((k) => vars.get(k).nombre),
+      };
+    }
+  }
+
+  const tplus = (c) => c.tiempo + c.dt / 2;
+  const FUNCIONES = {
+    'abs': ([a]) => Math.abs(a),
+    'exp': ([a]) => Math.exp(a),
+    'ln': ([a]) => Math.log(a),
+    'log': ([a, b]) => Math.log(a) / Math.log(b),
+    'sqrt': ([a]) => Math.sqrt(a),
+    'sin': ([a]) => Math.sin(a), 'cos': ([a]) => Math.cos(a), 'tan': ([a]) => Math.tan(a),
+    'min': ([a, b]) => Math.min(a, b),
+    'max': ([a, b]) => Math.max(a, b),
+    'integer': ([a]) => Math.trunc(a),
+    'modulo': ([a, b]) => a % b,
+    'quantum': ([a, q]) => (q <= 0 ? a : q * Math.trunc(a / q)),
+    'xidz': ([a, b, x]) => (Math.abs(b) < 1e-6 ? x : a / b),
+    'zidz': ([a, b]) => (Math.abs(b) < 1e-6 ? 0 : a / b),
+    'step': ([h, t], c) => (tplus(c) > t ? h : 0),
+    'ramp': ([s, t1, t2], c) => (c.tiempo > t1 ? s * (Math.min(c.tiempo, t2) - t1) : 0),
+    'pulse': ([t1, w], c) => { const tp = tplus(c); return tp > t1 && tp < t1 + Math.max(w, c.dt) ? 1 : 0; },
+    'pulse train': ([t1, w, rep, t2], c) => {
+      const tp = tplus(c);
+      if (tp < t1 || tp > t2) return 0;
+      return (tp - t1) % rep < Math.max(w, c.dt) ? 1 : 0;
+    },
+  };
+
+  return { leer, analizar, version: '0.1.0' };
+});
+</script>
+<script>
+(function () {
+  'use strict';
+  const $ = (s, el = document) => el.querySelector(s);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k) n.append(k);
+    return n;
+  };
+  const SVG = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs = {}) => { const n = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+  const norm = (s) => s.replace(/[\s_]+/g, ' ').trim().toLowerCase();
+
+  const CFG = JSON.parse($('#config').textContent);
+  let modelo;
+  try { modelo = Motor.leer($('#modelo-mdl').textContent); }
+  catch (e) { document.querySelector('.page').prepend(el('p', { class: 'error', text: 'No se pudo leer el modelo: ' + e.message })); return; }
+
+  // ---------------------------------------------------------- formatos
+  const TILDES = { fraccion: 'fracción', prospeccion: 'prospección', conversion: 'conversión', duracion: 'duración',
+    institucion: 'institución', academicas: 'académicas', academica: 'académica', expansion: 'expansión',
+    reduccion: 'reducción', atraccion: 'atracción', maxima: 'máxima', maximo: 'máximo', emision: 'emisión',
+    certificacion: 'certificación', adopcion: 'adopción', busqueda: 'búsqueda', busquedas: 'búsquedas',
+    habito: 'hábito', percepcion: 'percepción', dias: 'días', contratacion: 'contratación',
+    incorporacion: 'incorporación', extension: 'extensión', exito: 'éxito', mas: 'más', tamano: 'tamaño',
+    numero: 'número', decision: 'decisión', informacion: 'información', rotacion: 'rotación',
+    capacitacion: 'capacitación', vicerrectoria: 'vicerrectoría', rectoria: 'rectoría', educacion: 'educación',
+    innovacion: 'innovación', segun: 'según', tambien: 'también', aun: 'aún', esten: 'estén', area: 'área' };
+  const tildes = (txt) => txt.replace(/[A-Za-z]+/g, (w) => {
+    const t = TILDES[w.toLowerCase()];
+    return !t ? w : w[0] === w[0].toUpperCase() ? t[0].toUpperCase() + t.slice(1) : t;
+  });
+  const etiqueta = (n) => { const s = tildes(n); return s.charAt(0).toUpperCase() + s.slice(1); };
+  const nf = (d) => new Intl.NumberFormat('es', { maximumFractionDigits: d });
+  const fmt = (v) => {
+    if (!isFinite(v)) return '—';
+    const a = Math.abs(v);
+    if (a >= 1e6) return nf(2).format(v / 1e6) + ' M';
+    if (a >= 1e4) return nf(1).format(v / 1e3) + ' mil';
+    if (a >= 100) return nf(0).format(v);
+    if (a >= 1) return nf(1).format(v);
+    return nf(2).format(v);
+  };
+  const UNID = { Month: 'meses', Dmnl: '', Institucion: 'inst.', Unidad: 'unid.', Docente: 'docentes', Credencial: 'cred.',
+    Persona: 'personas', Empresa: 'empresas', Busqueda: 'búsq.', Uso: 'usos', Contratacion: 'contrat.', Dia: 'días' };
+  const fmtUnidad = (u) => u.replace(/\(([^)]*)\)/g, (m, d) => d.split('*').join('/'))
+    .replace(/[A-Za-z]+/g, (w) => (w === 'Month' ? 'mes' : w in UNID ? UNID[w] : w)).replace(/\*/g, '·').trim();
+  const fmtValor = (c, v) => {
+    const u = c.unidades;
+    if (u === '1/Month') return nf(2).format(v * 100) + ' %/mes';
+    if (u === 'Dmnl' && c.rango && c.rango.max !== null && c.rango.max <= 1) return nf(0).format(v * 100) + ' %';
+    if (u === 'Dmnl') return '×' + nf(1).format(v);
+    if (u === 'Month') return nf(0).format(v) + ' meses';
+    return nf(v < 10 ? 2 : 0).format(v) + ' ' + fmtUnidad(u);
+  };
+
+  // ------------------------------------------------------------ estado
+  const CONSTS = modelo.constantes();
+  const porNombre = new Map(CONSTS.map((c) => [norm(c.nombre), c]));
+  const estado = { cambios: {}, final: CFG.horizontes.includes(60) ? 60 : CFG.horizontes[0], hover: null, metrica: 0 };
+  const CLAVE = 'simulador:' + CFG.titulo;
+  try {
+    const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+    if (g) {
+      for (const [k, v] of Object.entries(g.cambios || {})) if (porNombre.has(norm(k))) estado.cambios[norm(k)] = v;
+      if (CFG.horizontes.includes(g.final)) estado.final = g.final;
+    }
+  } catch (e) { /* almacenamiento no disponible */ }
+  const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify({ cambios: estado.cambios, final: estado.final })); } catch (e) { /* sin almacenamiento */ } };
+
+  let base, esc;
+  const valorActual = (c) => (norm(c.nombre) in estado.cambios ? estado.cambios[norm(c.nombre)] : c.valor);
+
+  // ------------------------------------------------------ cabecera
+  $('#titulo').textContent = CFG.titulo;
+  $('#antetitulo').textContent = CFG.antetitulo || '';
+  $('#bajada').textContent = CFG.bajada || '';
+  $('#pie').textContent = CFG.pie || '';
+
+  // ------------------------------------------------------ controles
+  const controles = new Map();
+  function control(c) {
+    const k = norm(c.nombre);
+    const r = c.rango || { min: 0, max: c.valor * 2 || 1, paso: null };
+    const min = r.min ?? 0, max = r.max ?? Math.max(c.valor * 2, 1);
+    const paso = r.paso || (max - min) / 100;
+    const id = 'c-' + k.replace(/[^a-z0-9]+/g, '-');
+    const out = el('output', { for: id });
+    const input = el('input', { type: 'range', id, min, max, step: paso });
+    input.value = valorActual(c);
+    const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al supuesto de partida', title: 'Volver al supuesto de partida', text: '↺' });
+    const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, ''));
+    const box = el('div', { class: 'ctl' },
+      el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
+      el('div', { class: 'ctl-row' }, input, reset),
+      help ? el('p', { class: 'ctl-help', text: help }) : null);
+    const pintar = () => {
+      const v = valorActual(c);
+      out.textContent = fmtValor(c, v);
+      box.classList.toggle('cambiado', k in estado.cambios);
+    };
+    input.addEventListener('input', () => {
+      const v = parseFloat(input.value);
+      if (Math.abs(v - c.valor) < 1e-12) delete estado.cambios[k]; else estado.cambios[k] = v;
+      pintar(); programar();
+    });
+    reset.addEventListener('click', () => { delete estado.cambios[k]; input.value = c.valor; pintar(); programar(); });
+    controles.set(k, { input, pintar, c });
+    pintar();
+    return box;
+  }
+
+  const esBucle = (c) => norm(c.nombre) in normBucles;
+  const normBucles = Object.fromEntries(Object.entries(CFG.bucles || {}).map(([k, v]) => [norm(k), v]));
+  const palancas = CONSTS.filter((c) => /PALANCA/.test(c.comentario) && !esBucle(c));
+  palancas.forEach((c) => $('#palancas').append(control(c)));
+
+  const grupos = new Map();
+  for (const c of CONSTS) {
+    if (esBucle(c) || palancas.includes(c)) continue;
+    if (!grupos.has(c.grupo)) grupos.set(c.grupo, []);
+    grupos.get(c.grupo).push(c);
+  }
+  for (const [g, lista] of grupos) {
+    const det = el('details', { class: 'grupo' }, el('summary', { text: (CFG.grupos || {})[g] || etiqueta(g) + ` (${lista.length})` }));
+    if ((CFG.grupos || {})[g]) det.firstChild.textContent = CFG.grupos[g] + ` (${lista.length})`;
+    const cuerpo = el('div', { class: 'cuerpo' });
+    lista.forEach((c) => cuerpo.append(control(c)));
+    det.append(cuerpo);
+    $('#supuestos').append(det);
+  }
+
+  // interruptores de bucles
+  const bucleCtl = new Map();
+  for (const c of CONSTS.filter(esBucle)) {
+    const k = norm(c.nombre), meta = normBucles[k];
+    const id = 'b-' + meta.codigo;
+    const sw = el('input', { type: 'checkbox', class: 'switch', id, role: 'switch' });
+    sw.checked = valorActual(c) !== 0;
+    const fila = el('div', { class: 'bucle' },
+      el('span', { class: 'codigo', text: meta.codigo }),
+      el('label', { class: 'bucle-nombre', for: id, text: meta.nombre }), sw,
+      el('span', { class: 'bucle-desc', text: meta.descripcion }));
+    const pintar = () => {
+      const on = valorActual(c) !== 0;
+      sw.checked = on; fila.classList.toggle('off', !on);
+      document.querySelectorAll('#mapa [data-loop]').forEach((n) => {
+        if (norm(n.getAttribute('data-loop')) === k) n.classList.toggle('apagado', !on);
+      });
+    };
+    sw.addEventListener('change', () => {
+      if (sw.checked === (c.valor !== 0)) delete estado.cambios[k]; else estado.cambios[k] = sw.checked ? 1 : 0;
+      pintar(); programar();
+    });
+    bucleCtl.set(k, { pintar, c, meta });
+    $('#bucles').append(fila);
+  }
+  if (!bucleCtl.size) $('#sec-bucles').hidden = true;
+  if (!$('#mapa').querySelector('svg')) $('#sec-mapa').hidden = true;
+
+  $('#restablecer').addEventListener('click', () => {
+    estado.cambios = {};
+    for (const { input, pintar, c } of controles.values()) { input.value = c.valor; pintar(); }
+    for (const b of bucleCtl.values()) b.pintar();
+    programar();
+  });
+
+  // horizonte
+  for (const h of CFG.horizontes) {
+    const b = el('button', { type: 'button', 'aria-pressed': String(h === estado.final), text: h % 12 === 0 ? `${h / 12} años` : `${h} meses` });
+    b.addEventListener('click', () => {
+      estado.final = h;
+      $('#horizonte').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      base = modelo.simular({ final: estado.final });
+      programar();
+    });
+    $('#horizonte').append(b);
+  }
+
+  // ------------------------------------------------------------ gráficos
+  const graficos = CFG.graficos.map((g) => {
+    const read = el('span', { class: 'chart-read' });
+    const svg = sv('svg', { viewBox: '0 0 320 150', role: 'img', 'aria-label': g.titulo });
+    const fig = el('figure', { class: 'chart', tabindex: '0' },
+      el('figcaption', {}, el('span', { class: 'chart-title', text: g.titulo }), read), svg);
+    $('#charts').append(fig);
+    const G = { g, svg, read, fig };
+    const mover = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const x = ((ev.clientX - r.left) / r.width) * 320;
+      const n = esc.tiempo.length;
+      const i = Math.round(((x - G.x0) / (G.x1 - G.x0)) * (n - 1));
+      estado.hover = Math.max(0, Math.min(n - 1, i));
+      pintarHover();
+    };
+    svg.addEventListener('pointermove', mover);
+    svg.addEventListener('pointerdown', mover);
+    svg.addEventListener('pointerleave', () => { estado.hover = null; pintarHover(); });
+    fig.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+      ev.preventDefault();
+      const n = esc.tiempo.length;
+      const i = estado.hover === null ? n - 1 : estado.hover;
+      estado.hover = Math.max(0, Math.min(n - 1, i + (ev.key === 'ArrowRight' ? 1 : -1)));
+      pintarHover();
+    });
+    fig.addEventListener('blur', () => { estado.hover = null; pintarHover(); });
+    return G;
+  });
+
+  const limpio = (max) => {
+    if (max <= 0) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(max)));
+    for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= max) return m * p;
+    return 10 * p;
+  };
+
+  function dibujar(G) {
+    const { svg, g } = G;
+    const t = esc.tiempo, a = esc.serie(g.variable), b = base.serie(g.variable);
+    const L = 52, R = 312, T = 8, B = 128;
+    G.x0 = L; G.x1 = R;
+    const ymax = limpio(Math.max(...a, ...b) * 1.04);
+    const X = (i) => L + ((R - L) * i) / (t.length - 1);
+    const Y = (v) => B - ((B - T) * Math.max(0, v)) / ymax;
+    svg.replaceChildren();
+    for (let k = 0; k <= 4; k++) {
+      const v = (ymax * k) / 4, y = Y(v);
+      svg.append(sv('line', { x1: L, x2: R, y1: y, y2: y, class: k === 0 ? 'basel' : 'gridl' }));
+      if (k % 2 === 0) { const tx = sv('text', { x: L - 6, y: y + 3, 'text-anchor': 'end', class: 'ax' }); tx.textContent = fmt(v); svg.append(tx); }
+    }
+    const paso = t[t.length - 1] - t[0] > 72 ? 24 : 12;
+    t.forEach((tt, i) => {
+      if (tt % paso === 0) {
+        const tx = sv('text', { x: X(i), y: B + 14, 'text-anchor': 'middle', class: 'ax' });
+        tx.textContent = tt === 0 ? 'mes 0' : String(tt);
+        svg.append(tx);
+      }
+    });
+    const path = (s) => s.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    svg.append(sv('path', { d: path(b), class: 'l-base' }));
+    svg.append(sv('path', { d: path(a), class: 'l-esc' }));
+    svg.append(sv('circle', { cx: X(t.length - 1), cy: Y(a[a.length - 1]), r: 4, class: 'dot' }));
+    G.cross = sv('line', { y1: T, y2: B, class: 'cross', visibility: 'hidden' });
+    G.hdot = sv('circle', { r: 4, class: 'dot', visibility: 'hidden' });
+    svg.append(G.cross, G.hdot);
+    G.X = X; G.Y = Y; G.a = a; G.b = b;
+  }
+
+  function pintarHover() {
+    const n = esc.tiempo.length;
+    const i = estado.hover === null ? n - 1 : estado.hover;
+    for (const G of graficos) {
+      const vis = estado.hover === null ? 'hidden' : 'visible';
+      G.cross.setAttribute('visibility', vis); G.hdot.setAttribute('visibility', vis);
+      G.cross.setAttribute('x1', G.X(i)); G.cross.setAttribute('x2', G.X(i));
+      G.hdot.setAttribute('cx', G.X(i)); G.hdot.setAttribute('cy', G.Y(G.a[i]));
+      G.read.replaceChildren(`mes ${nf(0).format(esc.tiempo[i])} · `, el('b', { text: fmt(G.a[i]) }), ` · base ${fmt(G.b[i])} · ${G.g.unidad || ''}`);
+    }
+  }
+
+  // ------------------------------------------------------------ KPI
+  function pintarKpis() {
+    const cont = $('#kpis'); cont.replaceChildren();
+    for (const k of CFG.kpis) {
+      const a = esc.serie(k.variable), b = base.serie(k.variable);
+      const v = a[a.length - 1], vb = b[b.length - 1];
+      const d = vb ? (v - vb) / Math.abs(vb) : 0;
+      const delta = el('span', { class: 'kpi-delta' + (Math.abs(d) < 0.0005 ? '' : d > 0 ? ' up' : ' down') });
+      delta.textContent = Math.abs(d) < 0.0005 ? 'igual que la base' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} % vs base (${fmt(vb)})`;
+      cont.append(el('div', { class: 'kpi' },
+        el('span', { class: 'kpi-label', text: `${k.etiqueta}, mes ${esc.tiempo[esc.tiempo.length - 1]}` }),
+        el('span', { class: 'kpi-value', text: fmt(v) }), delta));
+    }
+    const R = CFG.restriccion;
+    const box = $('#restriccion'); box.replaceChildren();
+    if (R) {
+      const real = esc.serie(R.real), des = esc.serie(R.deseado);
+      const meses = real.filter((v, i) => v < des[i] * (1 - 1e-6)).length;
+      const total = real.length - 1;
+      const warn = meses > 0;
+      const ic = sv('svg', { width: 16, height: 16, viewBox: '0 0 16 16', 'aria-hidden': 'true' });
+      ic.append(sv(warn ? 'path' : 'path', warn
+        ? { d: 'M8 1.5 15 14H1z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }
+        : { d: 'M3 8.5l3 3 7-7', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round' }));
+      if (warn) { ic.append(sv('line', { x1: 8, y1: 6, x2: 8, y2: 9.5, stroke: 'currentColor', 'stroke-width': '1.6' })); ic.append(sv('circle', { cx: 8, cy: 11.8, r: 0.9, fill: 'currentColor' })); }
+      box.append(el('span', { class: 'estado ' + (warn ? 'warn' : 'ok') }, ic,
+        document.createTextNode(warn ? `${R.texto} en ${meses} de ${total} meses` : `${R.texto.replace('limita', 'no limita')} en ningún mes`)));
+    }
+  }
+
+  // ------------------------------------------------------------ tabla
+  function pintarTabla() {
+    const t = esc.tiempo, filas = CFG.tabla || CFG.graficos.map((g) => g.variable);
+    const idx = t.map((tt, i) => (tt % 12 === 0 ? i : -1)).filter((i) => i >= 0);
+    const tab = $('#tabla'); tab.replaceChildren();
+    const hr = el('tr', {}, el('th', { text: 'Variable' }));
+    idx.forEach((i) => hr.append(el('th', { text: t[i] === 0 ? 'inicio' : `año ${t[i] / 12}` })));
+    hr.append(el('th', { text: 'vs base' }));
+    tab.append(el('thead', {}, hr));
+    const tb = el('tbody');
+    for (const v of filas) {
+      const a = esc.serie(v), b = base.serie(v);
+      const tr = el('tr', {}, el('td', { text: etiqueta(modelo.variable(v).nombre) }));
+      idx.forEach((i) => tr.append(el('td', { text: fmt(a[i]) })));
+      const d = b[b.length - 1] ? (a[a.length - 1] - b[b.length - 1]) / Math.abs(b[b.length - 1]) : 0;
+      tr.append(el('td', { text: Math.abs(d) < 0.0005 ? '=' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} %` }));
+      tb.append(tr);
+    }
+    tab.append(tb);
+  }
+
+  // ------------------------------------------------------ aporte de bucles
+  const metricas = CFG.metricas_aporte || [];
+  metricas.forEach((m, i) => $('#metrica').append(el('option', { value: String(i), text: m.etiqueta })));
+  $('#metrica').addEventListener('change', () => { estado.metrica = +$('#metrica').value; pintarAportes(); });
+  let aportes = null;
+  function calcularAportes() {
+    aportes = [];
+    for (const [k, b] of bucleCtl) {
+      if (valorActual(b.c) === 0) { aportes.push({ meta: b.meta, off: true }); continue; }
+      const r = modelo.simular({ cambios: { ...estado.cambios, [k]: 0 }, final: estado.final });
+      aportes.push({ meta: b.meta, r });
+    }
+    pintarAportes();
+  }
+  function pintarAportes() {
+    if (!aportes || !metricas.length) return;
+    const m = metricas[estado.metrica];
+    const s = esc.serie(m.variable), v = s[s.length - 1];
+    const filas = aportes.map((a) => {
+      if (a.off) return { ...a, p: null };
+      const so = a.r.serie(m.variable);
+      return { ...a, p: v ? (v - so[so.length - 1]) / v : 0 };
+    }).sort((x, y) => (y.p ?? -1) - (x.p ?? -1));
+    const cont = $('#barras'); cont.replaceChildren();
+    for (const f of filas) {
+      const w = f.p === null ? 0 : Math.max(0, Math.min(1, f.p)) * 100;
+      cont.append(el('div', { class: 'barra' + (f.p === null ? ' off' : '') },
+        el('span', { class: 'barra-label' }, el('span', { class: 'codigo', text: f.meta.codigo }), el('span', { text: f.meta.nombre })),
+        el('div', { class: 'track' }, Object.assign(el('div', { class: 'fill' }), { style: `width:${w}%` })),
+        el('span', { class: 'barra-val', text: f.p === null ? 'apagado' : `${nf(0).format(f.p * 100)} %` })));
+    }
+    $('#nota-aporte').textContent = `Qué parte de las ${m.etiqueta} al mes ${esc.tiempo[esc.tiempo.length - 1]} se pierde si se apaga cada bucle, con todo lo demás como está. Los bucles se potencian entre sí, por eso los aportes pueden sumar más de 100 %.`;
+  }
+
+  // ------------------------------------------------------------ ciclo
+  let pendiente = null, pendAporte = null;
+  function programar() {
+    if (pendiente) return;
+    pendiente = requestAnimationFrame(() => {
+      pendiente = null;
+      esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
+      graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla(); pintarAportes(); guardar();
+      clearTimeout(pendAporte); pendAporte = setTimeout(calcularAportes, 140);
+    });
+  }
+
+  base = modelo.simular({ final: estado.final });
+  esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
+  graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla();
+  for (const b of bucleCtl.values()) b.pintar();
+  calcularAportes();
+})();
+</script>

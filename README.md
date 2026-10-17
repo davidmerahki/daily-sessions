@@ -1,5 +1,11 @@
 # daily-sessions
 
+| Carpeta | Qué hay |
+|---|---|
+| [`modelos/ecosistema_credenciales/`](modelos/ecosistema_credenciales/README.md) | Modelo de dinámica de sistemas del ecosistema de credenciales digitales (instituciones, unidades académicas, docentes, estudiantes y empresas) con sus flywheels. Hipótesis v0.1; [tablero interactivo](https://claude.ai/artifact/5VjtbXGjGgtFBgRnZxrXuJ) |
+| [`simulador/`](simulador/README.md) | "Nuestro Vensim": motor JavaScript que simula archivos `.mdl`, verificado contra PySD, y un tablero genérico con palancas e interruptores de bucles |
+| [`.claude/skills/vensim/`](.claude/skills/vensim/SKILL.md) | Base de conocimiento experta sobre Vensim (ver abajo) |
+
 ## Vensim: base de conocimiento experta
 
 Documentación completa sobre **[Vensim](https://vensim.com/)**, el software de modelado y simulación de dinámica de sistemas de Ventana Systems, organizada como un **skill de Claude Code**. Al trabajar en este repositorio, Claude carga el skill automáticamente cuando la conversación trata de Vensim, de modelos `.mdl` o de dinámica de sistemas.

@@ -1,0 +1,627 @@
+<title>__TITULO__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: panel de palancas fijo a la izquierda (como el panel de SyntheSim) y lienzo de resultados a la derecha; en teléfono se apilan. */
+  :root {
+    --bg: #f4f6f9;
+    --surface: #fcfcfd;
+    --ink: #0f1729;
+    --ink-2: #4a5468;
+    --muted: #6f7889;
+    --grid: #e3e6ec;
+    --line: #c9ced8;
+    --accent: #2a78d6;
+    --accent-wash: rgba(42, 120, 214, 0.10);
+    --base: #9aa3b2;
+    --good: #006300;
+    --bad: #b42d2d;
+    --warn-bg: #fff4dc;
+    --warn-ink: #7a4b00;
+    --ok-bg: #e7f5e7;
+    --ok-ink: #0b5d0b;
+    --ring: rgba(15, 23, 41, 0.10);
+    --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+      --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
+      --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+      --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+    --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
+    --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+    --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px 40px;
+  }
+  .page { max-width: 1320px; margin: 0 auto; display: grid; gap: 20px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: 0.005em; }
+  h1 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+  h2 { font-size: 19px; }
+  h3 { font-size: 15px; }
+  p { margin: 0; }
+  .eyebrow { font-family: var(--font-data); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  header.top { display: grid; gap: 8px; max-width: 78ch; }
+  header.top .lead { color: var(--ink-2); font-size: 15px; }
+
+  /* KPI */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+  .kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+  .kpi-label { color: var(--ink-2); font-size: 13px; }
+  .kpi-value { font-size: 30px; font-weight: 600; line-height: 1.1; }
+  .kpi-delta { font-family: var(--font-data); font-size: 12.5px; color: var(--muted); }
+  .kpi-delta.up { color: var(--good); }
+  .kpi-delta.down { color: var(--bad); }
+  .estado { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; justify-self: start; }
+  .estado.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .estado.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .estado svg { flex: none; }
+
+  /* Área de trabajo */
+  .workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px;
+    display: grid; gap: 18px; position: sticky; top: calc(12px + env(safe-area-inset-top, 0px));
+    max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain;
+  }
+  .panel section { display: grid; gap: 12px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { flex: 1; border: 0; background: transparent; color: var(--ink-2); padding: 7px 4px; font: 500 12.5px var(--font-body); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .seg button:focus-visible, .btn:focus-visible, input:focus-visible, summary:focus-visible, .chart:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .btn { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 6px 10px; font: 500 12.5px var(--font-body); cursor: pointer; }
+  .btn:hover { background: var(--accent-wash); }
+  .ctl { display: grid; gap: 4px; }
+  .ctl-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .ctl label { font-size: 13px; font-weight: 500; }
+  .ctl output { font-family: var(--font-data); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ctl.cambiado output { color: var(--accent); font-weight: 500; }
+  .ctl-help { font-size: 12px; color: var(--muted); }
+  .ctl-row { display: flex; gap: 8px; align-items: center; }
+  .ctl input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .reset-one { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 2px; visibility: hidden; }
+  .ctl.cambiado .reset-one { visibility: visible; }
+  details.grupo { border-top: 1px solid var(--grid); padding-top: 10px; }
+  details.grupo summary { cursor: pointer; font-weight: 600; font-size: 13px; list-style-position: inside; }
+  details.grupo[open] summary { margin-bottom: 10px; }
+  details.grupo .cuerpo, #palancas { display: grid; gap: 16px; }
+  .bucle { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; }
+  .codigo { font-family: var(--font-data); font-size: 11.5px; font-weight: 500; border: 1px solid var(--accent); color: var(--accent); border-radius: 999px; padding: 1px 7px; }
+  .bucle.off .codigo { border-color: var(--line); color: var(--muted); }
+  .bucle-nombre { font-size: 13px; font-weight: 500; }
+  .bucle-desc { grid-column: 2 / 4; font-size: 12px; color: var(--muted); }
+  .switch { appearance: none; width: 34px; height: 20px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; margin: 0; transition: background 0.15s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
+  .switch:checked { background: var(--accent); }
+  .switch:checked::after { transform: translateX(14px); }
+
+  main { display: grid; gap: 20px; min-width: 0; }
+  .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+  .leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
+  .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+  .key.esc { border-color: var(--accent); }
+  .key.base { border-color: var(--base); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 18px 20px; }
+  .chart { margin: 0; display: grid; gap: 6px; min-width: 0; border-radius: 8px; }
+  .chart figcaption { display: grid; gap: 1px; }
+  .chart-title { font-weight: 600; font-size: 13.5px; }
+  .chart-read { font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.4em; }
+  .chart-read b { color: var(--ink); font-weight: 500; }
+  .chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+  .ax { fill: var(--muted); font-family: var(--font-data); font-size: 9.5px; }
+  .gridl { stroke: var(--grid); stroke-width: 1; }
+  .basel { stroke: var(--line); stroke-width: 1; }
+  .l-esc { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .l-base { fill: none; stroke: var(--base); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+  .cross { stroke: var(--ink-2); stroke-width: 1; }
+
+  .aporte-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .aporte-head select { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  .barras { display: grid; gap: 8px; }
+  .barra { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 56px; gap: 10px; align-items: center; }
+  .barra-label { font-size: 13px; display: flex; gap: 8px; align-items: center; min-width: 0; }
+  .barra-label span:last-child { overflow-wrap: anywhere; }
+  .track { height: 18px; position: relative; }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .barra.off .fill { background: var(--line); }
+  .barra-val { font-family: var(--font-data); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+  .nota { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
+
+  figure.mapa { margin: 0; display: grid; gap: 10px; }
+  .mapa-svg { overflow-x: auto; color: var(--ink-2); }
+  .mapa-svg svg { width: 100%; min-width: 620px; height: auto; display: block; }
+  .cld .cld-nodos rect { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+  .cld .cld-nodos text { fill: var(--ink); font-family: var(--font-body); font-weight: 500; }
+  .cld .cld-etiquetas text { font-family: var(--font-body); fill: var(--muted); }
+  .cld .cld-bucles circle { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; }
+  .cld .cld-bucles text { fill: var(--ink-2); font-family: var(--font-body); }
+  .cld .cld-bucles .cld-codigo { fill: var(--accent); font-family: var(--font-data); font-weight: 500; }
+  .cld .cld-bucles .cld-b circle { stroke: var(--muted); }
+  .cld .cld-bucles .cld-b .cld-codigo { fill: var(--muted); }
+  .cld [data-loop] { transition: opacity 0.2s; }
+  .cld .apagado { opacity: 0.18; }
+  figcaption.cap { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
+
+  .tabla-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--muted); font-weight: 500; font-family: var(--font-data); font-size: 11.5px; }
+  td { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  td:first-child { font-family: var(--font-body); }
+  details.tabla summary { cursor: pointer; font-weight: 600; }
+  footer { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+  .error { background: var(--warn-bg); color: var(--warn-ink); padding: 12px 16px; border-radius: 10px; }
+
+  @media (max-width: 860px) {
+    .workspace { grid-template-columns: minmax(0, 1fr); }
+    .panel { position: static; max-height: none; }
+    .barra { grid-template-columns: minmax(0, 1fr) 56px; }
+    .barra .track { grid-column: 1 / 3; grid-row: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="page">
+  <header class="top">
+    <span class="eyebrow" id="antetitulo"></span>
+    <h1 id="titulo"></h1>
+    <p class="lead" id="bajada"></p>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Resultados al final del horizonte"></section>
+  <div id="restriccion"></div>
+
+  <div class="workspace">
+    <aside class="panel" aria-label="Palancas y supuestos">
+      <section>
+        <div class="panel-head"><h2>Horizonte</h2></div>
+        <div class="seg" id="horizonte" role="group" aria-label="Horizonte de simulación"></div>
+      </section>
+      <section>
+        <div class="panel-head"><h2>Palancas</h2><button class="btn" id="restablecer" type="button">Restablecer todo</button></div>
+        <div id="palancas" class="cuerpo"></div>
+      </section>
+      <section id="sec-bucles">
+        <div class="panel-head"><h2>Flywheels</h2></div>
+        <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él.</p>
+        <div id="bucles" style="display:grid;gap:12px"></div>
+      </section>
+      <section>
+        <div class="panel-head"><h2>Supuestos</h2></div>
+        <div id="supuestos"></div>
+      </section>
+    </aside>
+
+    <main>
+      <section class="card" aria-labelledby="h-res">
+        <div class="aporte-head">
+          <h2 id="h-res">Trayectorias</h2>
+          <div class="leyenda"><span><i class="key esc"></i>Escenario actual</span><span><i class="key base"></i>Base (supuestos de partida)</span></div>
+        </div>
+        <div class="charts" id="charts"></div>
+        <p class="nota">Pasa el cursor (o usa las flechas sobre un gráfico) para leer cualquier mes; todos los gráficos siguen el mismo mes.</p>
+      </section>
+
+      <section class="card" aria-labelledby="h-aporte">
+        <div class="aporte-head">
+          <h2 id="h-aporte">¿Cuánto aporta cada flywheel?</h2>
+          <label>Medir sobre <select id="metrica"></select></label>
+        </div>
+        <div class="barras" id="barras"></div>
+        <p class="nota" id="nota-aporte"></p>
+      </section>
+
+      <section class="card" id="sec-mapa" aria-labelledby="h-mapa">
+        <h2 id="h-mapa">Mapa de bucles</h2>
+        <figure class="mapa">
+          <div class="mapa-svg" id="mapa"><!--__DIAGRAMA__--></div>
+          <figcaption class="cap">Todas las flechas son relaciones positivas (+): más de una variable lleva a más de la siguiente. Los bucles R se refuerzan; B1 (el mercado potencial se agota) y B4 (la capacidad docente limita la emisión) frenan el crecimiento. Los bucles apagados en el panel se atenúan.</figcaption>
+        </figure>
+      </section>
+
+      <section class="card">
+        <details class="tabla">
+          <summary>Tabla anual del escenario actual</summary>
+          <div class="tabla-wrap"><table id="tabla"></table></div>
+        </details>
+      </section>
+
+      <footer>
+        <span id="pie"></span>
+        <span>Los resultados describen la lógica del modelo con sus supuestos; no son un pronóstico.</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script type="text/plain" id="modelo-mdl">__MODELO__</script>
+<script type="application/json" id="config">__CONFIG__</script>
+<script>/*__MOTOR__*/</script>
+<script>
+(function () {
+  'use strict';
+  const $ = (s, el = document) => el.querySelector(s);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k) n.append(k);
+    return n;
+  };
+  const SVG = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs = {}) => { const n = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+  const norm = (s) => s.replace(/[\s_]+/g, ' ').trim().toLowerCase();
+
+  const CFG = JSON.parse($('#config').textContent);
+  let modelo;
+  try { modelo = Motor.leer($('#modelo-mdl').textContent); }
+  catch (e) { document.querySelector('.page').prepend(el('p', { class: 'error', text: 'No se pudo leer el modelo: ' + e.message })); return; }
+
+  // ---------------------------------------------------------- formatos
+  const TILDES = { fraccion: 'fracción', prospeccion: 'prospección', conversion: 'conversión', duracion: 'duración',
+    institucion: 'institución', academicas: 'académicas', academica: 'académica', expansion: 'expansión',
+    reduccion: 'reducción', atraccion: 'atracción', maxima: 'máxima', maximo: 'máximo', emision: 'emisión',
+    certificacion: 'certificación', adopcion: 'adopción', busqueda: 'búsqueda', busquedas: 'búsquedas',
+    habito: 'hábito', percepcion: 'percepción', dias: 'días', contratacion: 'contratación',
+    incorporacion: 'incorporación', extension: 'extensión', exito: 'éxito', mas: 'más', tamano: 'tamaño',
+    numero: 'número', decision: 'decisión', informacion: 'información', rotacion: 'rotación',
+    capacitacion: 'capacitación', vicerrectoria: 'vicerrectoría', rectoria: 'rectoría', educacion: 'educación',
+    innovacion: 'innovación', segun: 'según', tambien: 'también', aun: 'aún', esten: 'estén', area: 'área' };
+  const tildes = (txt) => txt.replace(/[A-Za-z]+/g, (w) => {
+    const t = TILDES[w.toLowerCase()];
+    return !t ? w : w[0] === w[0].toUpperCase() ? t[0].toUpperCase() + t.slice(1) : t;
+  });
+  const etiqueta = (n) => { const s = tildes(n); return s.charAt(0).toUpperCase() + s.slice(1); };
+  const nf = (d) => new Intl.NumberFormat('es', { maximumFractionDigits: d });
+  const fmt = (v) => {
+    if (!isFinite(v)) return '—';
+    const a = Math.abs(v);
+    if (a >= 1e6) return nf(2).format(v / 1e6) + ' M';
+    if (a >= 1e4) return nf(1).format(v / 1e3) + ' mil';
+    if (a >= 100) return nf(0).format(v);
+    if (a >= 1) return nf(1).format(v);
+    return nf(2).format(v);
+  };
+  const UNID = { Month: 'meses', Dmnl: '', Institucion: 'inst.', Unidad: 'unid.', Docente: 'docentes', Credencial: 'cred.',
+    Persona: 'personas', Empresa: 'empresas', Busqueda: 'búsq.', Uso: 'usos', Contratacion: 'contrat.', Dia: 'días' };
+  const fmtUnidad = (u) => u.replace(/\(([^)]*)\)/g, (m, d) => d.split('*').join('/'))
+    .replace(/[A-Za-z]+/g, (w) => (w === 'Month' ? 'mes' : w in UNID ? UNID[w] : w)).replace(/\*/g, '·').trim();
+  const fmtValor = (c, v) => {
+    const u = c.unidades;
+    if (u === '1/Month') return nf(2).format(v * 100) + ' %/mes';
+    if (u === 'Dmnl' && c.rango && c.rango.max !== null && c.rango.max <= 1) return nf(0).format(v * 100) + ' %';
+    if (u === 'Dmnl') return '×' + nf(1).format(v);
+    if (u === 'Month') return nf(0).format(v) + ' meses';
+    return nf(v < 10 ? 2 : 0).format(v) + ' ' + fmtUnidad(u);
+  };
+
+  // ------------------------------------------------------------ estado
+  const CONSTS = modelo.constantes();
+  const porNombre = new Map(CONSTS.map((c) => [norm(c.nombre), c]));
+  const estado = { cambios: {}, final: CFG.horizontes.includes(60) ? 60 : CFG.horizontes[0], hover: null, metrica: 0 };
+  const CLAVE = 'simulador:' + CFG.titulo;
+  try {
+    const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+    if (g) {
+      for (const [k, v] of Object.entries(g.cambios || {})) if (porNombre.has(norm(k))) estado.cambios[norm(k)] = v;
+      if (CFG.horizontes.includes(g.final)) estado.final = g.final;
+    }
+  } catch (e) { /* almacenamiento no disponible */ }
+  const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify({ cambios: estado.cambios, final: estado.final })); } catch (e) { /* sin almacenamiento */ } };
+
+  let base, esc;
+  const valorActual = (c) => (norm(c.nombre) in estado.cambios ? estado.cambios[norm(c.nombre)] : c.valor);
+
+  // ------------------------------------------------------ cabecera
+  $('#titulo').textContent = CFG.titulo;
+  $('#antetitulo').textContent = CFG.antetitulo || '';
+  $('#bajada').textContent = CFG.bajada || '';
+  $('#pie').textContent = CFG.pie || '';
+
+  // ------------------------------------------------------ controles
+  const controles = new Map();
+  function control(c) {
+    const k = norm(c.nombre);
+    const r = c.rango || { min: 0, max: c.valor * 2 || 1, paso: null };
+    const min = r.min ?? 0, max = r.max ?? Math.max(c.valor * 2, 1);
+    const paso = r.paso || (max - min) / 100;
+    const id = 'c-' + k.replace(/[^a-z0-9]+/g, '-');
+    const out = el('output', { for: id });
+    const input = el('input', { type: 'range', id, min, max, step: paso });
+    input.value = valorActual(c);
+    const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al supuesto de partida', title: 'Volver al supuesto de partida', text: '↺' });
+    const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, ''));
+    const box = el('div', { class: 'ctl' },
+      el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
+      el('div', { class: 'ctl-row' }, input, reset),
+      help ? el('p', { class: 'ctl-help', text: help }) : null);
+    const pintar = () => {
+      const v = valorActual(c);
+      out.textContent = fmtValor(c, v);
+      box.classList.toggle('cambiado', k in estado.cambios);
+    };
+    input.addEventListener('input', () => {
+      const v = parseFloat(input.value);
+      if (Math.abs(v - c.valor) < 1e-12) delete estado.cambios[k]; else estado.cambios[k] = v;
+      pintar(); programar();
+    });
+    reset.addEventListener('click', () => { delete estado.cambios[k]; input.value = c.valor; pintar(); programar(); });
+    controles.set(k, { input, pintar, c });
+    pintar();
+    return box;
+  }
+
+  const esBucle = (c) => norm(c.nombre) in normBucles;
+  const normBucles = Object.fromEntries(Object.entries(CFG.bucles || {}).map(([k, v]) => [norm(k), v]));
+  const palancas = CONSTS.filter((c) => /PALANCA/.test(c.comentario) && !esBucle(c));
+  palancas.forEach((c) => $('#palancas').append(control(c)));
+
+  const grupos = new Map();
+  for (const c of CONSTS) {
+    if (esBucle(c) || palancas.includes(c)) continue;
+    if (!grupos.has(c.grupo)) grupos.set(c.grupo, []);
+    grupos.get(c.grupo).push(c);
+  }
+  for (const [g, lista] of grupos) {
+    const det = el('details', { class: 'grupo' }, el('summary', { text: (CFG.grupos || {})[g] || etiqueta(g) + ` (${lista.length})` }));
+    if ((CFG.grupos || {})[g]) det.firstChild.textContent = CFG.grupos[g] + ` (${lista.length})`;
+    const cuerpo = el('div', { class: 'cuerpo' });
+    lista.forEach((c) => cuerpo.append(control(c)));
+    det.append(cuerpo);
+    $('#supuestos').append(det);
+  }
+
+  // interruptores de bucles
+  const bucleCtl = new Map();
+  for (const c of CONSTS.filter(esBucle)) {
+    const k = norm(c.nombre), meta = normBucles[k];
+    const id = 'b-' + meta.codigo;
+    const sw = el('input', { type: 'checkbox', class: 'switch', id, role: 'switch' });
+    sw.checked = valorActual(c) !== 0;
+    const fila = el('div', { class: 'bucle' },
+      el('span', { class: 'codigo', text: meta.codigo }),
+      el('label', { class: 'bucle-nombre', for: id, text: meta.nombre }), sw,
+      el('span', { class: 'bucle-desc', text: meta.descripcion }));
+    const pintar = () => {
+      const on = valorActual(c) !== 0;
+      sw.checked = on; fila.classList.toggle('off', !on);
+      document.querySelectorAll('#mapa [data-loop]').forEach((n) => {
+        if (norm(n.getAttribute('data-loop')) === k) n.classList.toggle('apagado', !on);
+      });
+    };
+    sw.addEventListener('change', () => {
+      if (sw.checked === (c.valor !== 0)) delete estado.cambios[k]; else estado.cambios[k] = sw.checked ? 1 : 0;
+      pintar(); programar();
+    });
+    bucleCtl.set(k, { pintar, c, meta });
+    $('#bucles').append(fila);
+  }
+  if (!bucleCtl.size) $('#sec-bucles').hidden = true;
+  if (!$('#mapa').querySelector('svg')) $('#sec-mapa').hidden = true;
+
+  $('#restablecer').addEventListener('click', () => {
+    estado.cambios = {};
+    for (const { input, pintar, c } of controles.values()) { input.value = c.valor; pintar(); }
+    for (const b of bucleCtl.values()) b.pintar();
+    programar();
+  });
+
+  // horizonte
+  for (const h of CFG.horizontes) {
+    const b = el('button', { type: 'button', 'aria-pressed': String(h === estado.final), text: h % 12 === 0 ? `${h / 12} años` : `${h} meses` });
+    b.addEventListener('click', () => {
+      estado.final = h;
+      $('#horizonte').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      base = modelo.simular({ final: estado.final });
+      programar();
+    });
+    $('#horizonte').append(b);
+  }
+
+  // ------------------------------------------------------------ gráficos
+  const graficos = CFG.graficos.map((g) => {
+    const read = el('span', { class: 'chart-read' });
+    const svg = sv('svg', { viewBox: '0 0 320 150', role: 'img', 'aria-label': g.titulo });
+    const fig = el('figure', { class: 'chart', tabindex: '0' },
+      el('figcaption', {}, el('span', { class: 'chart-title', text: g.titulo }), read), svg);
+    $('#charts').append(fig);
+    const G = { g, svg, read, fig };
+    const mover = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const x = ((ev.clientX - r.left) / r.width) * 320;
+      const n = esc.tiempo.length;
+      const i = Math.round(((x - G.x0) / (G.x1 - G.x0)) * (n - 1));
+      estado.hover = Math.max(0, Math.min(n - 1, i));
+      pintarHover();
+    };
+    svg.addEventListener('pointermove', mover);
+    svg.addEventListener('pointerdown', mover);
+    svg.addEventListener('pointerleave', () => { estado.hover = null; pintarHover(); });
+    fig.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+      ev.preventDefault();
+      const n = esc.tiempo.length;
+      const i = estado.hover === null ? n - 1 : estado.hover;
+      estado.hover = Math.max(0, Math.min(n - 1, i + (ev.key === 'ArrowRight' ? 1 : -1)));
+      pintarHover();
+    });
+    fig.addEventListener('blur', () => { estado.hover = null; pintarHover(); });
+    return G;
+  });
+
+  const limpio = (max) => {
+    if (max <= 0) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(max)));
+    for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= max) return m * p;
+    return 10 * p;
+  };
+
+  function dibujar(G) {
+    const { svg, g } = G;
+    const t = esc.tiempo, a = esc.serie(g.variable), b = base.serie(g.variable);
+    const L = 52, R = 312, T = 8, B = 128;
+    G.x0 = L; G.x1 = R;
+    const ymax = limpio(Math.max(...a, ...b) * 1.04);
+    const X = (i) => L + ((R - L) * i) / (t.length - 1);
+    const Y = (v) => B - ((B - T) * Math.max(0, v)) / ymax;
+    svg.replaceChildren();
+    for (let k = 0; k <= 4; k++) {
+      const v = (ymax * k) / 4, y = Y(v);
+      svg.append(sv('line', { x1: L, x2: R, y1: y, y2: y, class: k === 0 ? 'basel' : 'gridl' }));
+      if (k % 2 === 0) { const tx = sv('text', { x: L - 6, y: y + 3, 'text-anchor': 'end', class: 'ax' }); tx.textContent = fmt(v); svg.append(tx); }
+    }
+    const paso = t[t.length - 1] - t[0] > 72 ? 24 : 12;
+    t.forEach((tt, i) => {
+      if (tt % paso === 0) {
+        const tx = sv('text', { x: X(i), y: B + 14, 'text-anchor': 'middle', class: 'ax' });
+        tx.textContent = tt === 0 ? 'mes 0' : String(tt);
+        svg.append(tx);
+      }
+    });
+    const path = (s) => s.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    svg.append(sv('path', { d: path(b), class: 'l-base' }));
+    svg.append(sv('path', { d: path(a), class: 'l-esc' }));
+    svg.append(sv('circle', { cx: X(t.length - 1), cy: Y(a[a.length - 1]), r: 4, class: 'dot' }));
+    G.cross = sv('line', { y1: T, y2: B, class: 'cross', visibility: 'hidden' });
+    G.hdot = sv('circle', { r: 4, class: 'dot', visibility: 'hidden' });
+    svg.append(G.cross, G.hdot);
+    G.X = X; G.Y = Y; G.a = a; G.b = b;
+  }
+
+  function pintarHover() {
+    const n = esc.tiempo.length;
+    const i = estado.hover === null ? n - 1 : estado.hover;
+    for (const G of graficos) {
+      const vis = estado.hover === null ? 'hidden' : 'visible';
+      G.cross.setAttribute('visibility', vis); G.hdot.setAttribute('visibility', vis);
+      G.cross.setAttribute('x1', G.X(i)); G.cross.setAttribute('x2', G.X(i));
+      G.hdot.setAttribute('cx', G.X(i)); G.hdot.setAttribute('cy', G.Y(G.a[i]));
+      G.read.replaceChildren(`mes ${nf(0).format(esc.tiempo[i])} · `, el('b', { text: fmt(G.a[i]) }), ` · base ${fmt(G.b[i])} · ${G.g.unidad || ''}`);
+    }
+  }
+
+  // ------------------------------------------------------------ KPI
+  function pintarKpis() {
+    const cont = $('#kpis'); cont.replaceChildren();
+    for (const k of CFG.kpis) {
+      const a = esc.serie(k.variable), b = base.serie(k.variable);
+      const v = a[a.length - 1], vb = b[b.length - 1];
+      const d = vb ? (v - vb) / Math.abs(vb) : 0;
+      const delta = el('span', { class: 'kpi-delta' + (Math.abs(d) < 0.0005 ? '' : d > 0 ? ' up' : ' down') });
+      delta.textContent = Math.abs(d) < 0.0005 ? 'igual que la base' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} % vs base (${fmt(vb)})`;
+      cont.append(el('div', { class: 'kpi' },
+        el('span', { class: 'kpi-label', text: `${k.etiqueta}, mes ${esc.tiempo[esc.tiempo.length - 1]}` }),
+        el('span', { class: 'kpi-value', text: fmt(v) }), delta));
+    }
+    const R = CFG.restriccion;
+    const box = $('#restriccion'); box.replaceChildren();
+    if (R) {
+      const real = esc.serie(R.real), des = esc.serie(R.deseado);
+      const meses = real.filter((v, i) => v < des[i] * (1 - 1e-6)).length;
+      const total = real.length - 1;
+      const warn = meses > 0;
+      const ic = sv('svg', { width: 16, height: 16, viewBox: '0 0 16 16', 'aria-hidden': 'true' });
+      ic.append(sv(warn ? 'path' : 'path', warn
+        ? { d: 'M8 1.5 15 14H1z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }
+        : { d: 'M3 8.5l3 3 7-7', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round' }));
+      if (warn) { ic.append(sv('line', { x1: 8, y1: 6, x2: 8, y2: 9.5, stroke: 'currentColor', 'stroke-width': '1.6' })); ic.append(sv('circle', { cx: 8, cy: 11.8, r: 0.9, fill: 'currentColor' })); }
+      box.append(el('span', { class: 'estado ' + (warn ? 'warn' : 'ok') }, ic,
+        document.createTextNode(warn ? `${R.texto} en ${meses} de ${total} meses` : `${R.texto.replace('limita', 'no limita')} en ningún mes`)));
+    }
+  }
+
+  // ------------------------------------------------------------ tabla
+  function pintarTabla() {
+    const t = esc.tiempo, filas = CFG.tabla || CFG.graficos.map((g) => g.variable);
+    const idx = t.map((tt, i) => (tt % 12 === 0 ? i : -1)).filter((i) => i >= 0);
+    const tab = $('#tabla'); tab.replaceChildren();
+    const hr = el('tr', {}, el('th', { text: 'Variable' }));
+    idx.forEach((i) => hr.append(el('th', { text: t[i] === 0 ? 'inicio' : `año ${t[i] / 12}` })));
+    hr.append(el('th', { text: 'vs base' }));
+    tab.append(el('thead', {}, hr));
+    const tb = el('tbody');
+    for (const v of filas) {
+      const a = esc.serie(v), b = base.serie(v);
+      const tr = el('tr', {}, el('td', { text: etiqueta(modelo.variable(v).nombre) }));
+      idx.forEach((i) => tr.append(el('td', { text: fmt(a[i]) })));
+      const d = b[b.length - 1] ? (a[a.length - 1] - b[b.length - 1]) / Math.abs(b[b.length - 1]) : 0;
+      tr.append(el('td', { text: Math.abs(d) < 0.0005 ? '=' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} %` }));
+      tb.append(tr);
+    }
+    tab.append(tb);
+  }
+
+  // ------------------------------------------------------ aporte de bucles
+  const metricas = CFG.metricas_aporte || [];
+  metricas.forEach((m, i) => $('#metrica').append(el('option', { value: String(i), text: m.etiqueta })));
+  $('#metrica').addEventListener('change', () => { estado.metrica = +$('#metrica').value; pintarAportes(); });
+  let aportes = null;
+  function calcularAportes() {
+    aportes = [];
+    for (const [k, b] of bucleCtl) {
+      if (valorActual(b.c) === 0) { aportes.push({ meta: b.meta, off: true }); continue; }
+      const r = modelo.simular({ cambios: { ...estado.cambios, [k]: 0 }, final: estado.final });
+      aportes.push({ meta: b.meta, r });
+    }
+    pintarAportes();
+  }
+  function pintarAportes() {
+    if (!aportes || !metricas.length) return;
+    const m = metricas[estado.metrica];
+    const s = esc.serie(m.variable), v = s[s.length - 1];
+    const filas = aportes.map((a) => {
+      if (a.off) return { ...a, p: null };
+      const so = a.r.serie(m.variable);
+      return { ...a, p: v ? (v - so[so.length - 1]) / v : 0 };
+    }).sort((x, y) => (y.p ?? -1) - (x.p ?? -1));
+    const cont = $('#barras'); cont.replaceChildren();
+    for (const f of filas) {
+      const w = f.p === null ? 0 : Math.max(0, Math.min(1, f.p)) * 100;
+      cont.append(el('div', { class: 'barra' + (f.p === null ? ' off' : '') },
+        el('span', { class: 'barra-label' }, el('span', { class: 'codigo', text: f.meta.codigo }), el('span', { text: f.meta.nombre })),
+        el('div', { class: 'track' }, Object.assign(el('div', { class: 'fill' }), { style: `width:${w}%` })),
+        el('span', { class: 'barra-val', text: f.p === null ? 'apagado' : `${nf(0).format(f.p * 100)} %` })));
+    }
+    $('#nota-aporte').textContent = `Qué parte de las ${m.etiqueta} al mes ${esc.tiempo[esc.tiempo.length - 1]} se pierde si se apaga cada bucle, con todo lo demás como está. Los bucles se potencian entre sí, por eso los aportes pueden sumar más de 100 %.`;
+  }
+
+  // ------------------------------------------------------------ ciclo
+  let pendiente = null, pendAporte = null;
+  function programar() {
+    if (pendiente) return;
+    pendiente = requestAnimationFrame(() => {
+      pendiente = null;
+      esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
+      graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla(); pintarAportes(); guardar();
+      clearTimeout(pendAporte); pendAporte = setTimeout(calcularAportes, 140);
+    });
+  }
+
+  base = modelo.simular({ final: estado.final });
+  esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
+  graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla();
+  for (const b of bucleCtl.values()) b.pintar();
+  calcularAportes();
+})();
+</script>

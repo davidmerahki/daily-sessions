@@ -1,0 +1,51 @@
+{
+  "titulo": "Flywheel de credenciales",
+  "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.1",
+  "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Todos los valores de partida son supuestos para corregir con datos reales.",
+  "horizontes": [36, 60, 84, 120],
+  "kpis": [
+    {"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"},
+    {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"},
+    {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"},
+    {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}
+  ],
+  "graficos": [
+    {"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"},
+    {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"},
+    {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"},
+    {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"},
+    {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"},
+    {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}
+  ],
+  "restriccion": {
+    "real": "emision de credenciales",
+    "deseado": "demanda de credenciales",
+    "texto": "La capacidad docente limita la emisión"
+  },
+  "metricas_aporte": [
+    {"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"},
+    {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"},
+    {"variable": "Unidades activas", "etiqueta": "unidades activas"},
+    {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}
+  ],
+  "bucles": {
+    "activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."},
+    "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."},
+    "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."},
+    "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."},
+    "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."},
+    "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."},
+    "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}
+  },
+  "grupos": {
+    "instituciones": "Instituciones",
+    "unidades academicas": "Unidades académicas",
+    "docentes": "Docentes",
+    "estudiantes": "Estudiantes",
+    "empresas": "Empresas",
+    "ecosistema": "Ecosistema"
+  },
+  "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"],
+  "diagrama": "diagrama_bucles.svg",
+  "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."
+}

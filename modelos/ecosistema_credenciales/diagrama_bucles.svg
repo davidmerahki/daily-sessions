@@ -1,0 +1,73 @@
+<svg viewBox="0 0 800 530" role="img" aria-label="Mapa de bucles: la credencial emitida por las unidades académicas llega a estudiantes y empresas; su uso le da valor, y ese valor atrae y retiene instituciones, cerrando el flywheel del ecosistema (R6). Bucles internos: R1 referidos entre instituciones, R2 contagio entre unidades, R3 hábito del estudiante, R4 docentes que se certifican, R5 talento verificable para empresas, R7 boca a boca empresarial. B1 saturación del mercado y B4 capacidad docente frenan el crecimiento." xmlns="http://www.w3.org/2000/svg" class="cld">
+  <defs>
+    <marker id="cld-punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+    </marker>
+  </defs>
+
+  <!-- enlaces del anillo principal (R6) -->
+  <g class="cld-enlaces" fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#cld-punta)">
+    <line x1="307" y1="100" x2="441" y2="100"/>
+    <line x1="590" y1="123" x2="646" y2="246"/>
+    <line x1="660" y1="294" x2="603" y2="406"/>
+    <line x1="505" y1="437" x2="419" y2="460" data-loop="activar flywheel empresas"/>
+    <line x1="265" y1="458" x2="203" y2="404"/>
+    <line x1="130" y1="356" x2="130" y2="256"/>
+    <line x1="728" y1="92" x2="728" y2="246"/>
+    <line x1="508" y1="424" x2="214" y2="386"/>
+    <path d="M152,206 Q160,150 196,124" data-loop="activar flywheel del ecosistema"/>
+    <path d="M636,406 Q712,380 716,296" data-loop="activar habito estudiantil"/>
+    <path d="M206,244 Q420,300 520,406" data-loop="activar habito estudiantil"/>
+  </g>
+
+  <!-- etiquetas de los enlaces -->
+  <g class="cld-etiquetas" font-size="11.5" fill="currentColor">
+    <text x="374" y="90" text-anchor="middle">entran por una unidad</text>
+    <text x="608" y="190" text-anchor="end">emiten</text>
+    <text x="740" y="160">generan</text>
+    <text x="740" y="174">evidencias</text>
+    <text x="640" y="352" text-anchor="end">certifican</text>
+    <text x="462" y="470" text-anchor="middle" data-loop="activar flywheel empresas">talento visible</text>
+    <text x="222" y="444" text-anchor="end">verifican</text>
+    <text x="140" y="309">hacen moneda</text>
+    <text x="360" y="393" text-anchor="middle">comparten</text>
+    <text x="146" y="160" text-anchor="end" data-loop="activar flywheel del ecosistema">atrae y</text>
+    <text x="146" y="174" text-anchor="end" data-loop="activar flywheel del ecosistema">retiene</text>
+    <text x="722" y="372" data-loop="activar habito estudiantil">piden más</text>
+    <text x="722" y="386" data-loop="activar habito estudiantil">credenciales</text>
+    <text x="400" y="300" text-anchor="middle" data-loop="activar habito estudiantil">más solicitudes y uso</text>
+  </g>
+
+  <!-- bucles que se refuerzan a sí mismos (autolazos) -->
+  <g fill="none" stroke="currentColor" stroke-width="1.5" marker-end="url(#cld-punta)">
+    <path d="M157,90 C118,66 118,134 157,110" data-loop="activar boca a boca institucional"/>
+    <path d="M508,78 C498,38 552,38 542,78" data-loop="activar expansion interna"/>
+    <path d="M714,50 C704,12 758,12 748,50" data-loop="activar compromiso docente"/>
+    <path d="M267,462 C230,446 230,496 267,480" data-loop="activar boca a boca empresarial"/>
+  </g>
+
+  <!-- nodos -->
+  <g class="cld-nodos" font-size="13" text-anchor="middle">
+    <g><rect x="155" y="78" width="150" height="44" rx="10"/><text x="230" y="97">Instituciones</text><text x="230" y="113">cliente</text></g>
+    <g><rect x="445" y="78" width="150" height="44" rx="10"/><text x="520" y="97">Unidades</text><text x="520" y="113">académicas activas</text></g>
+    <g><rect x="660" y="50" width="130" height="40" rx="10"/><text x="725" y="75">Docentes</text></g>
+    <g><rect x="605" y="248" width="150" height="44" rx="10"/><text x="680" y="267">Credenciales</text><text x="680" y="283">emitidas</text></g>
+    <g><rect x="505" y="408" width="150" height="44" rx="10"/><text x="580" y="427">Estudiantes con</text><text x="580" y="443">credencial</text></g>
+    <g><rect x="265" y="448" width="152" height="44" rx="10"/><text x="341" y="467">Empresas que buscan</text><text x="341" y="483">por competencias</text></g>
+    <g><rect x="70" y="358" width="140" height="44" rx="10"/><text x="140" y="377">Uso y</text><text x="140" y="393">verificación</text></g>
+    <g><rect x="55" y="208" width="150" height="44" rx="10"/><text x="130" y="227">Valor de la</text><text x="130" y="243">credencial</text></g>
+  </g>
+
+  <!-- identificadores de bucle -->
+  <g class="cld-bucles" font-size="12" text-anchor="middle">
+    <g data-loop="activar flywheel del ecosistema"><circle cx="390" cy="215" r="22"/><text x="390" y="220" class="cld-codigo">R6</text><text x="390" y="255">credencial como moneda</text></g>
+    <g data-loop="activar boca a boca institucional"><circle cx="98" cy="100" r="14"/><text x="98" y="104" class="cld-codigo">R1</text><text x="98" y="132">referidos</text></g>
+    <g data-loop="activar expansion interna"><circle cx="476" cy="40" r="14"/><text x="476" y="44" class="cld-codigo">R2</text><text x="456" y="44" text-anchor="end">contagio interno</text></g>
+    <g data-loop="activar compromiso docente"><circle cx="680" cy="22" r="14"/><text x="680" y="26" class="cld-codigo">R4</text><text x="658" y="26" text-anchor="end">se certifican</text></g>
+    <g data-loop="activar habito estudiantil"><circle cx="672" cy="342" r="14"/><text x="672" y="346" class="cld-codigo">R3</text></g>
+    <g data-loop="activar flywheel empresas"><circle cx="520" cy="490" r="14"/><text x="520" y="494" class="cld-codigo">R5</text><text x="542" y="494" text-anchor="start">talento verificable</text></g>
+    <g data-loop="activar boca a boca empresarial"><circle cx="212" cy="500" r="14"/><text x="212" y="504" class="cld-codigo">R7</text><text x="190" y="504" text-anchor="end">boca a boca</text></g>
+    <g class="cld-b"><circle cx="300" cy="160" r="14"/><text x="300" y="164" class="cld-codigo">B1</text><text x="318" y="164" text-anchor="start">mercado se agota</text></g>
+    <g class="cld-b"><circle cx="690" cy="205" r="14"/><text x="690" y="209" class="cld-codigo">B4</text></g>
+  </g>
+</svg>

@@ -39,6 +39,8 @@ Uso (genera examples/poblacion.mdl):
 Notas:
 - Las ecuaciones de control (.Control) y la seccion de settings se anaden solas.
 - `extra_units` en build() declara sinonimos de unidades propias, p.ej. ("Widget,Widgets",).
+- `sketch` en build() puede ser una lista de Sketch: una vista por elemento (varias vistas
+  requieren Vensim PLE Plus o superior). Lo definido en otra vista se dibuja con shadow().
 - Valida el resultado con validar_modelo.py (PySD) y, si es posible, abriendolo en Vensim.
 """
 import math
@@ -202,14 +204,27 @@ class Sketch:
             f"12,{i},0,{x},{y},{w},{h},8,135,0,18,-1,0,0,0,-1--1--1,0-0-0,|12|B|128-0-0")
         self.lines.append(text)
 
+    def view_lines(self):
+        """Cabecera y objetos de esta vista (sin los separadores del sketch)."""
+        return [f"*{self.title}",
+                "$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0"
+                ] + self.lines
+
     def render(self):
-        out = ["\\\\\\---/// Sketch information - do not modify anything except names",
-               "V300  Do not put anything below this section - it will be ignored",
-               f"*{self.title}",
-               "$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0"]
-        out += self.lines
-        out.append("///---\\\\\\")
-        return "\n".join(out)
+        return render_views([self])
+
+
+def render_views(sketches):
+    """Sección de sketch con una o varias vistas. Cada vista va precedida de su
+    propia cabecera (separador + V300) y numera sus objetos desde 1; una
+    variable definida en otra vista se dibuja con shadow()."""
+    out = []
+    for sk in sketches:
+        out += ["\\\\\\---/// Sketch information - do not modify anything except names",
+                "V300  Do not put anything below this section - it will be ignored"]
+        out += sk.view_lines()
+    out.append("///---\\\\\\")
+    return "\n".join(out)
 
 
 def control(final, step, unit, initial=0, saveper="TIME STEP"):
@@ -257,8 +272,9 @@ def settings(final, first_var, extra_units=()):
 def build(path, equations, sketch, final, step, unit, first_var,
           extra_units=(), saveper="TIME STEP"):
     eq = equations.strip("\n")
+    sketches = list(sketch) if isinstance(sketch, (list, tuple)) else [sketch]
     text = "{UTF-8}\n" + eq + "\n\n" + control(final, step, unit, saveper=saveper) + "\n" + \
-        sketch.render() + "\n" + settings(final, first_var, extra_units) + "\n"
+        render_views(sketches) + "\n" + settings(final, first_var, extra_units) + "\n"
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     return path

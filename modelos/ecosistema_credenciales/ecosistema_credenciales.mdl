@@ -1,0 +1,1179 @@
+{UTF-8}
+********************************************************
+	.instituciones
+********************************************************~
+		Adquisicion de instituciones: prospeccion, pilotos, clientes y churn.
+	|
+
+Instituciones potenciales= INTEG (
+	pilotos no convertidos-inicio de pilotos,
+		instituciones en el mercado-clientes iniciales-pilotos iniciales)
+	~	Institucion [0,?]
+	~	Universidades e IES del mercado objetivo que aun no usan la plataforma.
+	|
+
+Instituciones en piloto= INTEG (
+	inicio de pilotos-conversion de pilotos-pilotos no convertidos,
+		pilotos iniciales)
+	~	Institucion [0,?]
+	~	Instituciones probando la plataforma, normalmente desde una unidad \
+		academica (educacion continua o innovacion).
+	|
+
+Instituciones cliente= INTEG (
+	conversion de pilotos-churn de instituciones,
+		clientes iniciales)
+	~	Institucion [0,?]
+	~	Instituciones con contrato activo (al menos una unidad academica \
+		emitiendo).
+	|
+
+Instituciones perdidas= INTEG (
+	churn de instituciones,
+		0)
+	~	Institucion [0,?]
+	~	Instituciones que fueron clientes y se fueron (no vuelven al mercado en el \
+		horizonte).
+	|
+
+inicio de pilotos=
+	Instituciones potenciales*(fraccion de prospeccion+contagio institucional+atraccion del ecosistema)
+	~	Institucion/Month
+	~	Nuevos pilotos: prospeccion propia (outbound, eventos, marketing), boca a \
+		boca entre instituciones (R1) y atraccion porque la credencial ya es \
+		moneda de movilidad (R6).
+	|
+
+contagio institucional=
+	activar boca a boca institucional*efectividad del boca a boca institucional*Instituciones cliente/instituciones en el mercado
+	~	1/Month
+	~	Fraccion mensual de potenciales que inician piloto por referencia de \
+		clientes (Bass).
+	|
+
+atraccion del ecosistema=
+	activar flywheel del ecosistema*atraccion maxima por valor de la credencial*Valor percibido de la credencial
+	~	1/Month
+	~	Fraccion mensual de potenciales que buscan la plataforma porque \
+		estudiantes y empresas ya piden la credencial (bucle R6).
+	|
+
+conversion de pilotos=
+	Instituciones en piloto/duracion del piloto*fraccion de conversion de pilotos
+	~	Institucion/Month
+	~	Pilotos que firman contrato.
+	|
+
+pilotos no convertidos=
+	Instituciones en piloto/duracion del piloto*(1-fraccion de conversion de pilotos)
+	~	Institucion/Month
+	~	Pilotos que no convierten y vuelven al mercado potencial.
+	|
+
+churn de instituciones=
+	Instituciones cliente*fraccion de churn institucional*(1-activar flywheel del ecosistema*reduccion maxima del churn por valor*Valor percibido de la credencial)
+	~	Institucion/Month
+	~	Instituciones que dejan la plataforma. Cuanto mas vale la credencial \
+		(datos de competencias, empleabilidad, marketing), menos churn.
+	|
+
+instituciones en el mercado=
+	600
+	~	Institucion [100,3000,50]
+	~	SUPUESTO: tamano del mercado objetivo.
+	|
+
+clientes iniciales=
+	25
+	~	Institucion [0,200,1]
+	~	SUPUESTO: clientes al inicio de la simulacion.
+	|
+
+pilotos iniciales=
+	5
+	~	Institucion [0,50,1]
+	~	SUPUESTO: pilotos en curso al inicio.
+	|
+
+fraccion de prospeccion=
+	0.003
+	~	1/Month [0,0.02,0.0005]
+	~	SUPUESTO / PALANCA: fraccion mensual de potenciales que inician piloto por \
+		la prospeccion propia (0.003 = 0.3 % al mes).
+	|
+
+efectividad del boca a boca institucional=
+	0.05
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO: inicio de pilotos por mes y por potencial si todo el mercado \
+		fuera cliente.
+	|
+
+atraccion maxima por valor de la credencial=
+	0.02
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: fraccion mensual de potenciales que llega sola cuando la \
+		credencial vale el maximo.
+	|
+
+duracion del piloto=
+	4
+	~	Month [1,12,1]
+	~	SUPUESTO: meses desde el inicio del piloto hasta la decision.
+	|
+
+fraccion de conversion de pilotos=
+	0.5
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA: pilotos que firman.
+	|
+
+fraccion de churn institucional=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: churn mensual de instituciones sin efecto del valor (0.01 ~ 11 % \
+		al ano).
+	|
+
+reduccion maxima del churn por valor=
+	0.6
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: cuanto se reduce el churn cuando la credencial vale el maximo.
+	|
+
+********************************************************
+	.unidades academicas
+********************************************************~
+		Land and expand: cada institucion cliente entra por una unidad y se expande a otras.
+	|
+
+Unidades activas= INTEG (
+	unidades por nuevos clientes+expansion interna-churn de unidades-unidades perdidas con instituciones,
+		unidades iniciales)
+	~	Unidad [0,?]
+	~	Unidades academicas emitiendo credenciales (educacion continua, \
+		innovacion, facultades...).
+	|
+
+unidades por nuevos clientes=
+	conversion de pilotos*unidades de entrada por cliente
+	~	Unidad/Month
+	~	Cada nuevo cliente entra con su unidad de entrada.
+	|
+
+unidades sin activar en clientes=
+	MAX(0,Instituciones cliente*unidades academicas por institucion-Unidades activas)
+	~	Unidad
+	~	Unidades de las instituciones cliente que todavia no emiten: el espacio de \
+		expansion.
+	|
+
+penetracion interna=
+	ZIDZ(Unidades activas,Instituciones cliente*unidades academicas por institucion)
+	~	Dmnl
+	~	Fraccion de las unidades de los clientes que ya emiten.
+	|
+
+expansion interna=
+	unidades sin activar en clientes*(fraccion de expansion institucional+activar expansion interna*efectividad del contagio interno*penetracion interna)
+	~	Unidad/Month
+	~	Nuevas unidades dentro de clientes: por decision central \
+		(vicerrectoria/rectoria) y por contagio entre unidades (bucle R2).
+	|
+
+churn de unidades=
+	Unidades activas*fraccion de churn de unidades
+	~	Unidad/Month
+	~	Unidades que dejan de emitir aunque la institucion siga siendo cliente.
+	|
+
+unidades perdidas con instituciones=
+	churn de instituciones*ZIDZ(Unidades activas,Instituciones cliente)
+	~	Unidad/Month
+	~	Unidades que se van cuando su institucion abandona.
+	|
+
+unidades iniciales=
+	40
+	~	Unidad [0,500,5]
+	~	SUPUESTO: unidades emitiendo al inicio.
+	|
+
+unidades academicas por institucion=
+	8
+	~	Unidad/Institucion [1,30,1]
+	~	SUPUESTO: unidades potenciales por institucion (educacion continua, \
+		innovacion, facultades, talento humano...).
+	|
+
+unidades de entrada por cliente=
+	1
+	~	Unidad/Institucion [1,5,1]
+	~	Unidades con las que entra un cliente nuevo.
+	|
+
+fraccion de expansion institucional=
+	0.004
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO / PALANCA: expansion por decision central (vicerrectores, \
+		rectores) por mes.
+	|
+
+efectividad del contagio interno=
+	0.06
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO: expansion por contagio entre unidades si toda la institucion ya \
+		emitiera.
+	|
+
+fraccion de churn de unidades=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO: churn mensual de unidades.
+	|
+
+********************************************************
+	.docentes
+********************************************************~
+		Los docentes generan las evidencias de emision y tambien se certifican.
+	|
+
+Docentes activos= INTEG (
+	incorporacion neta de docentes,
+		unidades iniciales*docentes por unidad*fraccion base de docentes comprometidos)
+	~	Docente [0,?]
+	~	Docentes que generan evidencias en la plataforma.
+	|
+
+Docentes certificados= INTEG (
+	certificacion de docentes-salida de docentes certificados,
+		0)
+	~	Docente [0,?]
+	~	Docentes con credenciales propias de competencias (talento de la \
+		universidad).
+	|
+
+incorporacion neta de docentes=
+	(docentes comprometidos deseados-Docentes activos)/tiempo de adopcion docente
+	~	Docente/Month
+	~	Ajuste gradual hacia los docentes que deberian estar usando la plataforma.
+	|
+
+docentes comprometidos deseados=
+	Unidades activas*docentes por unidad*fraccion de docentes comprometidos
+	~	Docente
+	~	
+	|
+
+fraccion de docentes comprometidos=
+	MIN(fraccion maxima de docentes comprometidos,fraccion base de docentes comprometidos*(1+activar compromiso docente*efecto de la certificacion en el compromiso*fraccion de docentes certificados))
+	~	Dmnl
+	~	Los docentes que se certifican se vuelven promotores y comprometen a mas \
+		colegas (bucle R4).
+	|
+
+fraccion de docentes certificados=
+	ZIDZ(MIN(Docentes certificados,Docentes activos),Docentes activos)
+	~	Dmnl
+	~	
+	|
+
+certificacion de docentes=
+	MAX(0,Docentes activos-Docentes certificados)*fraccion mensual de certificacion docente
+	~	Docente/Month
+	~	Docentes que certifican sus propias competencias.
+	|
+
+salida de docentes certificados=
+	Docentes certificados/permanencia de docentes
+	~	Docente/Month
+	~	Rotacion de docentes certificados.
+	|
+
+capacidad de emision=
+	Docentes activos*evidencias por docente
+	~	Credencial/Month
+	~	Credenciales que los docentes pueden respaldar con evidencias por mes \
+		(bucle B4).
+	|
+
+docentes por unidad=
+	30
+	~	Docente/Unidad [5,200,5]
+	~	SUPUESTO.
+	|
+
+fraccion base de docentes comprometidos=
+	0.3
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO / PALANCA.
+	|
+
+fraccion maxima de docentes comprometidos=
+	0.9
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+efecto de la certificacion en el compromiso=
+	1
+	~	Dmnl [0,3,0.1]
+	~	SUPUESTO: con todos los docentes certificados el compromiso se duplica (1 \
+		= +100 %).
+	|
+
+tiempo de adopcion docente=
+	6
+	~	Month [1,24,1]
+	~	SUPUESTO / PALANCA (capacitacion, onboarding).
+	|
+
+fraccion mensual de certificacion docente=
+	0.02
+	~	1/Month [0,0.2,0.005]
+	~	SUPUESTO / PALANCA.
+	|
+
+permanencia de docentes=
+	60
+	~	Month [12,240,12]
+	~	SUPUESTO.
+	|
+
+evidencias por docente=
+	15
+	~	Credencial/(Docente*Month) [1,100,1]
+	~	SUPUESTO: credenciales por docente y mes que se pueden respaldar con \
+		evidencias.
+	|
+
+********************************************************
+	.estudiantes
+********************************************************~
+		Emision de credenciales y habito de los estudiantes.
+	|
+
+Credenciales emitidas= INTEG (
+	emision de credenciales+credenciales docentes,
+		credenciales iniciales)
+	~	Credencial [0,?]
+	~	Acumulado de credenciales emitidas.
+	|
+
+Titulares activos= INTEG (
+	nuevos titulares-desactivacion de titulares,
+		titulares iniciales)
+	~	Persona [0,?]
+	~	Estudiantes y egresados que usan o comparten activamente sus credenciales.
+	|
+
+demanda institucional de credenciales=
+	Unidades activas*emision programada por unidad
+	~	Credencial/Month
+	~	Emisiones que las unidades planean (cursos, programas, eventos).
+	|
+
+demanda estudiantil de credenciales=
+	activar habito estudiantil*Titulares activos*solicitudes por titular*Valor percibido de la credencial
+	~	Credencial/Month
+	~	Disparador del habito: necesito demostrar una competencia y pido la \
+		credencial (bucle R3).
+	|
+
+demanda de credenciales=
+	demanda institucional de credenciales+demanda estudiantil de credenciales
+	~	Credencial/Month
+	~	
+	|
+
+emision de credenciales=
+	MIN(demanda de credenciales,capacidad de emision)
+	~	Credencial/Month
+	~	Lo que se emite: la demanda, salvo que falten docentes que generen \
+		evidencias.
+	|
+
+credenciales docentes=
+	certificacion de docentes*credenciales por docente certificado
+	~	Credencial/Month
+	~	
+	|
+
+nuevos titulares=
+	emision de credenciales*fraccion de emisiones a nuevos titulares/credenciales por titular nuevo
+	~	Persona/Month
+	~	Personas que reciben su primera credencial.
+	|
+
+desactivacion de titulares=
+	Titulares activos/tiempo de uso activo
+	~	Persona/Month
+	~	Titulares que dejan de usar sus credenciales.
+	|
+
+tiempo de uso activo=
+	tiempo base de uso activo*(1+activar habito estudiantil*extension del uso por valor*Valor percibido de la credencial)
+	~	Month
+	~	Recompensa del habito: si la credencial sirve, se sigue usando por mas \
+		tiempo.
+	|
+
+compartidas por titulares=
+	Titulares activos*usos por titular
+	~	Uso/Month
+	~	Credenciales compartidas o presentadas (LinkedIn, wallets, postulaciones).
+	|
+
+credenciales iniciales=
+	50000
+	~	Credencial [0,1e+06,10000]
+	~	SUPUESTO.
+	|
+
+titulares iniciales=
+	20000
+	~	Persona [0,500000,5000]
+	~	SUPUESTO.
+	|
+
+emision programada por unidad=
+	120
+	~	Credencial/(Unidad*Month) [10,1000,10]
+	~	SUPUESTO / PALANCA.
+	|
+
+solicitudes por titular=
+	0.05
+	~	Credencial/(Persona*Month) [0,0.5,0.01]
+	~	SUPUESTO: credenciales adicionales que un titular pide por mes cuando la \
+		credencial vale el maximo.
+	|
+
+fraccion de emisiones a nuevos titulares=
+	0.5
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO: parte de las credenciales que va a personas sin credenciales \
+		previas.
+	|
+
+credenciales por titular nuevo=
+	1
+	~	Credencial/Persona [1,5,1]
+	~	
+	|
+
+credenciales por docente certificado=
+	3
+	~	Credencial/Docente [1,10,1]
+	~	SUPUESTO.
+	|
+
+tiempo base de uso activo=
+	18
+	~	Month [3,60,1]
+	~	SUPUESTO.
+	|
+
+extension del uso por valor=
+	1
+	~	Dmnl [0,3,0.1]
+	~	SUPUESTO: con valor maximo el tiempo de uso activo se duplica.
+	|
+
+usos por titular=
+	0.1
+	~	Uso/(Persona*Month) [0,1,0.01]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.empresas
+********************************************************~
+		Sector productivo: busqueda de talento por credenciales y competencias.
+	|
+
+Empresas potenciales= INTEG (
+	churn de empresas-adopcion de empresas,
+		empresas en el mercado-empresas iniciales)
+	~	Empresa [0,?]
+	~	Empresas (talento humano) que aun no buscan talento por credenciales.
+	|
+
+Empresas usuarias= INTEG (
+	adopcion de empresas-churn de empresas,
+		empresas iniciales)
+	~	Empresa [0,?]
+	~	Empresas que buscan y verifican talento por credenciales.
+	|
+
+adopcion de empresas=
+	Empresas potenciales*(fraccion de prospeccion de empresas+contagio empresarial+atraccion por talento)
+	~	Empresa/Month
+	~	
+	|
+
+contagio empresarial=
+	activar boca a boca empresarial*efectividad del boca a boca empresarial*Empresas usuarias/empresas en el mercado
+	~	1/Month
+	~	Bucle R7.
+	|
+
+atraccion por talento=
+	activar flywheel empresas*atraccion maxima por talento*probabilidad de encontrar talento
+	~	1/Month
+	~	Cuanto mas talento verificable hay, mas empresas buscan por credenciales \
+		(bucle R5).
+	|
+
+probabilidad de encontrar talento=
+	Titulares activos/(Titulares activos+talento de referencia)
+	~	Dmnl
+	~	Probabilidad de que una busqueda encuentre un candidato con la competencia \
+		(saturante).
+	|
+
+churn de empresas=
+	Empresas usuarias*fraccion de churn de empresas*(1-reduccion del churn por exito*probabilidad de encontrar talento)
+	~	Empresa/Month
+	~	Las empresas que no encuentran talento abandonan.
+	|
+
+busquedas de talento=
+	Empresas usuarias*busquedas por empresa
+	~	Busqueda/Month
+	~	
+	|
+
+contrataciones por credencial=
+	busquedas de talento*probabilidad de encontrar talento*contrataciones por busqueda exitosa
+	~	Contratacion/Month
+	~	
+	|
+
+verificaciones de empresas=
+	busquedas de talento*verificaciones por busqueda
+	~	Uso/Month
+	~	Credenciales verificadas por reclutadores.
+	|
+
+dias de contratacion ahorrados=
+	contrataciones por credencial*dias ahorrados por contratacion
+	~	Dia/Month
+	~	Recompensa para la empresa: menor tiempo de contratacion.
+	|
+
+empresas en el mercado=
+	3000
+	~	Empresa [100,50000,100]
+	~	SUPUESTO.
+	|
+
+empresas iniciales=
+	15
+	~	Empresa [0,500,5]
+	~	SUPUESTO.
+	|
+
+fraccion de prospeccion de empresas=
+	0.001
+	~	1/Month [0,0.02,0.0005]
+	~	SUPUESTO / PALANCA.
+	|
+
+efectividad del boca a boca empresarial=
+	0.05
+	~	1/Month [0,0.3,0.01]
+	~	SUPUESTO.
+	|
+
+atraccion maxima por talento=
+	0.01
+	~	1/Month [0,0.05,0.001]
+	~	SUPUESTO.
+	|
+
+talento de referencia=
+	200000
+	~	Persona [10000,2e+06,10000]
+	~	SUPUESTO: titulares activos con los que la mitad de las busquedas \
+		encuentra candidato.
+	|
+
+fraccion de churn de empresas=
+	0.03
+	~	1/Month [0,0.1,0.005]
+	~	SUPUESTO.
+	|
+
+reduccion del churn por exito=
+	0.8
+	~	Dmnl [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+busquedas por empresa=
+	4
+	~	Busqueda/(Empresa*Month) [0,50,1]
+	~	SUPUESTO.
+	|
+
+contrataciones por busqueda exitosa=
+	0.3
+	~	Contratacion/Busqueda [0,1,0.05]
+	~	SUPUESTO.
+	|
+
+verificaciones por busqueda=
+	5
+	~	Uso/Busqueda [0,50,1]
+	~	SUPUESTO.
+	|
+
+dias ahorrados por contratacion=
+	15
+	~	Dia/Contratacion [0,60,1]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.ecosistema
+********************************************************~
+		Valor de la credencial como moneda de movilidad academica y laboral.
+	|
+
+uso de credenciales=
+	compartidas por titulares+verificaciones de empresas
+	~	Uso/Month
+	~	Cuanto se usan las credenciales en el mercado.
+	|
+
+valor indicado de la credencial=
+	1-EXP(-(peso del uso*uso de credenciales/uso de referencia+(1-peso del uso)*Empresas usuarias/empresas de referencia))
+	~	Dmnl
+	~	Valor de la credencial (0 a 1) segun su uso y cuantas empresas la \
+		reconocen; satura en 1.
+	|
+
+Valor percibido de la credencial=
+	SMOOTH3(valor indicado de la credencial,tiempo de percepcion del valor)
+	~	Dmnl
+	~	El mercado tarda en notar el valor (retraso de percepcion).
+	|
+
+uso de referencia=
+	100000
+	~	Uso/Month [10000,1e+06,10000]
+	~	SUPUESTO: uso mensual con el que la credencial es moneda.
+	|
+
+empresas de referencia=
+	300
+	~	Empresa [50,5000,50]
+	~	SUPUESTO: empresas que hacen de la credencial un estandar.
+	|
+
+peso del uso=
+	0.5
+	~	Dmnl [0,1,0.1]
+	~	SUPUESTO.
+	|
+
+tiempo de percepcion del valor=
+	12
+	~	Month [1,36,1]
+	~	SUPUESTO.
+	|
+
+********************************************************
+	.interruptores
+********************************************************~
+		Apagar un bucle (0) muestra cuanto aporta al crecimiento.
+	|
+
+activar boca a boca institucional=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R1.
+	|
+
+activar expansion interna=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R2 (contagio entre unidades).
+	|
+
+activar habito estudiantil=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R3.
+	|
+
+activar compromiso docente=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R4.
+	|
+
+activar flywheel empresas=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R5.
+	|
+
+activar flywheel del ecosistema=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R6 (atraccion y retencion por valor).
+	|
+
+activar boca a boca empresarial=
+	1
+	~	Dmnl [0,1,1]
+	~	Bucle R7.
+	|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 60
+	~	Month
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Month
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 1
+	~	Month [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.125
+	~	Month [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*1 instituciones
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Instituciones potenciales,170,300,40,20,3,3,0,0,0,0,0,0
+10,2,Instituciones en piloto,480,300,40,20,3,3,0,0,0,0,0,0
+10,3,Instituciones cliente,790,300,40,20,3,3,0,0,0,0,0,0
+10,4,Instituciones perdidas,1100,300,40,20,3,3,0,0,0,0,0,0
+1,5,7,2,4,0,0,22,0,0,0,-1--1--1,,1|(438,288)|
+1,6,7,1,100,0,0,22,0,0,0,-1--1--1,,1|(212,288)|
+11,7,48,325,288,6,8,34,3,0,0,1,0,0,0
+10,8,inicio de pilotos,325,272,50,8,40,3,0,0,-1,0,0,0
+1,9,11,1,4,0,0,22,0,0,0,-1--1--1,,1|(212,313)|
+1,10,11,2,100,0,0,22,0,0,0,-1--1--1,,1|(438,313)|
+11,11,48,325,313,6,8,34,3,0,0,1,0,0,0
+10,12,pilotos no convertidos,325,335,32,14,40,3,0,0,-1,0,0,0
+1,13,15,3,4,0,0,22,0,0,0,-1--1--1,,1|(748,300)|
+1,14,15,2,100,0,0,22,0,0,0,-1--1--1,,1|(522,300)|
+11,15,48,635,300,6,8,34,3,0,0,1,0,0,0
+10,16,conversion de pilotos,635,322,38,14,40,3,0,0,-1,0,0,0
+1,17,19,4,4,0,0,22,0,0,0,-1--1--1,,1|(1058,300)|
+1,18,19,3,100,0,0,22,0,0,0,-1--1--1,,1|(832,300)|
+11,19,48,945,300,6,8,34,3,0,0,1,0,0,0
+10,20,churn de instituciones,945,322,38,14,40,3,0,0,-1,0,0,0
+10,21,fraccion de prospeccion,170,175,32,14,8,3,0,0,0,0,0,0
+10,22,contagio institucional,325,175,38,14,8,3,0,0,0,0,0,0
+10,23,atraccion del ecosistema,480,175,38,14,8,3,0,0,0,0,0,0
+10,24,activar boca a boca institucional,190,85,53,14,8,3,0,0,0,0,0,0
+10,25,efectividad del boca a boca institucional,340,50,44,20,8,3,0,0,0,0,0,0
+10,26,instituciones en el mercado,60,420,47,14,8,3,0,0,0,0,0,0
+10,27,atraccion maxima por valor de la credencial,470,60,47,20,8,3,0,0,0,0,0,0
+10,28,activar flywheel del ecosistema,800,45,47,14,8,3,0,0,0,0,0,0
+10,29,duracion del piloto,480,450,35,14,8,3,0,0,0,0,0,0
+10,30,fraccion de conversion de pilotos,650,450,38,20,8,3,0,0,0,0,0,0
+10,31,pilotos iniciales,350,420,50,8,8,3,0,0,0,0,0,0
+10,32,clientes iniciales,790,420,53,8,8,3,0,0,0,0,0,0
+10,33,fraccion de churn institucional,900,450,50,14,8,3,0,0,0,0,0,0
+10,34,reduccion maxima del churn por valor,1130,420,47,20,8,3,0,0,0,0,0,0
+1,35,26,1,0,0,0,0,0,64,1,-1--1--1,,1|(115,360)|
+1,36,32,1,0,0,0,0,0,64,1,-1--1--1,,1|(480,360)|
+1,37,31,1,0,0,0,0,0,64,1,-1--1--1,,1|(260,360)|
+1,38,31,2,0,0,0,0,0,64,1,-1--1--1,,1|(415,360)|
+1,39,32,3,0,0,0,0,0,64,1,-1--1--1,,1|(790,360)|
+1,40,1,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,294)|
+1,41,21,7,0,0,43,0,0,64,0,-1--1--1,,1|(247,231)|
+1,42,22,7,0,0,43,0,0,64,0,-1--1--1,,1|(325,231)|
+1,43,23,7,0,0,43,0,0,64,0,-1--1--1,,1|(402,231)|
+1,44,2,11,0,0,43,0,0,64,0,-1--1--1,,1|(402,306)|
+1,45,29,11,0,0,45,0,0,64,0,-1--1--1,,1|(402,381)|
+1,46,30,11,0,0,45,0,0,64,0,-1--1--1,,1|(487,381)|
+1,47,2,15,0,0,43,0,0,64,0,-1--1--1,,1|(557,300)|
+1,48,29,15,0,0,45,0,0,64,0,-1--1--1,,1|(557,375)|
+1,49,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(642,375)|
+1,50,3,19,0,0,43,0,0,64,0,-1--1--1,,1|(867,300)|
+1,51,33,19,0,0,43,0,0,64,0,-1--1--1,,1|(922,375)|
+1,52,28,19,0,0,45,0,0,64,0,-1--1--1,,1|(872,172)|
+1,53,34,19,0,0,45,0,0,64,0,-1--1--1,,1|(1037,360)|
+10,54,Valor percibido de la credencial,760,170,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,55,54,19,0,0,45,0,0,64,0,-1--1--1,,1|(852,235)|
+1,56,24,22,0,0,43,0,0,64,0,-1--1--1,,1|(257,130)|
+1,57,25,22,0,0,43,0,0,64,0,-1--1--1,,1|(332,112)|
+1,58,3,22,0,0,43,0,0,64,0,-1--1--1,,1|(557,237)|
+1,59,26,22,0,0,45,0,0,64,0,-1--1--1,,1|(192,297)|
+1,60,28,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,110)|
+1,61,27,23,0,0,43,0,0,64,0,-1--1--1,,1|(475,117)|
+1,62,54,23,0,0,43,0,0,64,0,-1--1--1,,1|(620,172)|
+12,63,0,400,230,15,15,5,4,0,0,-1,0,0,0
+R
+12,64,0,400,252,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R1 boca a boca
+12,65,0,600,230,15,15,5,4,0,0,-1,0,0,0
+R
+12,66,0,600,252,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R6 ecosistema
+12,67,0,250,245,15,15,4,4,0,0,-1,0,0,0
+B
+12,68,0,250,267,33,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B1 saturacion
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*2 unidades academicas
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Unidades activas,520,320,40,20,3,3,0,0,0,0,0,0
+12,2,48,220,320,10,8,0,3,0,0,-1,0,0,0
+1,3,5,1,4,0,0,22,0,0,0,-1--1--1,,1|(478,320)|
+1,4,5,2,100,0,0,22,0,0,0,-1--1--1,,1|(220,320)|
+11,5,48,360,320,6,8,34,3,0,0,1,0,0,0
+10,6,unidades por nuevos clientes,360,342,44,14,40,3,0,0,-1,0,0,0
+12,7,48,520,90,10,8,0,3,0,0,-1,0,0,0
+1,8,10,1,4,0,0,22,0,0,0,-1--1--1,,1|(520,298)|
+1,9,10,7,100,0,0,22,0,0,0,-1--1--1,,1|(520,90)|
+11,10,48,520,200,8,6,33,3,0,0,4,0,0,0
+10,11,expansion interna,578,200,50,8,40,3,0,0,-1,0,0,0
+12,12,48,840,320,10,8,0,3,0,0,-1,0,0,0
+1,13,15,12,4,0,0,22,0,0,0,-1--1--1,,1|(840,320)|
+1,14,15,1,100,0,0,22,0,0,0,-1--1--1,,1|(562,320)|
+11,15,48,690,320,6,8,34,3,0,0,1,0,0,0
+10,16,churn de unidades,690,336,50,8,40,3,0,0,-1,0,0,0
+12,17,48,520,560,10,8,0,3,0,0,-1,0,0,0
+1,18,20,17,4,0,0,22,0,0,0,-1--1--1,,1|(520,560)|
+1,19,20,1,100,0,0,22,0,0,0,-1--1--1,,1|(520,342)|
+11,20,48,520,450,8,6,33,3,0,0,4,0,0,0
+10,21,unidades perdidas con instituciones,578,450,50,14,40,3,0,0,-1,0,0,0
+10,22,unidades sin activar en clientes,330,140,35,20,8,3,0,0,0,0,0,0
+10,23,penetracion interna,760,200,32,14,8,3,0,0,0,0,0,0
+10,24,fraccion de expansion institucional,330,60,38,20,8,3,0,0,0,0,0,0
+10,25,activar expansion interna,700,60,50,14,8,3,0,0,0,0,0,0
+10,26,efectividad del contagio interno,760,125,47,14,8,3,0,0,0,0,0,0
+10,27,unidades academicas por institucion,980,140,41,20,8,3,0,0,0,0,0,0
+10,28,unidades de entrada por cliente,250,430,32,20,8,3,0,0,0,0,0,0
+10,29,unidades iniciales,420,420,53,8,8,3,0,0,0,0,0,0
+10,30,fraccion de churn de unidades,820,410,50,14,8,3,0,0,0,0,0,0
+1,31,29,1,0,0,0,0,0,64,1,-1--1--1,,1|(470,370)|
+10,32,conversion de pilotos,200,230,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,33,32,5,0,0,43,0,0,64,0,-1--1--1,,1|(280,275)|
+1,34,28,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,375)|
+1,35,22,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,170)|
+1,36,24,10,0,0,43,0,0,64,0,-1--1--1,,1|(425,130)|
+1,37,25,10,0,0,43,0,0,64,0,-1--1--1,,1|(610,130)|
+1,38,26,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,162)|
+1,39,23,10,0,0,43,0,0,64,0,-1--1--1,,1|(640,200)|
+1,40,1,15,0,0,43,0,0,64,0,-1--1--1,,1|(605,320)|
+1,41,30,15,0,0,43,0,0,64,0,-1--1--1,,1|(755,365)|
+10,42,churn de instituciones,300,540,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,43,42,20,0,0,43,0,0,64,0,-1--1--1,,1|(410,495)|
+1,44,1,20,0,0,43,0,0,64,0,-1--1--1,,1|(520,385)|
+10,45,Instituciones cliente,980,260,38,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,46,45,20,0,0,45,0,0,64,0,-1--1--1,,1|(750,355)|
+1,47,45,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,200)|
+1,48,27,22,0,0,43,0,0,64,0,-1--1--1,,1|(655,140)|
+1,49,1,22,0,0,45,0,0,64,0,-1--1--1,,1|(425,230)|
+1,50,1,23,0,0,43,0,0,64,0,-1--1--1,,1|(640,260)|
+1,51,45,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,230)|
+1,52,27,23,0,0,45,0,0,64,0,-1--1--1,,1|(870,170)|
+12,53,0,640,260,15,15,5,4,0,0,-1,0,0,0
+R
+12,54,0,640,282,46,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R2 land and expand
+12,55,0,420,240,15,15,4,4,0,0,-1,0,0,0
+B
+12,56,0,420,262,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B2 saturacion interna
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*3 docentes
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Docentes activos,380,300,40,20,3,3,0,0,0,0,0,0
+10,2,Docentes certificados,800,300,40,20,3,3,0,0,0,0,0,0
+12,3,48,120,300,10,8,0,3,0,0,-1,0,0,0
+1,4,6,1,4,0,0,22,0,0,0,-1--1--1,,1|(338,300)|
+1,5,6,3,100,0,0,22,0,0,0,-1--1--1,,1|(120,300)|
+11,6,48,240,300,6,8,34,3,0,0,1,0,0,0
+10,7,incorporacion neta de docentes,240,322,53,14,40,3,0,0,-1,0,0,0
+12,8,48,800,90,10,8,0,3,0,0,-1,0,0,0
+1,9,11,2,4,0,0,22,0,0,0,-1--1--1,,1|(800,278)|
+1,10,11,8,100,0,0,22,0,0,0,-1--1--1,,1|(800,90)|
+11,11,48,800,190,8,6,33,3,0,0,4,0,0,0
+10,12,certificacion de docentes,855,190,47,14,40,3,0,0,-1,0,0,0
+12,13,48,1080,300,10,8,0,3,0,0,-1,0,0,0
+1,14,16,13,4,0,0,22,0,0,0,-1--1--1,,1|(1080,300)|
+1,15,16,2,100,0,0,22,0,0,0,-1--1--1,,1|(842,300)|
+11,16,48,950,300,6,8,34,3,0,0,1,0,0,0
+10,17,salida de docentes certificados,950,322,53,14,40,3,0,0,-1,0,0,0
+10,18,docentes comprometidos deseados,240,160,38,20,8,3,0,0,0,0,0,0
+10,19,fraccion de docentes comprometidos,430,120,38,20,8,3,0,0,0,0,0,0
+10,20,fraccion maxima de docentes comprometidos,430,30,53,20,8,3,0,0,0,0,0,0
+10,21,fraccion base de docentes comprometidos,240,60,47,20,8,3,0,0,0,0,0,0
+10,22,activar compromiso docente,640,40,53,14,8,3,0,0,0,0,0,0
+10,23,efecto de la certificacion en el compromiso,640,110,47,20,8,3,0,0,0,0,0,0
+10,24,fraccion de docentes certificados,600,210,35,20,8,3,0,0,0,0,0,0
+10,25,docentes por unidad,90,120,35,14,8,3,0,0,0,0,0,0
+10,26,tiempo de adopcion docente,200,430,53,14,8,3,0,0,0,0,0,0
+10,27,fraccion mensual de certificacion docente,980,120,47,20,8,3,0,0,0,0,0,0
+10,28,permanencia de docentes,950,420,41,14,8,3,0,0,0,0,0,0
+10,29,capacidad de emision,380,470,35,14,8,3,0,0,0,0,0,0
+10,30,evidencias por docente,560,500,41,14,8,3,0,0,0,0,0,0
+10,31,unidades iniciales,580,400,53,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,32,31,1,0,0,0,0,0,64,1,-1--1--1,,1|(480,350)|
+1,33,25,1,0,0,0,0,0,64,1,-1--1--1,,1|(235,210)|
+1,34,21,1,0,0,0,0,0,64,1,-1--1--1,,1|(310,180)|
+1,35,18,6,0,0,43,0,0,64,0,-1--1--1,,1|(240,230)|
+1,36,1,6,0,0,45,0,0,64,0,-1--1--1,,1|(310,300)|
+1,37,26,6,0,0,45,0,0,64,0,-1--1--1,,1|(220,365)|
+1,38,1,11,0,0,43,0,0,64,0,-1--1--1,,1|(590,245)|
+1,39,2,11,0,0,45,0,0,64,0,-1--1--1,,1|(800,245)|
+1,40,27,11,0,0,43,0,0,64,0,-1--1--1,,1|(890,155)|
+1,41,2,16,0,0,43,0,0,64,0,-1--1--1,,1|(875,300)|
+1,42,28,16,0,0,45,0,0,64,0,-1--1--1,,1|(950,360)|
+10,43,Unidades activas,70,220,47,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,44,43,18,0,0,43,0,0,64,0,-1--1--1,,1|(155,190)|
+1,45,25,18,0,0,43,0,0,64,0,-1--1--1,,1|(165,140)|
+1,46,19,18,0,0,43,0,0,64,0,-1--1--1,,1|(335,140)|
+1,47,20,19,0,0,0,0,0,64,0,-1--1--1,,1|(430,75)|
+1,48,21,19,0,0,43,0,0,64,0,-1--1--1,,1|(335,90)|
+1,49,22,19,0,0,43,0,0,64,0,-1--1--1,,1|(535,80)|
+1,50,23,19,0,0,43,0,0,64,0,-1--1--1,,1|(535,115)|
+1,51,24,19,0,0,43,0,0,64,0,-1--1--1,,1|(515,165)|
+1,52,2,24,0,0,43,0,0,64,0,-1--1--1,,1|(700,255)|
+1,53,1,24,0,0,45,0,0,64,0,-1--1--1,,1|(490,255)|
+1,54,1,29,0,0,43,0,0,64,0,-1--1--1,,1|(380,385)|
+1,55,30,29,0,0,43,0,0,64,0,-1--1--1,,1|(470,485)|
+12,56,0,520,270,15,15,5,4,0,0,-1,0,0,0
+R
+12,57,0,520,292,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R4 compromiso docente
+12,58,0,300,230,15,15,4,4,0,0,-1,0,0,0
+B
+12,59,0,300,252,23,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+B3 ajuste
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*4 estudiantes
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Credenciales emitidas,720,200,40,20,3,3,0,0,0,0,0,0
+10,2,Titulares activos,720,480,40,20,3,3,0,0,0,0,0,0
+12,3,48,380,200,10,8,0,3,0,0,-1,0,0,0
+1,4,6,1,4,0,0,22,0,0,0,-1--1--1,,1|(678,200)|
+1,5,6,3,100,0,0,22,0,0,0,-1--1--1,,1|(380,200)|
+11,6,48,550,200,6,8,34,3,0,0,1,0,0,0
+10,7,emision de credenciales,550,178,35,14,40,3,0,0,-1,0,0,0
+12,8,48,1000,200,10,8,0,3,0,0,-1,0,0,0
+1,9,11,1,4,0,0,22,0,0,0,-1--1--1,,1|(762,200)|
+1,10,11,8,100,0,0,22,0,0,0,-1--1--1,,1|(1000,200)|
+11,11,48,870,200,6,8,34,3,0,0,1,0,0,0
+10,12,credenciales docentes,870,178,35,14,40,3,0,0,-1,0,0,0
+12,13,48,380,480,10,8,0,3,0,0,-1,0,0,0
+1,14,16,2,4,0,0,22,0,0,0,-1--1--1,,1|(678,480)|
+1,15,16,13,100,0,0,22,0,0,0,-1--1--1,,1|(380,480)|
+11,16,48,550,480,6,8,34,3,0,0,1,0,0,0
+10,17,nuevos titulares,550,496,47,8,40,3,0,0,-1,0,0,0
+12,18,48,1060,480,10,8,0,3,0,0,-1,0,0,0
+1,19,21,18,4,0,0,22,0,0,0,-1--1--1,,1|(1060,480)|
+1,20,21,2,100,0,0,22,0,0,0,-1--1--1,,1|(762,480)|
+11,21,48,890,480,6,8,34,3,0,0,1,0,0,0
+10,22,desactivacion de titulares,890,502,47,14,40,3,0,0,-1,0,0,0
+10,23,demanda institucional de credenciales,230,110,47,20,8,3,0,0,0,0,0,0
+10,24,emision programada por unidad,230,30,53,14,8,3,0,0,0,0,0,0
+10,25,demanda estudiantil de credenciales,300,360,41,20,8,3,0,0,0,0,0,0
+10,26,demanda de credenciales,380,280,35,14,8,3,0,0,0,0,0,0
+10,27,activar habito estudiantil,110,420,41,14,8,3,0,0,0,0,0,0
+10,28,solicitudes por titular,150,330,44,14,8,3,0,0,0,0,0,0
+10,29,credenciales por docente certificado,1040,110,47,20,8,3,0,0,0,0,0,0
+10,30,fraccion de emisiones a nuevos titulares,470,580,53,20,8,3,0,0,0,0,0,0
+10,31,credenciales por titular nuevo,640,600,47,14,8,3,0,0,0,0,0,0
+10,32,tiempo de uso activo,890,590,38,14,8,3,0,0,0,0,0,0
+10,33,tiempo base de uso activo,800,660,53,14,8,3,0,0,0,0,0,0
+10,34,extension del uso por valor,1000,660,50,14,8,3,0,0,0,0,0,0
+10,35,compartidas por titulares,1000,380,44,14,8,3,0,0,0,0,0,0
+10,36,usos por titular,1080,300,47,8,8,3,0,0,0,0,0,0
+10,37,credenciales iniciales,720,90,35,14,8,3,0,0,0,0,0,0
+10,38,titulares iniciales,640,380,27,14,8,3,0,0,0,0,0,0
+1,39,37,1,0,0,0,0,0,64,1,-1--1--1,,1|(720,145)|
+1,40,38,2,0,0,0,0,0,64,1,-1--1--1,,1|(680,430)|
+1,41,26,6,0,0,43,0,0,64,0,-1--1--1,,1|(465,240)|
+10,42,capacidad de emision,550,90,35,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,43,42,6,0,0,43,0,0,64,0,-1--1--1,,1|(550,145)|
+10,44,certificacion de docentes,1000,40,47,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,45,44,11,0,0,43,0,0,64,0,-1--1--1,,1|(935,120)|
+1,46,29,11,0,0,43,0,0,64,0,-1--1--1,,1|(955,155)|
+1,47,6,16,0,0,43,0,0,64,0,-1--1--1,,1|(550,340)|
+1,48,30,16,0,0,43,0,0,64,0,-1--1--1,,1|(510,530)|
+1,49,31,16,0,0,45,0,0,64,0,-1--1--1,,1|(595,540)|
+1,50,2,21,0,0,43,0,0,64,0,-1--1--1,,1|(805,480)|
+1,51,32,21,0,0,45,0,0,64,0,-1--1--1,,1|(890,535)|
+10,52,Unidades activas,60,60,47,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,53,52,23,0,0,43,0,0,64,0,-1--1--1,,1|(145,85)|
+1,54,24,23,0,0,43,0,0,64,0,-1--1--1,,1|(230,70)|
+1,55,27,25,0,0,43,0,0,64,0,-1--1--1,,1|(205,390)|
+1,56,2,25,0,0,43,0,0,64,0,-1--1--1,,1|(510,420)|
+1,57,28,25,0,0,43,0,0,64,0,-1--1--1,,1|(225,345)|
+10,58,Valor percibido de la credencial,430,420,53,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,59,58,25,0,0,43,0,0,64,0,-1--1--1,,1|(365,390)|
+1,60,23,26,0,0,43,0,0,64,0,-1--1--1,,1|(305,195)|
+1,61,25,26,0,0,43,0,0,64,0,-1--1--1,,1|(340,320)|
+1,62,33,32,0,0,43,0,0,64,0,-1--1--1,,1|(845,625)|
+1,63,27,32,0,0,43,0,0,64,0,-1--1--1,,1|(500,505)|
+1,64,34,32,0,0,43,0,0,64,0,-1--1--1,,1|(945,625)|
+1,65,58,32,0,0,43,0,0,64,0,-1--1--1,,1|(660,505)|
+1,66,2,35,0,0,43,0,0,64,0,-1--1--1,,1|(860,430)|
+1,67,36,35,0,0,43,0,0,64,0,-1--1--1,,1|(1040,340)|
+12,68,0,480,400,15,15,5,4,0,0,-1,0,0,0
+R
+12,69,0,480,422,54,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R3 habito estudiantil
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*5 empresas
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,Empresas potenciales,200,320,40,20,3,3,0,0,0,0,0,0
+10,2,Empresas usuarias,620,320,40,20,3,3,0,0,0,0,0,0
+1,3,5,2,4,0,0,22,0,0,0,-1--1--1,,1|(578,308)|
+1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(242,308)|
+11,5,48,410,308,6,8,34,3,0,0,1,0,0,0
+10,6,adopcion de empresas,410,286,32,14,40,3,0,0,-1,0,0,0
+1,7,9,1,4,0,0,22,0,0,0,-1--1--1,,1|(242,333)|
+1,8,9,2,100,0,0,22,0,0,0,-1--1--1,,1|(578,333)|
+11,9,48,410,333,6,8,34,3,0,0,1,0,0,0
+10,10,churn de empresas,410,349,50,8,40,3,0,0,-1,0,0,0
+10,11,fraccion de prospeccion de empresas,200,190,41,20,8,3,0,0,0,0,0,0
+10,12,contagio empresarial,360,180,32,14,8,3,0,0,0,0,0,0
+10,13,atraccion por talento,530,180,38,14,8,3,0,0,0,0,0,0
+10,14,activar boca a boca empresarial,230,90,47,14,8,3,0,0,0,0,0,0
+10,15,efectividad del boca a boca empresarial,380,50,44,20,8,3,0,0,0,0,0,0
+10,16,empresas en el mercado,80,440,41,14,8,3,0,0,0,0,0,0
+10,17,activar flywheel empresas,560,60,47,14,8,3,0,0,0,0,0,0
+10,18,atraccion maxima por talento,720,70,47,14,8,3,0,0,0,0,0,0
+10,19,probabilidad de encontrar talento,820,220,50,14,8,3,0,0,0,0,0,0
+10,20,talento de referencia,1000,200,29,14,8,3,0,0,0,0,0,0
+10,21,fraccion de churn de empresas,300,470,50,14,8,3,0,0,0,0,0,0
+10,22,reduccion del churn por exito,500,480,44,14,8,3,0,0,0,0,0,0
+10,23,empresas iniciales,620,440,53,8,8,3,0,0,0,0,0,0
+10,24,busquedas de talento,840,360,35,14,8,3,0,0,0,0,0,0
+10,25,busquedas por empresa,1010,320,38,14,8,3,0,0,0,0,0,0
+10,26,contrataciones por credencial,840,470,53,14,8,3,0,0,0,0,0,0
+10,27,contrataciones por busqueda exitosa,1030,440,53,14,8,3,0,0,0,0,0,0
+10,28,verificaciones de empresas,840,570,50,14,8,3,0,0,0,0,0,0
+10,29,verificaciones por busqueda,1030,560,53,14,8,3,0,0,0,0,0,0
+10,30,dias de contratacion ahorrados,650,600,35,20,8,3,0,0,0,0,0,0
+10,31,dias ahorrados por contratacion,450,620,53,14,8,3,0,0,0,0,0,0
+1,32,16,1,0,0,0,0,0,64,1,-1--1--1,,1|(140,380)|
+1,33,23,1,0,0,0,0,0,64,1,-1--1--1,,1|(410,380)|
+1,34,23,2,0,0,0,0,0,64,1,-1--1--1,,1|(620,380)|
+1,35,1,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,314)|
+1,36,11,5,0,0,43,0,0,64,0,-1--1--1,,1|(305,249)|
+1,37,12,5,0,0,43,0,0,64,0,-1--1--1,,1|(385,244)|
+1,38,13,5,0,0,43,0,0,64,0,-1--1--1,,1|(470,244)|
+1,39,2,9,0,0,43,0,0,64,0,-1--1--1,,1|(515,326)|
+1,40,21,9,0,0,43,0,0,64,0,-1--1--1,,1|(355,401)|
+1,41,22,9,0,0,45,0,0,64,0,-1--1--1,,1|(455,406)|
+1,42,19,9,0,0,45,0,0,64,0,-1--1--1,,1|(615,276)|
+1,43,14,12,0,0,43,0,0,64,0,-1--1--1,,1|(295,135)|
+1,44,15,12,0,0,43,0,0,64,0,-1--1--1,,1|(370,115)|
+1,45,2,12,0,0,43,0,0,64,0,-1--1--1,,1|(490,250)|
+1,46,16,12,0,0,45,0,0,64,0,-1--1--1,,1|(220,310)|
+1,47,17,13,0,0,43,0,0,64,0,-1--1--1,,1|(545,120)|
+1,48,18,13,0,0,43,0,0,64,0,-1--1--1,,1|(625,125)|
+1,49,19,13,0,0,43,0,0,64,0,-1--1--1,,1|(675,200)|
+10,50,Titulares activos,1000,110,50,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,51,50,19,0,0,43,0,0,64,0,-1--1--1,,1|(910,165)|
+1,52,20,19,0,0,45,0,0,64,0,-1--1--1,,1|(910,210)|
+1,53,2,24,0,0,43,0,0,64,0,-1--1--1,,1|(730,340)|
+1,54,25,24,0,0,43,0,0,64,0,-1--1--1,,1|(925,340)|
+1,55,24,26,0,0,43,0,0,64,0,-1--1--1,,1|(840,415)|
+1,56,19,26,0,0,43,0,0,64,0,-1--1--1,,1|(830,345)|
+1,57,27,26,0,0,43,0,0,64,0,-1--1--1,,1|(935,455)|
+1,58,24,28,0,0,43,0,0,64,0,-1--1--1,,1|(840,465)|
+1,59,29,28,0,0,43,0,0,64,0,-1--1--1,,1|(935,565)|
+1,60,26,30,0,0,43,0,0,64,0,-1--1--1,,1|(745,535)|
+1,61,31,30,0,0,43,0,0,64,0,-1--1--1,,1|(550,610)|
+12,62,0,480,250,15,15,5,4,0,0,-1,0,0,0
+R
+12,63,0,480,272,36,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R7 boca a boca
+12,64,0,700,260,15,15,4,4,0,0,-1,0,0,0
+R
+12,65,0,700,282,26,9,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|8|B|0-0-0
+R5 talento
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*6 ecosistema
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0
+10,1,uso de credenciales,330,250,35,14,8,3,0,0,0,0,0,0
+10,2,valor indicado de la credencial,580,250,50,14,8,3,0,0,0,0,0,0
+10,3,Valor percibido de la credencial,840,250,53,14,8,3,0,0,0,0,0,0
+10,4,uso de referencia,450,380,50,8,8,3,0,0,0,0,0,0
+10,5,peso del uso,600,400,35,8,8,3,0,0,0,0,0,0
+10,6,empresas de referencia,760,380,32,14,8,3,0,0,0,0,0,0
+10,7,tiempo de percepcion del valor,840,140,41,20,8,3,0,0,0,0,0,0
+10,8,compartidas por titulares,120,180,44,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,9,8,1,0,0,43,0,0,64,0,-1--1--1,,1|(225,215)|
+10,10,verificaciones de empresas,120,320,50,14,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,11,10,1,0,0,43,0,0,64,0,-1--1--1,,1|(225,285)|
+1,12,5,2,0,0,45,0,0,64,0,-1--1--1,,1|(590,325)|
+1,13,1,2,0,0,43,0,0,64,0,-1--1--1,,1|(455,250)|
+1,14,4,2,0,0,45,0,0,64,0,-1--1--1,,1|(515,315)|
+10,15,Empresas usuarias,580,120,50,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128
+1,16,15,2,0,0,43,0,0,64,0,-1--1--1,,1|(580,185)|
+1,17,6,2,0,0,45,0,0,64,0,-1--1--1,,1|(670,315)|
+1,18,2,3,0,0,43,0,0,64,0,-1--1--1,,1|(710,250)|
+1,19,7,3,0,0,0,0,0,64,0,-1--1--1,,1|(840,195)|
+///---\\\
+:L<%^E!@
+1:Current.vdf
+9:Current
+22:$,Dollar,Dollars,$s
+22:Hour,Hours
+22:Month,Months
+22:Person,People,Persons
+22:Unit,Units
+22:Week,Weeks
+22:Year,Years
+22:Day,Days
+22:Institucion,Instituciones
+22:Unidad,Unidades
+22:Docente,Docentes
+22:Credencial,Credenciales
+22:Persona,Personas
+22:Empresa,Empresas
+22:Busqueda,Busquedas
+22:Uso,Usos
+22:Contratacion,Contrataciones
+22:Dia,Dias
+15:0,0,0,0,0,0
+19:100,0
+27:2,
+34:0,
+4:Time
+5:Instituciones cliente
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:2
+41:0
+42:1
+24:0
+25:60
+26:60
