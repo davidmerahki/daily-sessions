@@ -7,7 +7,11 @@ HubSpot después de descargarla y vuelve a escribir la página.
 
     python mapa_actores/sincronizar.py MAPA.html --verificar
     python mapa_actores/sincronizar.py MAPA.html --hubspot CARPETA --delta DELTA.json \
-        --hoy 2026-10-17 --descargado "2026-10-17 11:30" -o MAPA_NUEVO.html
+        --hoy 2026-10-17 --descargado "2026-10-17 11:30" -o MAPA_NUEVO.html \
+        --plantilla mapa_actores/plantilla.html
+
+Con --plantilla, la página nueva lleva el código de la plantilla del
+repositorio (la versión vigente del mapa) y los datos puestos al día.
 
 --verificar recalcula los campos derivados (estado, negocios por línea, calor
 y cifras del panel de control) sin cambiar nada y dice si reproducen la foto.
@@ -27,16 +31,20 @@ textos, fechas, responsables y etapas salen de los archivos de HubSpot:
                    fuente_responsable}]
   personas       [{id, nombre, inst, cargo, fuente_cargo, unidad, fuente_unidad,
                    nivel, fuente_nivel, etapa, owner}]   owner: id de HubSpot
-  negocios       [{deal, inst?, personas: [ids]}]   negocio que se suma a una
-                   institución (solo si está asociado a su empresa en HubSpot,
-                   como hace el mapa) y a la lista de negocios de esas personas
+  negocios       [{deal, inst?, canal?, personas: [ids]}]   negocio que se suma
+                   a una institución (solo si está asociado a su empresa en
+                   HubSpot, como hace el mapa) y a la lista de negocios de esas
+                   personas. canal: institución por la que llega (asociación con
+                   la etiqueta «Canal» en HubSpot); el negocio queda en las dos
   acciones       [{objeto: nota|correo|reunion, id, tipo?, personas, inst}]
                    inst solo para acciones sin persona en el mapa
   tareas         [{id, personas, inst}]   tareas abiertas nuevas
   excluidas      {instituciones, personas}   conteo nuevo de lo que no aparece
 
 Los negocios y las tareas que ya están en el mapa se refrescan solos: etapa,
-monto, fecha de cierre, dueño, tareas completadas o con nueva fecha.
+monto, fecha de cierre, dueño, pipeline, tareas completadas o con nueva fecha.
+Desde el 17-oct-2026 POK y merahki tienen pipelines separados; la línea de un
+negocio sale de su pipeline.
 """
 import argparse
 import glob
@@ -56,6 +64,10 @@ DUENOS = {
     "90536041": ("Abraham", "Abraham Avinu"),
 }
 PIPELINES = {
+    "946841908": "POK Colombia",
+    "946841907": "merahki Colombia",
+    "946748022": "POK México",
+    "946745948": "POK España",
     "default": "Pipeline Comercial merahki × POK",
     "929414991": "México Pipeline Comercial merahki x POK",
     "942303076": "España Pipeline Comercial merahki x POK",
@@ -78,6 +90,11 @@ ETAPAS = {
                [_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GP", "P", "GM"]])),
     **dict(zip([str(n) for n in range(1452913062, 1452913071)],
                [_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GP", "P", "GM"]])),
+    # Pipelines por línea (desde el 17-oct-2026): POK Colombia, merahki Colombia, POK México, POK España
+    **{str(1461254764 + n): e for n, e in enumerate(_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GP", "P"])},
+    **{str(1461254756 + n): e for n, e in enumerate(_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GM", "P"])},
+    **{str(1461310741 + n): e for n, e in enumerate(_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GP", "P"])},
+    **{str(1461256250 + n): e for n, e in enumerate(_COMERCIAL[k] for k in ["1", "2", "3", "4", "5", "R", "GP", "P"])},
     # PMI B2B
     "1437026949": "1. Cuenta identificada", "1437026950": "2. Campeón contactado",
     "1437026951": "3. Decisor contactado", "1445371534": "4. Cotización en elaboración y aprobación",
@@ -133,7 +150,12 @@ def fecha_bogota(iso):
     return dt.strftime("%Y-%m-%d")
 
 
+LINEA_DEL_PIPELINE = {"946841908": "POK", "946748022": "POK", "946745948": "POK", "946841907": "merahki"}
+
+
 def linea(p):
+    if p["pipeline"] in LINEA_DEL_PIPELINE:
+        return LINEA_DEL_PIPELINE[p["pipeline"]]
     if p["pipeline"] in ("934854468", "934854469", "934854467"):
         return "PMI"
     if p["pipeline"] == "917209518":
@@ -162,9 +184,10 @@ def negocio_desde_hubspot(p, previo=None):
         "id": previo.get("id", ""),
         "nombre": (p.get("dealname") or "").strip(),
         "etapa": etapa, "paso": paso,
-        # Se respeta la línea que el mapa ya tenía (algunos negocios mixtos
-        # se reclasificaron a mano al generarlo); solo los nuevos la toman de HubSpot.
-        "linea": previo.get("linea") or linea(p),
+        # En los pipelines por línea, la línea es la del pipeline. En los demás se
+        # respeta la que el mapa ya tenía (algunos negocios mixtos se reclasificaron
+        # a mano al generarlo); los nuevos la toman de HubSpot.
+        "linea": linea(p) if p["pipeline"] in LINEA_DEL_PIPELINE else previo.get("linea") or linea(p),
         "estado": estado,
         "monto": float(p["amount"]) if p.get("amount") else 0.0,
         "cierre": fecha_bogota(p.get("closedate")),
@@ -205,7 +228,7 @@ def grupo(linea_):
     return linea_ if linea_ in ("merahki", "POK") else "otros"
 
 
-COMERCIALES = ("default", "929414991", "942303076")
+COMERCIALES = ("946841908", "946841907", "946748022", "946745948", "default", "929414991", "942303076")
 
 
 def fuera_del_mapa(D, negocios, hasta=None):
@@ -395,8 +418,8 @@ def refrescar_negocios(D, negocios, informe):
             if cambios and d["id"] not in nombres:
                 informe.append(f"negocio {d['id']} {d['nombre'][:60]}: "
                                + ", ".join(f"{c} {d[c]!r}→{nuevo[c]!r}" for c in cambios))
-            if linea(p) not in (d["linea"], "Sin clasificar") and d["id"] not in nombres:
-                informe.append(f"aviso: {d['id']} es {d['linea']} en el mapa y {linea(p)} en HubSpot")
+            if nuevo["linea"] != d["linea"] and d["id"] not in nombres:
+                informe.append(f"negocio {d['id']} línea {d['linea']} → {nuevo['linea']}")
             nombres.setdefault(d["id"], (d["nombre"], nuevo))
             i["deals"][n] = nuevo
     return {viejo: (did, nuevo) for did, (viejo, nuevo) in nombres.items()}
@@ -412,7 +435,8 @@ def refrescar_negocios_personas(D, por_nombre, negocios):
         for n, x in enumerate(per["negocios"]):
             if x["nombre"] in por_nombre:
                 did, d = por_nombre[x["nombre"]]
-                per["negocios"][n] = {**negocio_persona(d, negocios[did]), "pipeline": x["pipeline"]}
+                nuevo = negocio_persona(d, negocios[did])
+                per["negocios"][n] = {**nuevo, "pipeline": nuevo["pipeline"] or x["pipeline"]}
 
 
 # ───────── delta ─────────
@@ -454,7 +478,18 @@ def aplicar_delta(D, delta, negocios, objetos, hoy, informe):
     for x in delta.get("negocios", []):
         p = negocios[x["deal"]]
         d = negocio_desde_hubspot(p, {"id": x["deal"]})
-        i = insts.get(x.get("inst"))
+        i, canal = insts.get(x.get("inst")), insts.get(x.get("canal"))
+        if i and canal:
+            d["via"] = canal["id"]
+            c = next((c for c in D["canales"] if c["canal"] == canal["id"] and c["cliente"] == i["id"]), None)
+            if c is None:
+                c = {"canal": canal["id"], "cliente": i["id"], "negocios": []}
+                D["canales"].append(c)
+            if all(y["id"] != d["id"] for y in c["negocios"]):
+                c["negocios"].append({"id": d["id"], "nombre": d["nombre"]})
+            if all(y["id"] != d["id"] for y in canal["deals"]):
+                canal["deals"].append({**d, "via": "", "cliente": i["id"]})
+                informe.append(f"negocio {d['id']} → {canal['nombre']} (canal de {i['nombre']})")
         if i and all(y["id"] != d["id"] for y in i["deals"]):
             i["deals"].append(d)
             informe.append(f"negocio {d['id']} → {i['nombre']}: {d['nombre'][:70]} ({d['etapa']})")
@@ -536,6 +571,7 @@ def main():
     ap.add_argument("--hoy")
     ap.add_argument("--descargado")
     ap.add_argument("-o", "--salida")
+    ap.add_argument("--plantilla", help="página del mapa sin datos (código vigente) para la salida")
     args = ap.parse_args()
     pagina, tramo, D = leer_mapa(args.mapa)
     if args.verificar:
@@ -556,6 +592,8 @@ def main():
         aplicar_delta(D, json.load(open(args.delta)), negocios, objetos, hoy, informe)
     recalcular(D, hoy, negocios)
     D["generado"] = D["descargado"] = D["kpis"]["generado"] = args.descargado
+    if args.plantilla:
+        pagina, tramo, _ = leer_mapa(args.plantilla)
     escribir_mapa(pagina, tramo, D, args.salida)
     print("\n".join(informe))
 

@@ -99,10 +99,10 @@ Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenci
 - Tamaño del mercado. HubSpot ya tiene 401 instituciones educativas con actividad y otras 542 instituciones sin actividad. El supuesto de 600 podría quedarse corto.
 
 **Para repetir la medición:**
-1. Descarga de HubSpot los negocios POK de los pipelines comerciales.
-2. Recalcula las seis cifras de la tabla.
-3. Cámbialas en `generar_modelo.py` y regenera el modelo (ver [Cómo modificar el modelo](#cómo-modificar-el-modelo)).
-4. Corre `node modelos/ecosistema_credenciales/resultados.js` para rehacer las tablas de abajo.
+1. Descarga de HubSpot todos los negocios (con `createdate` y la probabilidad de la etapa) y toma el Mapa de actores al día.
+2. Corre `python modelos/ecosistema_credenciales/medir_en_hubspot.py NEGOCIOS.json MAPA.html --hoy AAAA-MM-DD`. Imprime las cifras de la tabla.
+3. Cámbialas en `generar_modelo.py` y regenera el modelo (ver [Cómo modificar el modelo](#cómo-modificar-el-modelo)). La fracción de prospección es la fracción bruta menos lo que ya aportan el boca a boca y la atracción por valor al inicio.
+4. Corre `node modelos/ecosistema_credenciales/resultados.js` para rehacer las tablas de abajo. También imprime la tabla de la [Táctica T1](#táctica-t1-paid-media-caballo-de-troya), su público y su costo de equilibrio: cópialos a esa sección, porque la base de la tabla (42 y 120 clientes) y el público (159 instituciones) cambian con la calibración.
 
 ## Resultados con los supuestos actuales
 
@@ -239,3 +239,4 @@ El `.mdl` se abre en Vensim (necesita PLE Plus o superior por tener varias vista
 | `diagrama_bucles.svg` | Mapa de bucles del tablero |
 | `tablero.html` | Simulador autocontenido (lienzo + tablero), generado |
 | `resultados.js` | Recalcula las tablas de «Resultados» con el motor del simulador |
+| `medir_en_hubspot.py` | Mide en HubSpot el punto de partida del sector Instituciones |
