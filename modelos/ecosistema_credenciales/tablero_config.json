@@ -1,7 +1,7 @@
 {
   "titulo": "Flywheel de credenciales",
-  "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.1",
-  "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Todos los valores de partida son supuestos para corregir con datos reales.",
+  "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.2 · punto de partida con HubSpot al 17-oct-2026",
+  "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales.",
   "horizontes": [36, 60, 84, 120],
   "kpis": [
     {"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"},

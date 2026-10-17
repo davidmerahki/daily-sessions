@@ -80,26 +80,32 @@ churn de instituciones=
 instituciones en el mercado=
 	600
 	~	Institucion [100,3000,50]
-	~	SUPUESTO: tamano del mercado objetivo.
+	~	SUPUESTO: tamano del mercado objetivo. En HubSpot (17-oct-2026) ya hay 401 \
+		instituciones educativas con actividad y 542 instituciones sin actividad.
 	|
 
 clientes iniciales=
-	25
+	11
 	~	Institucion [0,200,1]
-	~	SUPUESTO: clientes al inicio de la simulacion.
+	~	DATO HubSpot 17-oct-2026: instituciones con negocio en Ganado credenciales \
+		POK (8 IES y cajas de compensacion, PMI Bogota, Connect Bogota y Team \
+		Rush).
 	|
 
 pilotos iniciales=
-	5
-	~	Institucion [0,50,1]
-	~	SUPUESTO: pilotos en curso al inicio.
+	60
+	~	Institucion [0,200,1]
+	~	DATO HubSpot 17-oct-2026: instituciones que aun no son clientes con \
+		negocio POK abierto entre propuesta enviada y sesion de cierre (etapas 3 a \
+		5).
 	|
 
 fraccion de prospeccion=
-	0.003
-	~	1/Month [0,0.02,0.0005]
-	~	SUPUESTO / PALANCA: fraccion mensual de potenciales que inician piloto por \
-		la prospeccion propia (0.003 = 0.3 % al mes).
+	0.024
+	~	1/Month [0,0.06,0.001]
+	~	DATO HubSpot / PALANCA: unas 13 instituciones por mes llegan a propuesta \
+		POK entre abril y octubre de 2026, sobre 529 potenciales; 0.024 = 2.4 % al \
+		mes.
 	|
 
 efectividad del boca a boca institucional=
@@ -117,15 +123,19 @@ atraccion maxima por valor de la credencial=
 	|
 
 duracion del piloto=
-	4
-	~	Month [1,12,1]
-	~	SUPUESTO: meses desde el inicio del piloto hasta la decision.
+	10.7
+	~	Month [1,24,0.5]
+	~	DATO HubSpot 17-oct-2026: meses desde la propuesta hasta la decision. 66 \
+		negocios POK en etapas 3 a 5 / 6.2 negocios que salen del pipeline por mes \
+		(ley de Little).
 	|
 
 fraccion de conversion de pilotos=
-	0.5
-	~	Dmnl [0,1,0.05]
-	~	SUPUESTO / PALANCA: pilotos que firman.
+	0.33
+	~	Dmnl [0,1,0.01]
+	~	DATO HubSpot / PALANCA: de 36 negocios POK que salieron del pipeline entre \
+		abril y octubre de 2026, 12 se ganaron, 18 se perdieron y 6 quedaron para \
+		retomar.
 	|
 
 fraccion de churn institucional=
@@ -194,9 +204,9 @@ unidades perdidas con instituciones=
 	|
 
 unidades iniciales=
-	40
-	~	Unidad [0,500,5]
-	~	SUPUESTO: unidades emitiendo al inicio.
+	11
+	~	Unidad [0,500,1]
+	~	DATO HubSpot 17-oct-2026: una unidad por negocio Ganado credenciales POK.
 	|
 
 unidades academicas por institucion=

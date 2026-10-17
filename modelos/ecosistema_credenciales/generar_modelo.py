@@ -76,24 +76,30 @@ INSTITUCIONES = join(
        "Institucion/Month",
        "Instituciones que dejan la plataforma. Cuanto mas vale la credencial (datos de "
        "competencias, empleabilidad, marketing), menos churn."),
-    eq("instituciones en el mercado", "600", "Institucion", "SUPUESTO: tamano del mercado objetivo.",
+    eq("instituciones en el mercado", "600", "Institucion", "SUPUESTO: tamano del mercado objetivo. En HubSpot (17-oct-2026) ya hay 401 instituciones "
+       "educativas con actividad y 542 instituciones sin actividad.",
        "[100,3000,50]"),
-    eq("clientes iniciales", "25", "Institucion", "SUPUESTO: clientes al inicio de la simulacion.",
-       "[0,200,1]"),
-    eq("pilotos iniciales", "5", "Institucion", "SUPUESTO: pilotos en curso al inicio.", "[0,50,1]"),
-    eq("fraccion de prospeccion", "0.003", "1/Month",
-       "SUPUESTO / PALANCA: fraccion mensual de potenciales que inician piloto por la prospeccion "
-       "propia (0.003 = 0.3 % al mes).", "[0,0.02,0.0005]"),
+    eq("clientes iniciales", "11", "Institucion",
+       "DATO HubSpot 17-oct-2026: instituciones con negocio en Ganado credenciales POK (8 IES y cajas "
+       "de compensacion, PMI Bogota, Connect Bogota y Team Rush).", "[0,200,1]"),
+    eq("pilotos iniciales", "60", "Institucion",
+       "DATO HubSpot 17-oct-2026: instituciones que aun no son clientes con negocio POK abierto entre "
+       "propuesta enviada y sesion de cierre (etapas 3 a 5).", "[0,200,1]"),
+    eq("fraccion de prospeccion", "0.024", "1/Month",
+       "DATO HubSpot / PALANCA: unas 13 instituciones por mes llegan a propuesta POK entre "
+       "abril y octubre de 2026, sobre 529 potenciales; 0.024 = 2.4 % al mes.", "[0,0.06,0.001]"),
     eq("efectividad del boca a boca institucional", "0.05", "1/Month",
        "SUPUESTO: inicio de pilotos por mes y por potencial si todo el mercado fuera cliente.",
        "[0,0.3,0.01]"),
     eq("atraccion maxima por valor de la credencial", "0.02", "1/Month",
        "SUPUESTO: fraccion mensual de potenciales que llega sola cuando la credencial vale el maximo.",
        "[0,0.05,0.001]"),
-    eq("duracion del piloto", "4", "Month", "SUPUESTO: meses desde el inicio del piloto hasta la decision.",
-       "[1,12,1]"),
-    eq("fraccion de conversion de pilotos", "0.5", "Dmnl", "SUPUESTO / PALANCA: pilotos que firman.",
-       "[0,1,0.05]"),
+    eq("duracion del piloto", "10.7", "Month",
+       "DATO HubSpot 17-oct-2026: meses desde la propuesta hasta la decision. 66 negocios POK en etapas "
+       "3 a 5 / 6.2 negocios que salen del pipeline por mes (ley de Little).", "[1,24,0.5]"),
+    eq("fraccion de conversion de pilotos", "0.33", "Dmnl",
+       "DATO HubSpot / PALANCA: de 36 negocios POK que salieron del pipeline entre abril y "
+       "octubre de 2026, 12 se ganaron, 18 se perdieron y 6 quedaron para retomar.", "[0,1,0.01]"),
     eq("fraccion de churn institucional", "0.01", "1/Month",
        "SUPUESTO: churn mensual de instituciones sin efecto del valor (0.01 ~ 11 % al ano).",
        "[0,0.05,0.001]"),
@@ -131,7 +137,8 @@ UNIDADES_ACADEMICAS = join(
     eq("unidades perdidas con instituciones",
        "churn de instituciones*ZIDZ(Unidades activas,Instituciones cliente)", "Unidad/Month",
        "Unidades que se van cuando su institucion abandona."),
-    eq("unidades iniciales", "40", "Unidad", "SUPUESTO: unidades emitiendo al inicio.", "[0,500,5]"),
+    eq("unidades iniciales", "11", "Unidad",
+       "DATO HubSpot 17-oct-2026: una unidad por negocio Ganado credenciales POK.", "[0,500,1]"),
     eq("unidades academicas por institucion", "8", "Unidad/Institucion",
        "SUPUESTO: unidades potenciales por institucion (educacion continua, innovacion, facultades, "
        "talento humano...).", "[1,30,1]"),

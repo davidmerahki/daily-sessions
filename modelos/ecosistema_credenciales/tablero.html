@@ -607,26 +607,32 @@ churn de instituciones=
 instituciones en el mercado=
 	600
 	~	Institucion [100,3000,50]
-	~	SUPUESTO: tamano del mercado objetivo.
+	~	SUPUESTO: tamano del mercado objetivo. En HubSpot (17-oct-2026) ya hay 401 \
+		instituciones educativas con actividad y 542 instituciones sin actividad.
 	|
 
 clientes iniciales=
-	25
+	11
 	~	Institucion [0,200,1]
-	~	SUPUESTO: clientes al inicio de la simulacion.
+	~	DATO HubSpot 17-oct-2026: instituciones con negocio en Ganado credenciales \
+		POK (8 IES y cajas de compensacion, PMI Bogota, Connect Bogota y Team \
+		Rush).
 	|
 
 pilotos iniciales=
-	5
-	~	Institucion [0,50,1]
-	~	SUPUESTO: pilotos en curso al inicio.
+	60
+	~	Institucion [0,200,1]
+	~	DATO HubSpot 17-oct-2026: instituciones que aun no son clientes con \
+		negocio POK abierto entre propuesta enviada y sesion de cierre (etapas 3 a \
+		5).
 	|
 
 fraccion de prospeccion=
-	0.003
-	~	1/Month [0,0.02,0.0005]
-	~	SUPUESTO / PALANCA: fraccion mensual de potenciales que inician piloto por \
-		la prospeccion propia (0.003 = 0.3 % al mes).
+	0.024
+	~	1/Month [0,0.06,0.001]
+	~	DATO HubSpot / PALANCA: unas 13 instituciones por mes llegan a propuesta \
+		POK entre abril y octubre de 2026, sobre 529 potenciales; 0.024 = 2.4 % al \
+		mes.
 	|
 
 efectividad del boca a boca institucional=
@@ -644,15 +650,19 @@ atraccion maxima por valor de la credencial=
 	|
 
 duracion del piloto=
-	4
-	~	Month [1,12,1]
-	~	SUPUESTO: meses desde el inicio del piloto hasta la decision.
+	10.7
+	~	Month [1,24,0.5]
+	~	DATO HubSpot 17-oct-2026: meses desde la propuesta hasta la decision. 66 \
+		negocios POK en etapas 3 a 5 / 6.2 negocios que salen del pipeline por mes \
+		(ley de Little).
 	|
 
 fraccion de conversion de pilotos=
-	0.5
-	~	Dmnl [0,1,0.05]
-	~	SUPUESTO / PALANCA: pilotos que firman.
+	0.33
+	~	Dmnl [0,1,0.01]
+	~	DATO HubSpot / PALANCA: de 36 negocios POK que salieron del pipeline entre \
+		abril y octubre de 2026, 12 se ganaron, 18 se perdieron y 6 quedaron para \
+		retomar.
 	|
 
 fraccion de churn institucional=
@@ -721,9 +731,9 @@ unidades perdidas con instituciones=
 	|
 
 unidades iniciales=
-	40
-	~	Unidad [0,500,5]
-	~	SUPUESTO: unidades emitiendo al inicio.
+	11
+	~	Unidad [0,500,1]
+	~	DATO HubSpot 17-oct-2026: una unidad por negocio Ganado credenciales POK.
 	|
 
 unidades academicas por institucion=
@@ -1705,7 +1715,7 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
 25:60
 26:60
 </script>
-<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.1", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Todos los valores de partida son supuestos para corregir con datos reales.", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
+<script type="application/json" id="config">{"titulo": "Flywheel de credenciales", "antetitulo": "Modelo de dinámica de sistemas · hipótesis v0.2 · punto de partida con HubSpot al 17-oct-2026", "bajada": "Instituciones, unidades académicas, docentes, estudiantes y empresas conectados por la credencial digital. Mueve las palancas y compara contra la base. Clientes, pilotos, prospección, conversión y duración de los pilotos y unidades iniciales vienen de HubSpot; el resto son supuestos para corregir con datos reales.", "horizontes": [36, 60, 84, 120], "kpis": [{"variable": "Instituciones cliente", "etiqueta": "Instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "Unidades académicas activas"}, {"variable": "Credenciales emitidas", "etiqueta": "Credenciales emitidas (acumulado)"}, {"variable": "Empresas usuarias", "etiqueta": "Empresas que buscan por competencias"}], "graficos": [{"variable": "Instituciones cliente", "titulo": "Instituciones cliente", "unidad": "instituciones"}, {"variable": "Unidades activas", "titulo": "Unidades académicas activas", "unidad": "unidades"}, {"variable": "emision de credenciales", "titulo": "Emisión de credenciales", "unidad": "credenciales/mes"}, {"variable": "Titulares activos", "titulo": "Estudiantes con credencial activa", "unidad": "personas"}, {"variable": "Empresas usuarias", "titulo": "Empresas que buscan por competencias", "unidad": "empresas"}, {"variable": "Valor percibido de la credencial", "titulo": "Valor percibido de la credencial", "unidad": "índice 0 a 1"}], "restriccion": {"real": "emision de credenciales", "deseado": "demanda de credenciales", "texto": "La capacidad docente limita la emisión"}, "metricas_aporte": [{"variable": "Credenciales emitidas", "etiqueta": "credenciales emitidas"}, {"variable": "Instituciones cliente", "etiqueta": "instituciones cliente"}, {"variable": "Unidades activas", "etiqueta": "unidades activas"}, {"variable": "Empresas usuarias", "etiqueta": "empresas usuarias"}], "bucles": {"activar boca a boca institucional": {"codigo": "R1", "nombre": "Boca a boca institucional", "descripcion": "Clientes que refieren a otras instituciones."}, "activar expansion interna": {"codigo": "R2", "nombre": "Land and expand", "descripcion": "Una unidad activa contagia a otras unidades de la misma institución."}, "activar habito estudiantil": {"codigo": "R3", "nombre": "Hábito del estudiante", "descripcion": "Necesito demostrar una competencia, pido la credencial y la sigo usando si me sirve."}, "activar compromiso docente": {"codigo": "R4", "nombre": "Compromiso docente", "descripcion": "Docentes que se certifican se vuelven promotores y generan más evidencias."}, "activar flywheel empresas": {"codigo": "R5", "nombre": "Talento verificable", "descripcion": "Más titulares hacen que las empresas encuentren talento y busquen por competencias."}, "activar flywheel del ecosistema": {"codigo": "R6", "nombre": "Credencial como moneda", "descripcion": "El uso de la credencial atrae y retiene instituciones."}, "activar boca a boca empresarial": {"codigo": "R7", "nombre": "Boca a boca empresarial", "descripcion": "Empresas usuarias atraen a otras empresas."}}, "grupos": {"instituciones": "Instituciones", "unidades academicas": "Unidades académicas", "docentes": "Docentes", "estudiantes": "Estudiantes", "empresas": "Empresas", "ecosistema": "Ecosistema"}, "tabla": ["Instituciones cliente", "Instituciones perdidas", "Unidades activas", "Docentes activos", "Credenciales emitidas", "Titulares activos", "Empresas usuarias", "contrataciones por credencial", "Valor percibido de la credencial"], "diagrama": "diagrama_bucles.svg", "pie": "Motor propio que lee el .mdl de Vensim e integra con Euler, verificado contra PySD (diferencia relativa máxima 1e-15). Fuente del modelo: modelos/ecosistema_credenciales/generar_modelo.py."}</script>
 <script>/*
  * motor.js — intérprete mínimo de modelos Vensim (.mdl) en JavaScript.
  *
@@ -4039,7 +4049,8 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
       const input = el('input', { type: 'range', id, min, max, step: paso });
       input.value = valorActual(c);
       const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al valor del modelo', title: 'Volver al valor del modelo', text: '↺' });
-      const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, ''));
+      const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, '')
+        .replace(/^DATO HubSpot( \/ PALANCA)?[.:]?\s*/i, 'Dato de HubSpot: '));
       const box = el('div', { class: 'ctl' }, el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
         el('div', { class: 'ctl-row' }, input, reset), help ? el('p', { class: 'ctl-help', text: help }) : null);
       const pintar = () => { out.textContent = fmtValor(c, valorActual(c)); box.classList.toggle('cambiado', k in T.cambios); };
