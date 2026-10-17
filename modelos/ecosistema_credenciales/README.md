@@ -74,23 +74,25 @@ Cada bucle R1 a R7 tiene un interruptor (`activar …` = 1/0) para medir cuánto
 
 ## Punto de partida con datos de HubSpot
 
-Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenciales_pok` o `mixto`) de los pipelines comerciales de Colombia, México y España. El mismo corte alimenta el [Mapa de actores](../../mapa_actores/README.md).
+Corte del 17-oct-2026, después de separar POK y merahki en HubSpot. Cuenta los negocios de los pipelines POK: POK Colombia, POK México y POK España. El mismo corte alimenta el [Mapa de actores](../../mapa_actores/README.md).
 
 | Variable del modelo | Antes (supuesto) | HubSpot | Cómo se mide |
 |---|---|---|---|
 | `clientes iniciales` | 25 | **11** | Instituciones con un negocio en «Ganado credenciales POK»: Uniandes, Unicafam, Polisalle, Politécnico Internacional, Fundación U. Páez, Confa, Comfandi, UniverMilenium (MX), PMI Bogotá, Connect Bogotá y Team Rush (SV) |
-| `pilotos iniciales` | 5 | **60** | Instituciones que aún no son clientes y tienen un negocio POK abierto en las etapas 3 a 5: propuesta enviada, seguimiento o sesión de cierre (66 negocios) |
-| `fraccion de conversion de pilotos` | 50 % | **33 %** | De los 36 negocios POK que salieron del pipeline entre abril y octubre, 12 se ganaron, 18 se perdieron y 6 quedaron para retomar |
-| `duracion del piloto` | 4 meses | **10,7 meses** | Ley de Little: 66 negocios en etapas 3 a 5 ÷ 6,2 negocios que salen del pipeline por mes |
-| `fraccion de prospeccion` | 0,3 %/mes | **2,4 %/mes** | Unas 13 instituciones por mes llegan a propuesta (66 abiertas + 12 ganadas en 5,8 meses), sobre 529 potenciales |
+| `pilotos iniciales` | 5 | **68** | Instituciones que aún no son clientes y tienen un negocio POK abierto en las etapas 3 a 5: propuesta enviada, seguimiento o sesión de cierre (76 negocios) |
+| `fraccion de conversion de pilotos` | 50 % | **24 %** | De los 45 negocios POK que salieron del pipeline entre abril y octubre, 11 se ganaron, 24 se perdieron y 10 quedaron para retomar |
+| `duracion del piloto` | 4 meses | **9,8 meses** | Ley de Little: 76 negocios en etapas 3 a 5 ÷ 7,8 negocios que salen del pipeline por mes |
+| `fraccion de prospeccion` | 0,3 %/mes | **2,7 %/mes** | Unas 15 instituciones por mes llegan a propuesta (76 abiertas + 11 ganadas en 5,8 meses), sobre 521 potenciales |
 | `unidades iniciales` | 40 | **11** | Una unidad por negocio ganado; HubSpot no registra qué unidad emite |
 
-**Prueba de consistencia.** Con estos valores, el modelo arranca con 1,9 clientes nuevos por mes. HubSpot registra 2,1 (12 en 5,8 meses). También arranca con 3,8 pilotos no convertidos por mes, frente a 4,1 en HubSpot.
+**Prueba de consistencia.** Con estos valores, el modelo arranca con 1,7 clientes nuevos por mes. HubSpot registra 1,9 (11 en 5,8 meses). También arranca con 5,3 pilotos no convertidos por mes, frente a 5,9 en HubSpot.
+
+**Antes de la separación** (POK = línea `credenciales_pok` o `mixto` en los pipelines comerciales) daba 60 pilotos, 33 % de conversión y 10,7 meses. La conversión bajó porque los pipelines POK ahora incluyen la lista de universidades cargada en mayo, que trae varios negocios perdidos.
 
 **Límites del dato:**
 - La conexión con HubSpot no trae el historial de etapas. Por eso no se sabe en qué etapa se perdió cada negocio.
-- El 33 % es un piso: entre los perdidos hay negocios que nunca llegaron a propuesta, como la lista de empresas cargada en abril. Si se descuentan, la conversión sube.
-- La duración de 10,7 meses supone un pipeline estable. Como el pipeline todavía crece, la duración real puede ser menor. Los negocios abiertos en etapas 3 a 5 llevan 3,5 meses en promedio y siguen abiertos.
+- El 24 % es un piso: entre los perdidos hay negocios que nunca llegaron a propuesta. Si se descuentan, la conversión sube.
+- La duración de 9,8 meses supone un pipeline estable. Como el pipeline todavía crece, la duración real puede ser menor.
 
 **Lo que HubSpot no tiene** y sigue como supuesto:
 - Credenciales emitidas, titulares y uso: son datos de la plataforma POK.
@@ -102,43 +104,43 @@ Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenci
 1. Descarga de HubSpot todos los negocios (con `createdate` y la probabilidad de la etapa) y toma el Mapa de actores al día.
 2. Corre `python modelos/ecosistema_credenciales/medir_en_hubspot.py NEGOCIOS.json MAPA.html --hoy AAAA-MM-DD`. Imprime las cifras de la tabla.
 3. Cámbialas en `generar_modelo.py` y regenera el modelo (ver [Cómo modificar el modelo](#cómo-modificar-el-modelo)). La fracción de prospección es la fracción bruta menos lo que ya aportan el boca a boca y la atracción por valor al inicio.
-4. Corre `node modelos/ecosistema_credenciales/resultados.js` para rehacer las tablas de abajo. También imprime la tabla de la [Táctica T1](#táctica-t1-paid-media-caballo-de-troya), su público y su costo de equilibrio: cópialos a esa sección, porque la base de la tabla (42 y 120 clientes) y el público (159 instituciones) cambian con la calibración.
+4. Corre `node modelos/ecosistema_credenciales/resultados.js` para rehacer las tablas de abajo. También imprime la tabla de la [Táctica T1](#táctica-t1-paid-media-caballo-de-troya), su público y su costo de equilibrio: cópialos a esa sección, porque la base de la tabla (37 y 100 clientes) y el público (156 instituciones) cambian con la calibración.
 
 ## Resultados con los supuestos actuales
 
-**Base (mes 60):** 199 instituciones cliente (de 600 en el mercado; 44 perdidas y 138 en piloto), 725 unidades activas (46 % de penetración interna), 2,15 M credenciales emitidas, 662 mil titulares activos, 1.253 empresas usuarias y valor percibido 0,79. Al mes 36: 120 instituciones cliente.
+**Base (mes 60):** 163 instituciones cliente (de 600 en el mercado; 37 perdidas y 143 en piloto), 600 unidades activas (46 % de penetración interna), 1,83 M credenciales emitidas, 557 mil titulares activos, 1.202 empresas usuarias y valor percibido 0,77. Al mes 36: 100 instituciones cliente.
 
 **Cuánto se pierde al mes 60 si se apaga cada bucle** (el resto queda igual):
 
 | Bucle | Instituciones | Unidades | Credenciales | Empresas |
 |---|---|---|---|---|
-| R1 Boca a boca institucional | 12 % | 10 % | 7 % | 2 % |
-| R2 Land & expand | 1 % | **63 %** | **50 %** | 16 % |
-| R3 Hábito del estudiante | 0 % | 0 % | 7 % | 4 % |
+| R1 Boca a boca institucional | 10 % | 8 % | 6 % | 1 % |
+| R2 Land & expand | 1 % | **63 %** | **50 %** | 17 % |
+| R3 Hábito del estudiante | 0 % | 0 % | 8 % | 5 % |
 | R4 Compromiso docente | 0 % | 0 % | 16 % | 4 % |
-| R5 Talento verificable | 6 % | 5 % | 3 % | **60 %** |
+| R5 Talento verificable | 6 % | 5 % | 3 % | **59 %** |
 | R6 Credencial como moneda | **16 %** | 15 % | 7 % | 1 % |
-| R7 Boca a boca empresarial | 5 % | 5 % | 2 % | 56 % |
+| R7 Boca a boca empresarial | 5 % | 5 % | 2 % | 57 % |
 
 **Efecto de algunas palancas (mes 60, contra la base):**
 
 | Palanca | Instituciones | Unidades | Credenciales | Empresas |
 |---|---|---|---|---|
-| Duplicar la prospección de instituciones (2,4 → 4,8 %/mes) | +30 % | +35 % | +37 % | +9 % |
-| Conversión de pilotos de 33 % a 53 % | **+49 %** | **+52 %** | **+50 %** | +11 % |
-| Decidir los pilotos en la mitad del tiempo (10,7 → 5,35 meses) | +20 % | +23 % | +27 % | +8 % |
+| Duplicar la prospección de instituciones (2,7 → 5,4 %/mes) | +34 % | +37 % | +37 % | +9 % |
+| Conversión de pilotos de 24 % a 44 % | **+68 %** | **+71 %** | **+66 %** | +15 % |
+| Decidir los pilotos en la mitad del tiempo (9,8 → 4,9 meses) | +20 % | +22 % | +24 % | +7 % |
 | Duplicar la expansión institucional (decisión central) | +0 % | +14 % | +15 % | +4 % |
-| Evidencias por docente de 15 a 30 | +1 % | +1 % | +12 % | +5 % |
-| Triplicar la prospección de empresas | +5 % | +5 % | +3 % | **+25 %** |
+| Evidencias por docente de 15 a 30 | +1 % | +1 % | +11 % | +5 % |
+| Triplicar la prospección de empresas | +5 % | +5 % | +3 % | **+27 %** |
 
 **Lecturas (válidas solo con estos supuestos):**
 
 1. **El cuello de botella comercial es la decisión, no la prospección.**
-   - Hoy hay 60 instituciones en piloto y 11 clientes.
-   - Subir la conversión 20 puntos rinde más que duplicar la prospección: +49 % frente a +30 % de instituciones.
+   - Hoy hay 68 instituciones en piloto y 11 clientes.
+   - Subir la conversión 20 puntos rinde el doble que duplicar la prospección: +68 % frente a +34 % de instituciones.
    - Cerrar los pilotos en la mitad del tiempo suma +20 %.
 2. **El crecimiento de credenciales sigue dependiendo de expandirse dentro de cada institución (R2).** Explica la mitad de las credenciales del mes 60.
-3. **La prospección propia pesa más que el boca a boca.** El equipo lleva unas 13 instituciones por mes a propuesta. Por eso apagar R1 o R6 resta menos que en la v0.1 (12 % y 16 % frente a 33 % y 47 %).
+3. **La prospección propia pesa más que el boca a boca.** El equipo lleva unas 15 instituciones por mes a propuesta. Por eso apagar R1 o R6 resta menos que en la v0.1 (10 % y 16 % frente a 33 % y 47 %).
 4. **Las empresas siguen moviendo a las instituciones, pero menos.** Triplicar la prospección de empresas suma +5 % de instituciones (+11 % en la v0.1).
 5. **La capacidad docente limita la emisión en los 60 meses.** Si en la realidad no es el cuello de botella, hay que subir `evidencias por docente` o `fraccion base de docentes comprometidos`.
 
@@ -147,10 +149,10 @@ Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenci
 **La idea (David, 17-oct-2026).** merahki pauta una convocatoria dirigida a instituciones que emiten con Certifie o Acredita: *«Virtualizamos gratis un curso corto de 10 horas. Un cupo por mes»*. Todos los que se registran participan y uno por mes gana. El objetivo es juntar leads de instituciones que hoy emiten con otro proveedor y trabajarlos desde POK (caso de uso UC1, reemplazar un emisor cautivo). El cupo único es el mensaje de escasez.
 
 **Cómo está en el modelo:**
-1. **Público:** el 30 % de las instituciones potenciales emite con un competidor (159 al inicio). Se agota a medida que pasan a POK (B5).
+1. **Público:** el 30 % de las instituciones potenciales emite con un competidor (156 al inicio). Se agota a medida que pasan a POK (B5).
 2. **Registros calificados:** pauta ÷ costo por lead × fracción calificada. Tienen un tope: la pauta no puede volver lead a más del 10 % del público por mes.
 3. **Ganador del mes:** 1 virtualización gratis por mes. Dura 2 meses y el curso sale certificado con POK. Al terminar, el 40 % de los ganadores compra POK y el resto sigue en el pipeline como piloto.
-4. **Los que no ganan** son 9 de cada 10 registros calificados. El 30 % llega a una propuesta de POK y sigue el pipeline normal (33 % de conversión en 10,7 meses).
+4. **Los que no ganan** son 9 de cada 10 registros calificados. El 30 % llega a una propuesta de POK y sigue el pipeline normal (24 % de conversión en 9,8 meses).
 5. **Atribución y costo:** un stock de seguimiento cuenta los pilotos que vinieron de T1. Así se calculan los clientes ganados, el gasto (pauta + costo de cada virtualización), el costo por cliente y el ingreso del primer año por dólar.
 6. **R8:** con `fraccion de ingresos reinvertida` > 0, parte del ingreso de esos clientes vuelve a la pauta.
 
@@ -170,31 +172,31 @@ Corte del 17-oct-2026. Cuenta los negocios de credenciales POK (línea `credenci
 
 **Resultados** (`node modelos/ecosistema_credenciales/resultados.js`):
 
-| Escenario con T1 encendida | Clientes mes 12 (base 42) | Clientes mes 36 (base 120) | Clientes ganados por T1 (mes 36) | Gasto acumulado (mes 36) | Costo por cliente (mes 36) | Ingreso del 1.er año por dólar (mes 36) |
+| Escenario con T1 encendida | Clientes mes 12 (base 37) | Clientes mes 36 (base 100) | Clientes ganados por T1 (mes 36) | Gasto acumulado (mes 36) | Costo por cliente (mes 36) | Ingreso del 1.er año por dólar (mes 36) |
 |---|---|---|---|---|---|---|
-| Diseño decidido: 1 cupo al mes, curso de 10 h que cuesta USD 1.500 | 50 (+19 %) | 151 (+25 %) | 41 | USD 108.000 | USD 2.647 | 0,76 |
-| El curso cuesta USD 500 | 50 (+19 %) | 151 (+25 %) | 41 | USD 72.000 | USD 1.764 | 1,13 |
-| El curso cuesta USD 3.700 (lo que se cobró a Uniandes) | 50 (+19 %) | 151 (+25 %) | 41 | USD 187.200 | USD 4.588 | 0,44 |
-| Todos los registrados reciben algo: 50 % llega a propuesta | 53 (+25 %) | 160 (+34 %) | 55 | USD 108.000 | USD 1.956 | 1,02 |
-| Ganador elegido por criterios: compra el 60 % | 52 (+23 %) | 155 (+29 %) | 46 | USD 108.000 | USD 2.348 | 0,85 |
-| Las dos anteriores juntas | 54 (+29 %) | 165 (+37 %) | 60 | USD 108.000 | USD 1.789 | 1,12 |
-| Escasez: lead a USD 40, pero solo 30 % calificado | 51 (+21 %) | 152 (+27 %) | 43 | USD 108.000 | USD 2.513 | 0,80 |
-| Versión anterior (v0.3): 2 cupos a USD 2.000 | 54 (+29 %) | 163 (+36 %) | 56 | USD 198.000 | USD 3.514 | 0,57 |
+| Diseño decidido: 1 cupo al mes, curso de 10 h que cuesta USD 1.500 | 44 (+19 %) | 126 (+26 %) | 34 | USD 108.000 | USD 3.160 | 0,63 |
+| El curso cuesta USD 500 | 44 (+19 %) | 126 (+26 %) | 34 | USD 72.000 | USD 2.107 | 0,95 |
+| El curso cuesta USD 3.700 (lo que se cobró a Uniandes) | 44 (+19 %) | 126 (+26 %) | 34 | USD 187.200 | USD 5.478 | 0,37 |
+| Todos los registrados reciben algo: 50 % llega a propuesta | 46 (+24 %) | 133 (+34 %) | 45 | USD 108.000 | USD 2.386 | 0,84 |
+| Ganador elegido por criterios: compra el 60 % | 46 (+24 %) | 130 (+31 %) | 40 | USD 108.000 | USD 2.715 | 0,74 |
+| Las dos anteriores juntas | 48 (+29 %) | 138 (+39 %) | 51 | USD 108.000 | USD 2.125 | 0,94 |
+| Escasez: lead a USD 40, pero solo 30 % calificado | 45 (+20 %) | 127 (+27 %) | 36 | USD 108.000 | USD 3.003 | 0,67 |
+| Versión anterior (v0.3): 2 cupos a USD 2.000 | 48 (+30 %) | 138 (+38 %) | 49 | USD 198.000 | USD 4.018 | 0,50 |
 
 **Lecturas (válidas solo con estos supuestos):**
-1. **Con un cupo, T1 suma +19 % de clientes al mes 12 y +25 % al mes 36.** Cuesta la mitad que la versión de 2 cupos.
-2. **El que pesa es el que no gana.** Son 9 de cada 10 registros. Si todos reciben algo que los lleve a una propuesta (de 30 % a 50 %), T1 suma +34 % al mes 36 y se paga en el primer año.
-3. **El costo real del curso decide si T1 se paga.** Con los supuestos del diseño, se paga en el primer año si virtualizar cuesta menos de USD 767. Si además todos reciben algo y el ganador se elige por criterios, el límite sube a USD 1.853.
-4. **El público es chico y se agota.** De 159 instituciones con emisor competidor quedan 80 al mes 36. Es una campaña de 12 a 18 meses, no un canal permanente.
+1. **Con un cupo, T1 suma +19 % de clientes al mes 12 y +26 % al mes 36.** Cuesta la mitad que la versión de 2 cupos.
+2. **El que pesa es el que no gana.** Son 9 de cada 10 registros. Si todos reciben algo que los lleve a una propuesta (de 30 % a 50 %), T1 suma +34 % al mes 36 y recupera el 84 % del gasto en el primer año.
+3. **El costo real del curso decide si T1 se paga.** Con los supuestos del diseño, se paga en el primer año si virtualizar cuesta menos de USD 398. Si además todos reciben algo y el ganador se elige por criterios, el límite sube a USD 1.324.
+4. **El público es chico y se agota.** De 156 instituciones con emisor competidor quedan 88 al mes 36. Es una campaña de 12 a 18 meses, no un canal permanente.
 5. **Reinvertir el ingreso en pauta no ayuda.** Con el cupo y el público como freno, más pauta solo sube el costo por cliente.
 
 ## Qué validar y con qué datos
 
 | Supuesto | Valor actual | Dato que lo reemplaza |
 |---|---|---|
-| Clientes, pilotos y unidades al inicio | 11, 60 y 11 | ✅ HubSpot, 17-oct-2026. Falta saber qué unidades emiten en cada cliente |
-| Prospección | 2,4 % de potenciales por mes llega a propuesta | ✅ HubSpot, 17-oct-2026 |
-| Piloto | 10,7 meses, 33 % convierte | ✅ HubSpot, 17-oct-2026, con los límites de arriba. Mejoraría con el historial de etapas (en qué etapa se perdió cada negocio) |
+| Clientes, pilotos y unidades al inicio | 11, 68 y 11 | ✅ HubSpot, 17-oct-2026. Falta saber qué unidades emiten en cada cliente |
+| Prospección | 2,7 % de potenciales por mes llega a propuesta | ✅ HubSpot, 17-oct-2026 |
+| Piloto | 9,8 meses, 24 % convierte | ✅ HubSpot, 17-oct-2026, con los límites de arriba. Mejoraría con el historial de etapas (en qué etapa se perdió cada negocio) |
 | Tamaño del mercado | 600 instituciones | Universidades e IES objetivo por país. HubSpot ya tiene 401 educativas con actividad y 542 instituciones más sin actividad |
 | Unidades por institución | 8 | Unidades que podrían emitir en un cliente típico |
 | Expansión interna | 0,4 %/mes central + contagio 6 %/mes | Unidades activas por cliente a lo largo del tiempo |

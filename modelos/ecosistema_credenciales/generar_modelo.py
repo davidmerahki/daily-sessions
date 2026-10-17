@@ -85,24 +85,24 @@ INSTITUCIONES = join(
     eq("clientes iniciales", "11", "Institucion",
        "DATO HubSpot 17-oct-2026: instituciones con negocio en Ganado credenciales POK (8 IES y cajas "
        "de compensacion, PMI Bogota, Connect Bogota y Team Rush).", "[0,200,1]"),
-    eq("pilotos iniciales", "60", "Institucion",
-       "DATO HubSpot 17-oct-2026: instituciones que aun no son clientes con negocio POK abierto entre "
-       "propuesta enviada y sesion de cierre (etapas 3 a 5).", "[0,200,1]"),
-    eq("fraccion de prospeccion", "0.024", "1/Month",
-       "DATO HubSpot / PALANCA: unas 13 instituciones por mes llegan a propuesta POK entre "
-       "abril y octubre de 2026, sobre 529 potenciales; 0.024 = 2.4 % al mes.", "[0,0.06,0.001]"),
+    eq("pilotos iniciales", "68", "Institucion",
+       "DATO HubSpot 17-oct-2026: instituciones que aun no son clientes con negocio abierto en los "
+       "pipelines POK entre propuesta enviada y sesion de cierre (etapas 3 a 5).", "[0,200,1]"),
+    eq("fraccion de prospeccion", "0.027", "1/Month",
+       "DATO HubSpot / PALANCA: unas 15 instituciones por mes llegan a propuesta POK entre "
+       "abril y octubre de 2026, sobre 521 potenciales; 0.027 = 2.7 % al mes.", "[0,0.06,0.001]"),
     eq("efectividad del boca a boca institucional", "0.05", "1/Month",
        "SUPUESTO: inicio de pilotos por mes y por potencial si todo el mercado fuera cliente.",
        "[0,0.3,0.01]"),
     eq("atraccion maxima por valor de la credencial", "0.02", "1/Month",
        "SUPUESTO: fraccion mensual de potenciales que llega sola cuando la credencial vale el maximo.",
        "[0,0.05,0.001]"),
-    eq("duracion del piloto", "10.7", "Month",
-       "DATO HubSpot 17-oct-2026: meses desde la propuesta hasta la decision. 66 negocios POK en etapas "
-       "3 a 5 / 6.2 negocios que salen del pipeline por mes (ley de Little).", "[1,24,0.5]"),
-    eq("fraccion de conversion de pilotos", "0.33", "Dmnl",
-       "DATO HubSpot / PALANCA: de 36 negocios POK que salieron del pipeline entre abril y "
-       "octubre de 2026, 12 se ganaron, 18 se perdieron y 6 quedaron para retomar.", "[0,1,0.01]"),
+    eq("duracion del piloto", "9.8", "Month",
+       "DATO HubSpot 17-oct-2026: meses desde la propuesta hasta la decision. 76 negocios POK en etapas "
+       "3 a 5 / 7.8 negocios que salen del pipeline por mes (ley de Little).", "[1,24,0.5]"),
+    eq("fraccion de conversion de pilotos", "0.24", "Dmnl",
+       "DATO HubSpot / PALANCA: de 45 negocios POK que salieron del pipeline entre abril y "
+       "octubre de 2026, 11 se ganaron, 24 se perdieron y 10 quedaron para retomar.", "[0,1,0.01]"),
     eq("fraccion de churn institucional", "0.01", "1/Month",
        "SUPUESTO: churn mensual de instituciones sin efecto del valor (0.01 ~ 11 % al ano).",
        "[0,0.05,0.001]"),

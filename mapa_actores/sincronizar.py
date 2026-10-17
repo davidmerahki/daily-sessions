@@ -431,12 +431,22 @@ def negocio_persona(d, p):
 
 
 def refrescar_negocios_personas(D, por_nombre, negocios):
+    # Los negocios que solo están en la ficha de una persona (sin empresa en el
+    # mapa) se buscan en HubSpot por nombre, si el nombre es único.
+    por_nombre_hs = {}
+    for did, p in negocios.items():
+        por_nombre_hs.setdefault((p.get("dealname") or "").strip(), []).append(did)
     for per in D["personas"]:
         for n, x in enumerate(per["negocios"]):
             if x["nombre"] in por_nombre:
                 did, d = por_nombre[x["nombre"]]
-                nuevo = negocio_persona(d, negocios[did])
-                per["negocios"][n] = {**nuevo, "pipeline": nuevo["pipeline"] or x["pipeline"]}
+            elif len(por_nombre_hs.get(x["nombre"], [])) == 1:
+                did = por_nombre_hs[x["nombre"]][0]
+                d = negocio_desde_hubspot(negocios[did], {"linea": x["linea"]})
+            else:
+                continue
+            nuevo = negocio_persona(d, negocios[did])
+            per["negocios"][n] = {**nuevo, "pipeline": nuevo["pipeline"] or x["pipeline"]}
 
 
 # ───────── delta ─────────
@@ -487,9 +497,12 @@ def aplicar_delta(D, delta, negocios, objetos, hoy, informe):
                 D["canales"].append(c)
             if all(y["id"] != d["id"] for y in c["negocios"]):
                 c["negocios"].append({"id": d["id"], "nombre": d["nombre"]})
-            if all(y["id"] != d["id"] for y in canal["deals"]):
+            en_canal = next((y for y in canal["deals"] if y["id"] == d["id"]), None)
+            if en_canal is None:
                 canal["deals"].append({**d, "via": "", "cliente": i["id"]})
-                informe.append(f"negocio {d['id']} → {canal['nombre']} (canal de {i['nombre']})")
+            else:
+                en_canal["cliente"] = i["id"]
+            informe.append(f"negocio {d['id']} en {canal['nombre']} con cliente final {i['nombre']}")
         if i and all(y["id"] != d["id"] for y in i["deals"]):
             i["deals"].append(d)
             informe.append(f"negocio {d['id']} → {i['nombre']}: {d['nombre'][:70]} ({d['etapa']})")
