@@ -4,60 +4,197 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-  /* Layout: panel de palancas fijo a la izquierda (como el panel de SyntheSim) y lienzo de resultados a la derecha; en teléfono se apilan. */
+  /* Layout: dos pestañas. Lienzo = barra de herramientas | lienzo con vistas | inspector (como el sketch + editor de ecuaciones de Vensim).
+     Tablero = panel de palancas fijo a la izquierda y resultados a la derecha. En teléfono todo se apila. */
   :root {
     --bg: #f4f6f9;
     --surface: #fcfcfd;
+    --canvas: #fcfcfd;
+    --dot: #dde2ea;
     --ink: #0f1729;
     --ink-2: #4a5468;
     --muted: #6f7889;
     --grid: #e3e6ec;
     --line: #c9ced8;
+    --link: #5b6578;
     --accent: #2a78d6;
     --accent-wash: rgba(42, 120, 214, 0.10);
     --base: #9aa3b2;
     --good: #006300;
     --bad: #b42d2d;
+    --bad-wash: rgba(180, 45, 45, 0.08);
     --warn-bg: #fff4dc;
     --warn-ink: #7a4b00;
     --ok-bg: #e7f5e7;
     --ok-ink: #0b5d0b;
     --ring: rgba(15, 23, 41, 0.10);
+    --shadow: 0 8px 28px rgba(15, 23, 41, 0.16);
     --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
     --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
-      --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
-      --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
-      --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+      --bg: #0e1117; --surface: #161a22; --canvas: #13171e; --dot: #262c37; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+      --grid: #262b35; --line: #3a414e; --link: #9aa4b6; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.16);
+      --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --bad-wash: rgba(239, 125, 125, 0.10); --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+      --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); --shadow: 0 8px 28px rgba(0, 0, 0, 0.5); color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1117; --surface: #161a22; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
-    --grid: #262b35; --line: #3a414e; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.14);
-    --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --warn-bg: #3a2c0c; --warn-ink: #f5c766;
-    --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); color-scheme: dark;
+    --bg: #0e1117; --surface: #161a22; --canvas: #13171e; --dot: #262c37; --ink: #eef1f6; --ink-2: #b9c0cc; --muted: #8a93a5;
+    --grid: #262b35; --line: #3a414e; --link: #9aa4b6; --accent: #3987e5; --accent-wash: rgba(57, 135, 229, 0.16);
+    --base: #6b7383; --good: #3fbf3f; --bad: #ef7d7d; --bad-wash: rgba(239, 125, 125, 0.10); --warn-bg: #3a2c0c; --warn-ink: #f5c766;
+    --ok-bg: #12301a; --ok-ink: #7fd67f; --ring: rgba(255, 255, 255, 0.10); --shadow: 0 8px 28px rgba(0, 0, 0, 0.5); color-scheme: dark;
   }
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45;
     padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
     padding-block: 20px 40px;
   }
-  .page { max-width: 1320px; margin: 0 auto; display: grid; gap: 20px; }
+  .page { max-width: 1440px; margin: 0 auto; display: grid; gap: 16px; }
   h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: 0.005em; }
-  h1 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; }
+  h1 { font-size: clamp(26px, 3.4vw, 34px); line-height: 1.1; }
   h2 { font-size: 19px; }
   h3 { font-size: 15px; }
   p { margin: 0; }
   .eyebrow { font-family: var(--font-data); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-  header.top { display: grid; gap: 8px; max-width: 78ch; }
+  header.top { display: grid; gap: 6px; max-width: 82ch; }
   header.top .lead { color: var(--ink-2); font-size: 15px; }
 
-  /* KPI */
+  /* barra de la aplicación */
+  .app-bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+  .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 4px; }
+  .tabs button { border: 0; background: transparent; padding: 7px 18px; border-radius: 7px; font: 600 14px var(--font-body); color: var(--ink-2); cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }
+  .acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip { font: 500 12px var(--font-data); padding: 4px 10px; border-radius: 999px; background: var(--grid); color: var(--ink-2); white-space: nowrap; }
+  .chip.sucio { background: var(--warn-bg); color: var(--warn-ink); }
+  .chip.ok { background: var(--ok-bg); color: var(--ok-ink); }
+  .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 11px; font: 500 13px var(--font-body); cursor: pointer; }
+  .btn:hover:not(:disabled) { background: var(--accent-wash); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.primario { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primario:hover:not(:disabled) { filter: brightness(1.08); background: var(--accent); }
+  .btn.peligro { color: var(--bad); }
+  .btn.mini { padding: 3px 8px; font-size: 12px; }
+  .banner { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+  .banner .btn { background: transparent; border-color: currentColor; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ------------------------------------------------------------ lienzo */
+  .editor { display: grid; grid-template-columns: 46px minmax(0, 1fr) 340px; gap: 12px; align-items: start; }
+  .herramientas { display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 5px; position: sticky; top: 12px; }
+  .herramientas .sep { height: 1px; background: var(--grid); margin: 4px 2px; }
+  .herramientas button { width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--ink-2); cursor: pointer; }
+  .herramientas button:hover:not(:disabled) { background: var(--accent-wash); color: var(--ink); }
+  .herramientas button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .herramientas button:disabled { opacity: 0.35; cursor: default; }
+  .area { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; min-width: 0; overflow: hidden; }
+  .vistas-bar { display: flex; align-items: end; gap: 2px; overflow-x: auto; border-bottom: 1px solid var(--grid); padding: 6px 8px 0; }
+  .vistas-bar .vt { border: 0; background: transparent; padding: 6px 12px 7px; font: 500 13px var(--font-body); color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; cursor: pointer; }
+  .vistas-bar .vt[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .vistas-bar .vt-input { font: 500 13px var(--font-body); padding: 4px 6px; width: 16ch; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); color: var(--ink); margin-bottom: 4px; }
+  .vistas-bar .vt-mas { color: var(--accent); font-weight: 600; }
+  .lienzo-wrap {
+    position: relative; height: clamp(440px, 64vh, 800px); background-color: var(--canvas);
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px); background-size: 20px 20px;
+  }
+  #lienzo { width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #lienzo.h-crear { cursor: crosshair; }
+  #lienzo.h-pan { cursor: grabbing; }
+  .zoom { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 4px; align-items: center; background: var(--surface); border: 1px solid var(--ring); border-radius: 8px; padding: 3px; }
+  .zoom button { border: 0; background: transparent; color: var(--ink-2); width: 28px; height: 26px; border-radius: 6px; cursor: pointer; font: 600 15px var(--font-body); }
+  .zoom button:hover { background: var(--accent-wash); }
+  .zoom .pct { font: 500 11.5px var(--font-data); color: var(--muted); min-width: 4ch; text-align: center; }
+  .zoom .ajustar { width: auto; padding: 0 8px; font-size: 12px; font-weight: 500; }
+  .pista { position: absolute; left: 10px; top: 10px; font-size: 12.5px; color: var(--ink-2); background: var(--surface); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--ring); max-width: calc(100% - 20px); pointer-events: none; }
+  .simbar { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--grid); font-size: 12.5px; color: var(--ink-2); }
+  .simbar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .sim-estado { font-family: var(--font-data); font-size: 12px; }
+  .sim-estado.err { color: var(--bad); }
+
+  /* elementos del diagrama */
+  .n-caja { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+  .n-txt { fill: var(--ink); font-family: var(--font-body); font-size: 12px; }
+  .n-const .n-txt { fill: var(--ink-2); }
+  .n-sombra .n-txt { fill: var(--muted); }
+  .n-fondo { fill: transparent; }
+  .n-hit { fill: transparent; }
+  .sel .n-fondo { fill: var(--accent-wash); stroke: var(--accent); stroke-width: 1.2; }
+  .sel .n-caja { stroke: var(--accent); stroke-width: 2.4; }
+  .err .n-txt { fill: var(--bad); }
+  .err .n-caja { stroke: var(--bad); }
+  .err-dot { fill: var(--bad); }
+  .tub-ext { stroke: var(--ink-2); stroke-width: 7; fill: none; stroke-linejoin: round; }
+  .tub-int { stroke: var(--canvas); stroke-width: 3.6; fill: none; stroke-linejoin: round; }
+  .tub-punta { fill: var(--ink-2); }
+  .valv { fill: var(--surface); stroke: var(--ink-2); stroke-width: 1.4; }
+  .sel .valv { stroke: var(--accent); fill: var(--accent-wash); stroke-width: 2; }
+  .nube { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+  .sel .nube { stroke: var(--accent); }
+  .fle { stroke: var(--link); stroke-width: 1.3; fill: none; }
+  .fle.ini { stroke-dasharray: 4 3; }
+  .fle-hit { stroke: transparent; stroke-width: 12; fill: none; cursor: pointer; }
+  .sel .fle { stroke: var(--accent); stroke-width: 2.2; }
+  .fle-punta { fill: var(--link); }
+  .sel .fle-punta { fill: var(--accent); }
+  .pol { fill: var(--ink-2); font: 600 12px var(--font-data); }
+  .asa { fill: var(--surface); stroke: var(--accent); stroke-width: 1.6; cursor: move; }
+  .bucle-c { fill: var(--surface); stroke: var(--accent); stroke-width: 1.4; }
+  .bucle-t { fill: var(--accent); font: 600 12px var(--font-data); }
+  .nota-t { fill: var(--ink-2); font-family: var(--font-body); font-size: 12px; font-style: italic; }
+  .spark { fill: none; stroke: var(--accent); stroke-width: 1.3; stroke-linejoin: round; }
+  .spark-base { stroke: var(--grid); stroke-width: 1; }
+  .valor { fill: var(--muted); font: 10px var(--font-data); }
+  .prev { stroke: var(--accent); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+  #capa-prev { pointer-events: none; }
+  .prev-tub { stroke: var(--accent); stroke-width: 6; fill: none; opacity: 0.35; }
+
+  /* inspector */
+  .inspector { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px; display: grid; gap: 14px; align-content: start; max-height: calc(64vh + 96px); overflow-y: auto; position: sticky; top: 12px; }
+  .ins-head { display: grid; gap: 4px; }
+  .tipo-chip { justify-self: start; font: 500 11.5px var(--font-data); text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .campo { display: grid; gap: 4px; }
+  .campo > label, .campo > .lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+  .campo input[type=text], .campo input[type=number], .campo textarea, .campo select, .buscar {
+    width: 100%; font: 13px var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px;
+  }
+  .campo textarea.eq { font: 13px/1.45 var(--font-data); min-height: 64px; resize: vertical; }
+  .campo .ayuda { font-size: 12px; color: var(--muted); }
+  .campo .error-txt { font-size: 12px; color: var(--bad); }
+  .fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .fila3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip-var { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 999px; padding: 2px 9px; font: 12px var(--font-body); cursor: pointer; }
+  .chip-var:hover { border-color: var(--accent); color: var(--accent); }
+  .tasa { font: 13px var(--font-data); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 7px 9px; overflow-wrap: anywhere; }
+  .lista-res { display: grid; gap: 2px; max-height: 220px; overflow-y: auto; }
+  .lista-res button { text-align: left; border: 0; background: transparent; padding: 5px 6px; border-radius: 6px; cursor: pointer; color: var(--ink); font: 13px var(--font-body); display: flex; justify-content: space-between; gap: 8px; }
+  .lista-res button:hover { background: var(--accent-wash); }
+  .lista-res small { color: var(--muted); font-family: var(--font-data); font-size: 11px; white-space: nowrap; }
+  .seg2 { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg2 button { border: 0; background: transparent; padding: 5px 12px; font: 600 13px var(--font-data); color: var(--ink-2); cursor: pointer; }
+  .seg2 button + button { border-left: 1px solid var(--line); }
+  .seg2 button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .mini-chart svg { width: 100%; height: auto; display: block; }
+  .atajos { font-size: 12px; color: var(--muted); display: grid; gap: 2px; }
+  .atajos kbd { font: 11px var(--font-data); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; color: var(--ink-2); }
+
+  /* problemas */
+  .problemas { display: grid; gap: 10px; }
+  .prob-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+  .prob-lista { display: grid; gap: 4px; }
+  .prob { display: flex; gap: 10px; align-items: baseline; font-size: 13px; }
+  .prob .nivel { font: 500 11px var(--font-data); text-transform: uppercase; letter-spacing: 0.05em; padding: 1px 7px; border-radius: 999px; flex: none; }
+  .prob .nivel.error { background: var(--bad-wash); color: var(--bad); }
+  .prob .nivel.aviso { background: var(--warn-bg); color: var(--warn-ink); }
+  .prob .texto { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .prob button { flex: none; }
+
+  /* ------------------------------------------------------------ tablero */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
   .kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
   .kpi-label { color: var(--ink-2); font-size: 13px; }
@@ -69,8 +206,7 @@
   .estado.warn { background: var(--warn-bg); color: var(--warn-ink); }
   .estado.ok { background: var(--ok-bg); color: var(--ok-ink); }
   .estado svg { flex: none; }
-
-  /* Área de trabajo */
+  .vista-tab { display: grid; gap: 16px; }
   .workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
   .panel {
     background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px;
@@ -78,16 +214,11 @@
     max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain;
   }
   .panel section { display: grid; gap: 12px; }
-  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
   .seg button { flex: 1; border: 0; background: transparent; color: var(--ink-2); padding: 7px 4px; font: 500 12.5px var(--font-body); cursor: pointer; }
   .seg button + button { border-left: 1px solid var(--line); }
   .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
-  .seg button:focus-visible, .btn:focus-visible, input:focus-visible, summary:focus-visible, .chart:focus-visible, select:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 2px;
-  }
-  .btn { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 6px 10px; font: 500 12.5px var(--font-body); cursor: pointer; }
-  .btn:hover { background: var(--accent-wash); }
   .ctl { display: grid; gap: 4px; }
   .ctl-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
   .ctl label { font-size: 13px; font-weight: 500; }
@@ -111,8 +242,7 @@
   .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform 0.15s; }
   .switch:checked { background: var(--accent); }
   .switch:checked::after { transform: translateX(14px); }
-
-  main { display: grid; gap: 20px; min-width: 0; }
+  .tab-main { display: grid; gap: 20px; min-width: 0; }
   .card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
   .leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink-2); align-items: center; }
   .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
@@ -120,12 +250,14 @@
   .key.esc { border-color: var(--accent); }
   .key.base { border-color: var(--base); }
   .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 18px 20px; }
-  .chart { margin: 0; display: grid; gap: 6px; min-width: 0; border-radius: 8px; }
-  .chart figcaption { display: grid; gap: 1px; }
+  .chart { margin: 0; display: grid; gap: 6px; min-width: 0; border-radius: 8px; position: relative; }
+  .chart figcaption { display: grid; gap: 1px; padding-right: 26px; }
   .chart-title { font-weight: 600; font-size: 13.5px; }
   .chart-read { font-family: var(--font-data); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.4em; }
   .chart-read b { color: var(--ink); font-weight: 500; }
   .chart svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+  .chart .quitar { position: absolute; top: 0; right: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .chart .quitar:hover { color: var(--bad); background: var(--bad-wash); }
   .ax { fill: var(--muted); font-family: var(--font-data); font-size: 9.5px; }
   .gridl { stroke: var(--grid); stroke-width: 1; }
   .basel { stroke: var(--line); stroke-width: 1; }
@@ -133,9 +265,8 @@
   .l-base { fill: none; stroke: var(--base); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
   .cross { stroke: var(--ink-2); stroke-width: 1; }
-
   .aporte-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .aporte-head select { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  .aporte-head select, .agregar select { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; max-width: 100%; }
   .barras { display: grid; gap: 8px; }
   .barra { display: grid; grid-template-columns: minmax(150px, 230px) minmax(0, 1fr) 56px; gap: 10px; align-items: center; }
   .barra-label { font-size: 13px; display: flex; gap: 8px; align-items: center; min-width: 0; }
@@ -145,7 +276,6 @@
   .barra.off .fill { background: var(--line); }
   .barra-val { font-family: var(--font-data); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
   .nota { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
-
   figure.mapa { margin: 0; display: grid; gap: 10px; }
   .mapa-svg { overflow-x: auto; color: var(--ink-2); }
   .mapa-svg svg { width: 100%; min-width: 620px; height: auto; display: block; }
@@ -160,7 +290,6 @@
   .cld [data-loop] { transition: opacity 0.2s; }
   .cld .apagado { opacity: 0.18; }
   figcaption.cap { font-size: 12.5px; color: var(--muted); max-width: 90ch; }
-
   .tabla-wrap { overflow-x: auto; }
   table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
   th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
@@ -172,11 +301,29 @@
   footer { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
   .error { background: var(--warn-bg); color: var(--warn-ink); padding: 12px 16px; border-radius: 10px; }
 
+  /* modal */
+  .modal { position: fixed; inset: 0; background: rgba(10, 14, 22, 0.45); display: grid; place-items: center; z-index: 50;
+    padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+  .modal-caja { background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: var(--shadow); width: min(640px, 100%); max-height: 100%; overflow-y: auto; padding: 20px; display: grid; gap: 14px; }
+  .modal-caja textarea { width: 100%; min-height: 200px; font: 12px/1.4 var(--font-data); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .modal-acciones { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .modal-error { color: var(--bad); font-size: 13px; }
+
+  @media (max-width: 1100px) {
+    .editor { grid-template-columns: 46px minmax(0, 1fr); }
+    .inspector { grid-column: 1 / -1; position: static; max-height: none; }
+  }
   @media (max-width: 860px) {
     .workspace { grid-template-columns: minmax(0, 1fr); }
     .panel { position: static; max-height: none; }
     .barra { grid-template-columns: minmax(0, 1fr) 56px; }
     .barra .track { grid-column: 1 / 3; grid-row: 2; }
+  }
+  @media (max-width: 640px) {
+    .editor { grid-template-columns: minmax(0, 1fr); }
+    .herramientas { flex-direction: row; overflow-x: auto; position: static; }
+    .herramientas .sep { width: 1px; height: auto; margin: 2px 4px; }
+    .lienzo-wrap { height: 62vh; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -188,53 +335,102 @@
     <p class="lead" id="bajada"></p>
   </header>
 
-  <section class="kpis" id="kpis" aria-label="Resultados al final del horizonte"></section>
-  <div id="restriccion"></div>
+  <div class="app-bar">
+    <div class="tabs" role="tablist" aria-label="Modo">
+      <button type="button" role="tab" id="tab-lienzo" aria-selected="true" aria-controls="vista-lienzo">Lienzo</button>
+      <button type="button" role="tab" id="tab-tablero" aria-selected="false" aria-controls="vista-tablero">Tablero</button>
+    </div>
+    <div class="acciones">
+      <span class="chip" id="estado-guardado">Sin cambios</span>
+      <button type="button" class="btn primario" id="btn-guardar">Guardar</button>
+      <button type="button" class="btn" id="btn-copiar">Copiar .mdl</button>
+      <button type="button" class="btn" id="btn-descargar" hidden>Descargar</button>
+      <button type="button" class="btn" id="btn-importar">Importar</button>
+      <button type="button" class="btn" id="btn-nuevo">Nuevo</button>
+    </div>
+  </div>
+  <div class="banner" id="aviso" hidden></div>
 
-  <div class="workspace">
-    <aside class="panel" aria-label="Palancas y supuestos">
-      <section>
-        <div class="panel-head"><h2>Horizonte</h2></div>
-        <div class="seg" id="horizonte" role="group" aria-label="Horizonte de simulación"></div>
-      </section>
-      <section>
-        <div class="panel-head"><h2>Palancas</h2><button class="btn" id="restablecer" type="button">Restablecer todo</button></div>
-        <div id="palancas" class="cuerpo"></div>
-      </section>
-      <section id="sec-bucles">
-        <div class="panel-head"><h2>Flywheels</h2></div>
-        <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él.</p>
-        <div id="bucles" style="display:grid;gap:12px"></div>
-      </section>
-      <section>
-        <div class="panel-head"><h2>Supuestos</h2></div>
-        <div id="supuestos"></div>
-      </section>
-    </aside>
-
-    <main>
-      <section class="card" aria-labelledby="h-res">
-        <div class="aporte-head">
-          <h2 id="h-res">Trayectorias</h2>
-          <div class="leyenda"><span><i class="key esc"></i>Escenario actual</span><span><i class="key base"></i>Base (supuestos de partida)</span></div>
+  <section id="vista-lienzo" role="tabpanel" aria-labelledby="tab-lienzo" class="vista-tab">
+    <div class="editor">
+      <div class="herramientas" role="toolbar" aria-label="Herramientas de dibujo" id="herramientas"></div>
+      <div class="area">
+        <div class="vistas-bar" id="vistas-bar" role="tablist" aria-label="Vistas del modelo"></div>
+        <div class="lienzo-wrap" id="lienzo-wrap">
+          <svg id="lienzo" role="application" aria-label="Lienzo del modelo: niveles, flujos, variables y flechas">
+            <defs>
+              <marker id="m-fle" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" class="fle-punta"/>
+              </marker>
+              <marker id="m-fle-sel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/>
+              </marker>
+            </defs>
+            <g id="mundo"><g id="capa-tub"></g><g id="capa-fle"></g><g id="capa-nod"></g><g id="capa-prev"></g></g>
+          </svg>
+          <div class="pista" id="pista" hidden></div>
+          <div class="zoom">
+            <button type="button" id="z-menos" aria-label="Alejar">−</button>
+            <span class="pct" id="z-pct">100%</span>
+            <button type="button" id="z-mas" aria-label="Acercar">+</button>
+            <button type="button" class="ajustar" id="z-ajustar">Ajustar</button>
+          </div>
         </div>
-        <div class="charts" id="charts"></div>
-        <p class="nota">Pasa el cursor (o usa las flechas sobre un gráfico) para leer cualquier mes; todos los gráficos siguen el mismo mes.</p>
-      </section>
-
-      <section class="card" aria-labelledby="h-aporte">
-        <div class="aporte-head">
-          <h2 id="h-aporte">¿Cuánto aporta cada flywheel?</h2>
-          <label>Medir sobre <select id="metrica"></select></label>
+        <div class="simbar">
+          <span class="sim-estado" id="sim-estado"></span>
+          <label><input type="checkbox" id="minis" checked> Mini gráficos</label>
         </div>
-        <div class="barras" id="barras"></div>
-        <p class="nota" id="nota-aporte"></p>
-      </section>
+      </div>
+      <aside class="inspector" id="inspector" aria-label="Inspector"></aside>
+    </div>
+    <section class="card problemas" id="problemas" aria-label="Problemas del modelo"></section>
+  </section>
 
-      <section class="card" id="sec-mapa" aria-labelledby="h-mapa">
-        <h2 id="h-mapa">Mapa de bucles</h2>
-        <figure class="mapa">
-          <div class="mapa-svg" id="mapa"><svg viewBox="0 0 800 530" role="img" aria-label="Mapa de bucles: la credencial emitida por las unidades académicas llega a estudiantes y empresas; su uso le da valor, y ese valor atrae y retiene instituciones, cerrando el flywheel del ecosistema (R6). Bucles internos: R1 referidos entre instituciones, R2 contagio entre unidades, R3 hábito del estudiante, R4 docentes que se certifican, R5 talento verificable para empresas, R7 boca a boca empresarial. B1 saturación del mercado y B4 capacidad docente frenan el crecimiento." xmlns="http://www.w3.org/2000/svg" class="cld">
+  <section id="vista-tablero" role="tabpanel" aria-labelledby="tab-tablero" class="vista-tab" hidden>
+    <section class="kpis" id="kpis" aria-label="Resultados al final del horizonte"></section>
+    <div id="restriccion"></div>
+    <div class="workspace">
+      <aside class="panel" aria-label="Palancas y supuestos">
+        <section>
+          <div class="panel-head"><h2>Horizonte</h2></div>
+          <div class="seg" id="horizonte" role="group" aria-label="Horizonte de simulación"></div>
+        </section>
+        <section>
+          <div class="panel-head"><h2>Palancas</h2>
+            <span class="fila"><button class="btn mini" id="fijar" type="button" title="Escribe los valores de los sliders en el modelo">Fijar en el modelo</button><button class="btn mini" id="restablecer" type="button">Restablecer</button></span></div>
+          <div id="palancas"></div>
+        </section>
+        <section id="sec-bucles">
+          <div class="panel-head"><h2>Flywheels</h2></div>
+          <p class="ctl-help">Apaga un bucle para ver cuánto crecimiento depende de él.</p>
+          <div id="bucles" style="display:grid;gap:12px"></div>
+        </section>
+        <section>
+          <div class="panel-head"><h2>Supuestos</h2></div>
+          <div id="supuestos"></div>
+        </section>
+      </aside>
+      <div class="tab-main">
+        <section class="card" aria-labelledby="h-res">
+          <div class="aporte-head">
+            <h2 id="h-res">Trayectorias</h2>
+            <div class="leyenda"><span><i class="key esc"></i>Escenario actual</span><span><i class="key base"></i>Base (modelo sin cambios de sliders)</span></div>
+          </div>
+          <div class="charts" id="charts"></div>
+          <div class="fila agregar"><label for="agregar-grafico" class="nota">Agregar gráfico</label><select id="agregar-grafico"></select></div>
+        </section>
+        <section class="card" id="sec-aporte" aria-labelledby="h-aporte">
+          <div class="aporte-head">
+            <h2 id="h-aporte">¿Cuánto aporta cada flywheel?</h2>
+            <label>Medir sobre <select id="metrica"></select></label>
+          </div>
+          <div class="barras" id="barras"></div>
+          <p class="nota" id="nota-aporte"></p>
+        </section>
+        <section class="card" id="sec-mapa" aria-labelledby="h-mapa">
+          <h2 id="h-mapa">Mapa de bucles</h2>
+          <figure class="mapa">
+            <div class="mapa-svg" id="mapa"><svg viewBox="0 0 800 530" role="img" aria-label="Mapa de bucles: la credencial emitida por las unidades académicas llega a estudiantes y empresas; su uso le da valor, y ese valor atrae y retiene instituciones, cerrando el flywheel del ecosistema (R6). Bucles internos: R1 referidos entre instituciones, R2 contagio entre unidades, R3 hábito del estudiante, R4 docentes que se certifican, R5 talento verificable para empresas, R7 boca a boca empresarial. B1 saturación del mercado y B4 capacidad docente frenan el crecimiento." xmlns="http://www.w3.org/2000/svg" class="cld">
   <defs>
     <marker id="cld-punta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -308,24 +504,26 @@
   </g>
 </svg>
 </div>
-          <figcaption class="cap">Todas las flechas son relaciones positivas (+): más de una variable lleva a más de la siguiente. Los bucles R se refuerzan; B1 (el mercado potencial se agota) y B4 (la capacidad docente limita la emisión) frenan el crecimiento. Los bucles apagados en el panel se atenúan.</figcaption>
-        </figure>
-      </section>
+            <figcaption class="cap">Todas las flechas son relaciones positivas (+): más de una variable lleva a más de la siguiente. Los bucles R se refuerzan; B1 (el mercado potencial se agota) y B4 (la capacidad docente limita la emisión) frenan el crecimiento. Los bucles apagados en el panel se atenúan.</figcaption>
+          </figure>
+        </section>
+        <section class="card">
+          <details class="tabla">
+            <summary>Tabla anual del escenario actual</summary>
+            <div class="tabla-wrap"><table id="tabla"></table></div>
+          </details>
+        </section>
+      </div>
+    </div>
+  </section>
 
-      <section class="card">
-        <details class="tabla">
-          <summary>Tabla anual del escenario actual</summary>
-          <div class="tabla-wrap"><table id="tabla"></table></div>
-        </details>
-      </section>
-
-      <footer>
-        <span id="pie"></span>
-        <span>Los resultados describen la lógica del modelo con sus supuestos; no son un pronóstico.</span>
-      </footer>
-    </main>
-  </div>
+  <footer>
+    <span id="pie"></span>
+    <span>Los resultados describen la lógica del modelo con sus supuestos; no son un pronóstico.</span>
+  </footer>
 </div>
+
+<div class="modal" id="modal" hidden><div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" id="modal-caja"></div></div>
 
 <script type="text/plain" id="modelo-mdl">{UTF-8}
 ********************************************************
@@ -1998,26 +2196,705 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
   return { leer, analizar, version: '0.1.0' };
 });
 </script>
-<script>
+<script>/*
+ * modelo.js — modelo editable (variables + diagrama) para el lienzo.
+ *
+ * Convierte un .mdl de Vensim (ecuaciones y vistas del sketch) en un objeto
+ * JSON que el lienzo puede editar, y vuelve a escribirlo como .mdl que abren
+ * Vensim, PySD y Simlin. No toca el DOM: se prueba en Node.
+ *
+ *   const M = Modelo.desdeMdl(texto);      // { control, vars, orden, vistas, ajustes }
+ *   Modelo.renombrar(M, 'vieja', 'nueva'); // actualiza ecuaciones y diagrama
+ *   const texto2 = Modelo.aMdl(M);         // .mdl completo
+ *   Modelo.problemas(M)                    // errores y avisos por variable
+ *
+ * Estructura:
+ *   vars[key] = { nombre, tipo: 'nivel'|'flujo'|'aux'|'tabla', ecuacion, inicial,
+ *                 tasaManual, unidades, comentario, rango: {min,max,paso}|null, grupo }
+ *     (nivel: ecuacion = tasa neta; flujo: los niveles que conecta salen del diagrama)
+ *   vistas[i] = { nombre, items: [...] } con items:
+ *     {id,t:'nivel',key,x,y,w,h}   {id,t:'var',key,x,y,w,h}   {id,t:'sombra',key,x,y,w,h}
+ *     {id,t:'valvula',key,x,y,lx,ly,desde,hacia}  (desde/hacia: id de un nivel o una nube)
+ *     {id,t:'nube',x,y}   {id,t:'flecha',de,a,pol,cx,cy,inicial}   {id,t:'nota',texto,x,y,bucle,horario}
+ */
+(function (raiz, fabrica) {
+  if (typeof module === 'object' && module.exports) module.exports = fabrica();
+  else raiz.Modelo = fabrica();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  const norm = (s) => String(s).replace(/["]/g, '').replace(/[\s_]+/g, ' ').trim().toLowerCase();
+  const CONTROL = ['initial time', 'final time', 'time step', 'saveper'];
+  const FUNCIONES = ['abs', 'exp', 'ln', 'log', 'sqrt', 'sin', 'cos', 'tan', 'min', 'max', 'integer', 'modulo',
+    'quantum', 'xidz', 'zidz', 'if then else', 'step', 'ramp', 'pulse', 'pulse train', 'initial', 'active initial',
+    'smooth', 'smoothi', 'smooth3', 'smooth3i', 'delay1', 'delay1i', 'delay3', 'delay3i', 'with lookup'];
+  const clon = (o) => JSON.parse(JSON.stringify(o));
+
+  // ------------------------------------------------------------ léxico
+  // Recorre una expresión y devuelve los identificadores con su posición,
+  // con las mismas reglas que motor.js (un nombre puede tener espacios).
+  function identificadores(expr) {
+    const res = [];
+    let i = 0;
+    const s = expr || '';
+    while (i < s.length) {
+      const c = s[i];
+      if (c === '{') { const f = s.indexOf('}', i); i = f < 0 ? s.length : f + 1; continue; }
+      if (c === ':') { const m = s.slice(i).match(/^:[A-Z ]+:/i); i += m ? m[0].length : 1; continue; }
+      if (c === '"') {
+        const f = s.indexOf('"', i + 1);
+        const fin = f < 0 ? s.length : f + 1;
+        res.push({ ini: i, fin, texto: s.slice(i + 1, fin - 1), llamada: /^\s*\(/.test(s.slice(fin)) });
+        i = fin; continue;
+      }
+      const num = s.slice(i).match(/^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/);
+      if (num) { i += num[0].length; continue; }
+      const m = s.slice(i).match(/^[A-Za-z_$À-ɏ][\w $'À-ɏ.&%]*/);
+      if (m) {
+        const crudo = m[0];
+        const t = crudo.replace(/\s+$/, '');
+        res.push({ ini: i, fin: i + t.length, texto: t, llamada: /^\s*\(/.test(s.slice(i + crudo.length)) });
+        i += crudo.length; continue;
+      }
+      i++;
+    }
+    return res;
+  }
+
+  /** Claves de las variables que usa una expresión (en orden, sin repetir). */
+  function usa(M, expr) {
+    const out = [];
+    for (const t of identificadores(expr)) {
+      const k = norm(t.texto);
+      if (M.vars[k] && !out.includes(k)) out.push(k);
+    }
+    return out;
+  }
+
+  function reemplazarNombre(expr, viejaKey, nuevoNombre) {
+    const ids = identificadores(expr).filter((t) => norm(t.texto) === viejaKey);
+    let s = expr;
+    for (let j = ids.length - 1; j >= 0; j--) s = s.slice(0, ids[j].ini) + escribirNombre(nuevoNombre) + s.slice(ids[j].fin);
+    return s;
+  }
+
+  const nombreSimple = (n) => /^[A-Za-z_À-ɏ][A-Za-z0-9_ À-ɏ$']*$/.test(n);
+  const escribirNombre = (n) => (nombreSimple(n) ? n : '"' + n.replace(/"/g, '\\"') + '"');
+
+  /** Valida un nombre nuevo; devuelve un mensaje de error o null. */
+  function errorNombre(M, nombre, propioKey) {
+    const n = String(nombre).replace(/\s+/g, ' ').trim();
+    if (!n) return 'El nombre no puede quedar vacío.';
+    if (/[~|"=\[\]:!]/.test(n)) return 'El nombre no puede llevar ~ | " = [ ] : !';
+    if (/^\d/.test(n)) return 'El nombre no puede empezar con un número.';
+    const k = norm(n);
+    if (CONTROL.includes(k) || k === 'time') return 'Ese nombre está reservado para el control de la simulación.';
+    if (FUNCIONES.includes(k)) return 'Ese nombre es una función de Vensim.';
+    if (M.vars[k] && k !== propioKey) return 'Ya existe una variable con ese nombre.';
+    return null;
+  }
+
+  // ------------------------------------------------------- lectura .mdl
+  function separarArgs(s) {
+    const partes = []; let nivel = 0, actual = '';
+    for (const c of s) {
+      if (c === ',' && nivel === 0) { partes.push(actual); actual = ''; continue; }
+      if (c === '(' || c === '[') nivel++;
+      if (c === ')' || c === ']') nivel--;
+      actual += c;
+    }
+    partes.push(actual);
+    return partes.map((x) => x.trim());
+  }
+
+  function separarCampos(linea) {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < linea.length; i++) {
+      const c = linea[i];
+      if (c === '"' && linea[i - 1] !== '\\') { q = !q; cur += c; continue; }
+      if (c === ',' && !q) { out.push(cur); cur = ''; continue; }
+      cur += c;
+    }
+    out.push(cur);
+    return out;
+  }
+
+  function leerEcuaciones(texto) {
+    const fin = texto.indexOf('\\\\\\---///');
+    let eqs = (fin >= 0 ? texto.slice(0, fin) : texto).replace(/^﻿?\{UTF-8\}/, '');
+    eqs = eqs.replace(/\\\r?\n/g, ' ');
+    const vars = {}, orden = [], control = { unidad: 'Month' };
+    let grupo = '';
+    for (const bruto of eqs.split('|')) {
+      const bloque = bruto.trim();
+      if (!bloque) continue;
+      if (bloque.startsWith('*')) {
+        const m = bloque.match(/\n\s*\.([^\n~]+)/);
+        if (m) grupo = m[1].trim();
+        continue;
+      }
+      const campos = bloque.split('~');
+      const def = campos[0].trim();
+      const unidadesTxt = (campos[1] || '').trim();
+      const comentario = (campos[2] || '').replace(/\s+/g, ' ').trim();
+      let rango = null, unidades = unidadesTxt;
+      const mr = unidadesTxt.match(/^(.*?)\s*\[([^\]]*)\]\s*$/);
+      if (mr) {
+        unidades = mr[1].trim();
+        const r = mr[2].split(',').map((x) => (x.trim() === '?' || x.trim() === '' ? null : parseFloat(x)));
+        rango = { min: r[0] ?? null, max: r[1] ?? null, paso: r.length > 2 ? r[2] : null };
+      }
+      if (/:=|\bGET\s|:INTERPOLATE:|:RAW:|:HOLD BACKWARD:|:LOOK FORWARD:/i.test(def)) {
+        throw new Error('El lienzo todavía no admite variables de datos: ' + def.slice(0, 60));
+      }
+      if (/^\s*:MACRO:/i.test(def)) throw new Error('El lienzo todavía no admite macros.');
+      const eqi = def.search(/==|=/);
+      if (eqi < 0) {
+        const pi = def.indexOf('(');
+        if (pi < 0 || /:/.test(def.slice(0, pi))) throw new Error('El lienzo todavía no admite subíndices: ' + def.slice(0, 60));
+        const nombre = def.slice(0, pi).trim().replace(/^"|"$/g, '');
+        const k = norm(nombre);
+        vars[k] = { nombre, tipo: 'tabla', ecuacion: def.slice(pi + 1, def.lastIndexOf(')')).trim(), inicial: '', tasaManual: false, unidades, comentario, rango, grupo };
+        orden.push(k);
+        continue;
+      }
+      const lhs = def.slice(0, eqi).trim();
+      const rhs = def.slice(def[eqi + 1] === '=' ? eqi + 2 : eqi + 1).trim();
+      if (/[\[:]/.test(lhs)) throw new Error('El lienzo todavía no admite subíndices: ' + lhs);
+      const nombre = lhs.replace(/^"|"$/g, '');
+      const k = norm(nombre);
+      if (CONTROL.includes(k)) {
+        const v = parseFloat(rhs);
+        if (k === 'initial time') { control.inicial = v; if (unidades) control.unidad = unidades; }
+        if (k === 'final time') control.final = v;
+        if (k === 'time step') control.paso = v;
+        if (k === 'saveper') control.guardar = norm(rhs) === 'time step' ? null : v;
+        continue;
+      }
+      const integ = rhs.match(/^INTEG\s*\(([\s\S]*)\)\s*$/i);
+      if (integ) {
+        const [tasa, ini] = separarArgs(integ[1]);
+        vars[k] = { nombre, tipo: 'nivel', ecuacion: tasa.replace(/\s+/g, ' '), inicial: ini.replace(/\s+/g, ' '), tasaManual: true, unidades, comentario, rango, grupo };
+      } else {
+        vars[k] = { nombre, tipo: 'aux', ecuacion: rhs.replace(/\s+/g, ' ').trim(), inicial: '', tasaManual: false, unidades, comentario, rango, grupo };
+      }
+      orden.push(k);
+    }
+    for (const [c, d] of [['inicial', 0], ['final', 100], ['paso', 1]]) if (control[c] === undefined || isNaN(control[c])) control[c] = d;
+    if (control.guardar === undefined) control.guardar = null;
+    return { vars, orden, control };
+  }
+
+  function leerVistas(texto, vars) {
+    const ini = texto.indexOf('\\\\\\---///');
+    if (ini < 0) return [];
+    const finIdx = texto.indexOf('///---\\\\\\', ini);
+    const lineas = texto.slice(ini, finIdx < 0 ? texto.length : finIdx).split(/\r?\n/);
+    const vistas = [];
+    let v = null;
+    for (let i = 0; i < lineas.length; i++) {
+      const l = lineas[i];
+      if (l.startsWith('*')) { v = { nombre: l.slice(1).trim() || `Vista ${vistas.length + 1}`, rec: [] }; vistas.push(v); continue; }
+      if (!v || !/^\d+,/.test(l)) continue;
+      const f = separarCampos(l);
+      const r = { tipo: +f[0], id: +f[1], f, linea: l };
+      if (r.tipo === 12 && f[2] !== '48') {
+        const sig = lineas[i + 1];
+        if (sig !== undefined && !/^\d+,/.test(sig) && !sig.startsWith('*') && !sig.startsWith('$') && !sig.startsWith('\\\\\\') && !sig.startsWith('///')) {
+          r.texto = sig; i++;
+        }
+      }
+      v.rec.push(r);
+    }
+    return vistas.map((vv) => convertirVista(vv, vars));
+  }
+
+  function convertirVista(vv, vars) {
+    const items = [];
+    const porId = new Map();     // id del .mdl -> item
+    const etiquetaDeValvula = new Map(); // id de la etiqueta del flujo -> item válvula
+    let ultimaValvula = null;
+    const nom = (s) => s.replace(/^"|"$/g, '').replace(/\\"/g, '"');
+    for (const r of vv.rec) {
+      const f = r.f;
+      if (r.tipo === 10) {
+        const nombre = nom(f[2]), k = norm(nombre);
+        const x = +f[3], y = +f[4], w = +f[5] || 30, h = +f[6] || 10, forma = +f[7], bits = +f[8];
+        if (!vars[k] && k !== 'time' && !CONTROL.includes(k)) { ultimaValvula = null; continue; }
+        if ((forma & 32) && ultimaValvula) {
+          ultimaValvula.key = k; ultimaValvula.lx = x - ultimaValvula.x; ultimaValvula.ly = y - ultimaValvula.y;
+          if (vars[k]) vars[k].tipo = 'flujo';
+          etiquetaDeValvula.set(r.id, ultimaValvula);
+          ultimaValvula = null;
+          continue;
+        }
+        ultimaValvula = null;
+        if (k === 'time' || CONTROL.includes(k)) continue;
+        const sombra = !(bits & 1);
+        const t = sombra ? 'sombra' : (forma & 3) === 3 && vars[k].tipo === 'nivel' ? 'nivel' : 'var';
+        const it = { id: 'e' + r.id, t, key: k, x, y, w, h };
+        items.push(it); porId.set(r.id, it);
+      } else if (r.tipo === 11) {
+        const it = { id: 'e' + r.id, t: 'valvula', key: null, x: +f[3], y: +f[4], lx: 0, ly: 18, desde: null, hacia: null };
+        items.push(it); porId.set(r.id, it); ultimaValvula = it;
+      } else if (r.tipo === 12) {
+        ultimaValvula = null;
+        if (f[2] === '48') {
+          const it = { id: 'e' + r.id, t: 'nube', x: +f[3], y: +f[4] };
+          items.push(it); porId.set(r.id, it);
+        } else if (r.texto !== undefined) {
+          const forma = +f[7];
+          const bucle = (forma === 4 || forma === 5) && /^[RBrb]\d*$/.test(r.texto.trim()) ? r.texto.trim().toUpperCase() : null;
+          items.push({ id: 'e' + r.id, t: 'nota', texto: r.texto, x: +f[3], y: +f[4], bucle, horario: forma === 4 });
+        }
+      } else {
+        ultimaValvula = null;
+      }
+    }
+    for (const r of vv.rec) {
+      if (r.tipo !== 1) continue;
+      const f = r.f;
+      const de = +f[2], a = +f[3];
+      // los puntos van al final como n|(x,y)|...; se leen de la línea cruda porque llevan comas
+      const puntos = (r.linea.slice(r.linea.lastIndexOf(',,') + 2).match(/\((-?\d+),(-?\d+)\)/g)) || [];
+      const pts = puntos.map((p) => p.slice(1, -1).split(',').map(Number));
+      if (f[7] === '22') {
+        const valv = porId.get(de) || etiquetaDeValvula.get(de);
+        const fin = porId.get(a);
+        if (!valv || valv.t !== 'valvula' || !fin) continue;
+        if (+f[4] === 100) valv.desde = fin.id; else valv.hacia = fin.id;
+        continue;
+      }
+      const ia = porId.get(de) || etiquetaDeValvula.get(de);
+      const ib = porId.get(a) || etiquetaDeValvula.get(a);
+      if (!ia || !ib || ia.t === 'nube' || ib.t === 'nube') continue;
+      const pol = f[6] === '43' ? '+' : f[6] === '45' ? '-' : f[6] === '83' ? '+' : f[6] === '79' ? '-' : '';
+      const p = pts[pts.length - 1];
+      const curva = f[4] === '1' && p;
+      items.push({ id: 'e' + r.id, t: 'flecha', de: ia.id, a: ib.id, pol, cx: curva ? p[0] : null, cy: curva ? p[1] : null, inicial: f[10] === '1' });
+    }
+    const out = items.filter((it) => it.t !== 'valvula' || it.key);
+    return { nombre: vv.nombre, items: out };
+  }
+
+  function leerAjustes(texto) {
+    const i = texto.indexOf('///---\\\\\\');
+    if (i < 0) return [];
+    return texto.slice(i + 9).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  }
+
+  function desdeMdl(texto) {
+    const { vars, orden, control } = leerEcuaciones(texto);
+    const vistas = leerVistas(texto, vars);
+    const M = { control, vars, orden, vistas: vistas.length ? vistas : [{ nombre: 'Vista 1', items: [] }], ajustes: leerAjustes(texto) };
+    for (const k of orden) {
+      const v = vars[k];
+      if (v.tipo === 'nivel') v.tasaManual = !tasaCoincide(M, k);
+    }
+    asegurarIds(M);
+    return M;
+  }
+
+  function asegurarIds(M) {
+    M.sig = M.sig || 1;
+    for (const v of M.vistas) for (const it of v.items) {
+      const n = parseInt(String(it.id).replace(/\D/g, ''), 10);
+      if (n >= M.sig) M.sig = n + 1;
+    }
+  }
+  const nuevoId = (M) => 'e' + (M.sig++);
+
+  // --------------------------------------------- estructura de flujos
+  /** {entradas:[keys], salidas:[keys]} de un nivel, según las válvulas del diagrama. */
+  function flujosDe(M, stockKey) {
+    const entradas = [], salidas = [];
+    for (const v of M.vistas) {
+      const porId = new Map(v.items.map((it) => [it.id, it]));
+      for (const it of v.items) {
+        if (it.t !== 'valvula' || !it.key) continue;
+        const d = porId.get(it.desde), h = porId.get(it.hacia);
+        if (h && h.t === 'nivel' && h.key === stockKey && !entradas.includes(it.key)) entradas.push(it.key);
+        if (d && d.t === 'nivel' && d.key === stockKey && !salidas.includes(it.key)) salidas.push(it.key);
+      }
+    }
+    return { entradas, salidas };
+  }
+
+  function tasaAuto(M, stockKey) {
+    const { entradas, salidas } = flujosDe(M, stockKey);
+    const nom = (k) => escribirNombre(M.vars[k].nombre);
+    let s = entradas.map(nom).join('+');
+    for (const k of salidas) s += '-' + nom(k);
+    return s || '0';
+  }
+
+  function terminos(M, expr) {
+    const s = (expr || '').replace(/\s+/g, ' ').trim();
+    if (s === '0' || s === '') return new Map();
+    const out = new Map();
+    const ids = identificadores(s);
+    let pos = 0;
+    for (const t of ids) {
+      const entre = s.slice(pos, t.ini).trim();
+      if (!(entre === '' || entre === '+' || entre === '-') || (pos > 0 && entre === '')) return null;
+      out.set(norm(t.texto), entre === '-' ? -1 : 1);
+      pos = t.fin;
+    }
+    if (s.slice(pos).trim() !== '') return null;
+    return out;
+  }
+
+  function tasaCoincide(M, stockKey) {
+    const a = terminos(M, M.vars[stockKey].ecuacion);
+    const b = terminos(M, tasaAuto(M, stockKey));
+    if (!a || !b || a.size !== b.size) return false;
+    for (const [k, s] of a) if (b.get(k) !== s) return false;
+    return true;
+  }
+
+  /** Recalcula la tasa de los niveles que no tienen tasa manual. */
+  function actualizarTasas(M) {
+    for (const k of M.orden) {
+      const v = M.vars[k];
+      if (v.tipo === 'nivel' && !v.tasaManual) v.ecuacion = tasaAuto(M, k);
+    }
+  }
+
+  // ------------------------------------------------------- escritura .mdl
+  const limpiarComentario = (s) => String(s || '').replace(/[~|]/g, '-').replace(/\s+/g, ' ').trim();
+  const fmtNum = (x) => (x === null || x === undefined || isNaN(x) ? '?' : String(+x));
+
+  function bloqueVariable(v) {
+    let u = v.unidades || '';
+    if (v.rango && (v.rango.min !== null || v.rango.max !== null)) {
+      u += (u ? ' ' : '') + `[${fmtNum(v.rango.min)},${fmtNum(v.rango.max)}${v.rango.paso ? ',' + fmtNum(v.rango.paso) : ''}]`;
+    }
+    const com = limpiarComentario(v.comentario);
+    const nom = escribirNombre(v.nombre);
+    if (v.tipo === 'nivel') {
+      return `${nom}= INTEG (\n\t${v.ecuacion || '0'},\n\t\t${v.inicial || '0'})\n\t~\t${u}\n\t~\t${com}\n\t|\n`;
+    }
+    if (v.tipo === 'tabla') {
+      return `${nom}(\n\t${v.ecuacion})\n\t~\t${u}\n\t~\t${com}\n\t|\n`;
+    }
+    return `${nom}=\n\t${v.ecuacion}\n\t~\t${u}\n\t~\t${com}\n\t|\n`;
+  }
+
+  function cabeceraGrupo(nombre) {
+    return `********************************************************\n\t.${nombre}\n********************************************************~\n\t\t\n\t|\n`;
+  }
+
+  function ecuacionesMdl(M) {
+    const grupos = [];
+    const porGrupo = new Map();
+    for (const k of M.orden) {
+      const g = M.vars[k].grupo || '';
+      if (!porGrupo.has(g)) { porGrupo.set(g, []); grupos.push(g); }
+      porGrupo.get(g).push(k);
+    }
+    let s = '{UTF-8}\n';
+    for (const g of grupos) {
+      if (g) s += cabeceraGrupo(g) + '\n';
+      for (const k of porGrupo.get(g)) s += bloqueVariable(M.vars[k]) + '\n';
+    }
+    const c = M.control, u = c.unidad || 'Month';
+    s += '********************************************************\n\t.Control\n********************************************************~\n\t\tSimulation Control Parameters\n\t|\n\n';
+    s += `FINAL TIME  = ${c.final}\n\t~\t${u}\n\t~\tThe final time for the simulation.\n\t|\n\n`;
+    s += `INITIAL TIME  = ${c.inicial}\n\t~\t${u}\n\t~\tThe initial time for the simulation.\n\t|\n\n`;
+    s += `SAVEPER  = ${c.guardar === null ? '\n        TIME STEP' : c.guardar}\n\t~\t${u} [0,?]\n\t~\tThe frequency with which output is stored.\n\t|\n\n`;
+    s += `TIME STEP  = ${c.paso}\n\t~\t${u} [0,?]\n\t~\tThe time step for the simulation.\n\t|\n\n`;
+    return s;
+  }
+
+  const medioAncho = (nombre) => Math.max(16, Math.ceil(2.9 * Math.min(18, nombre.length)));
+  const sketchNombre = (n) => (/[,"]/.test(n) ? '"' + n.replace(/"/g, '\\"') + '"' : n);
+
+  function vistaMdl(M, vista) {
+    const L = [`\\\\\\---/// Sketch information - do not modify anything except names`,
+      'V300  Do not put anything below this section - it will be ignored',
+      `*${vista.nombre}`,
+      '$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,100,0'];
+    const num = new Map();
+    let n = 0;
+    for (const it of vista.items) if (it.t !== 'flecha') num.set(it.id, ++n);
+    const etiq = new Map();
+    for (const it of vista.items) if (it.t === 'valvula') etiq.set(it.id, ++n);
+    const porId = new Map(vista.items.map((it) => [it.id, it]));
+    const R = (x) => Math.round(x);
+    for (const it of vista.items) {
+      const id = num.get(it.id);
+      const v = it.key ? M.vars[it.key] : null;
+      if (it.t === 'nivel') L.push(`10,${id},${sketchNombre(v.nombre)},${R(it.x)},${R(it.y)},${R(it.w || 40)},${R(it.h || 20)},3,3,0,0,0,0,0,0`);
+      else if (it.t === 'var') L.push(`10,${id},${sketchNombre(v.nombre)},${R(it.x)},${R(it.y)},${R(it.w || medioAncho(v.nombre))},${R(it.h || 8)},8,3,0,0,0,0,0,0`);
+      else if (it.t === 'sombra') L.push(`10,${id},${sketchNombre(v.nombre)},${R(it.x)},${R(it.y)},${R(it.w || medioAncho(v.nombre))},${R(it.h || 8)},8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128`);
+      else if (it.t === 'nube') L.push(`12,${id},48,${R(it.x)},${R(it.y)},10,8,0,3,0,0,-1,0,0,0`);
+      else if (it.t === 'nota') {
+        if (it.bucle) L.push(`12,${id},0,${R(it.x)},${R(it.y)},15,15,${it.horario ? 4 : 5},4,0,0,-1,0,0,0`, it.bucle);
+        else L.push(`12,${id},0,${R(it.x)},${R(it.y)},${R(Math.max(20, 2.6 * Math.min(40, it.texto.length)))},10,8,4,0,8,-1,0,0,0,0-0-0,0-0-0,|10||0-0-0`, it.texto.replace(/\r?\n/g, ' '));
+      } else if (it.t === 'valvula') {
+        const d = porId.get(it.desde), h = porId.get(it.hacia);
+        const vertical = d && h ? Math.abs(h.y - d.y) > Math.abs(h.x - d.x) : false;
+        L.push(vertical ? `11,${id},48,${R(it.x)},${R(it.y)},8,6,33,3,0,0,4,0,0,0` : `11,${id},48,${R(it.x)},${R(it.y)},6,8,34,3,0,0,1,0,0,0`);
+        L.push(`10,${etiq.get(it.id)},${sketchNombre(v.nombre)},${R(it.x + it.lx)},${R(it.y + it.ly)},${medioAncho(v.nombre)},8,40,3,0,0,-1,0,0,0`);
+        for (const [fin, dir] of [[h, 4], [d, 100]]) {
+          if (!fin) continue;
+          const p = ancla(fin, it);
+          L.push(`1,${++n},${id},${num.get(fin.id)},${dir},0,0,22,0,0,0,-1--1--1,,1|(${R(p[0])},${R(p[1])})|`);
+        }
+      }
+    }
+    for (const it of vista.items) {
+      if (it.t !== 'flecha') continue;
+      const a = porId.get(it.de), b = porId.get(it.a);
+      if (!a || !b) continue;
+      const pol = it.pol === '+' ? 43 : it.pol === '-' ? 45 : 0;
+      const curva = it.cx !== null && it.cx !== undefined;
+      const px = curva ? it.cx : (a.x + b.x) / 2, py = curva ? it.cy : (a.y + b.y) / 2;
+      L.push(`1,${++n},${num.get(a.id)},${num.get(b.id)},${curva ? 1 : 0},0,${pol},0,0,64,${it.inicial ? 1 : 0},-1--1--1,,1|(${R(px)},${R(py)})|`);
+    }
+    return L.join('\n');
+  }
+
+  /** Punto donde una tubería toca un nivel o una nube, mirando hacia la válvula. */
+  function ancla(fin, valv) {
+    if (fin.t === 'nube') return [fin.x, fin.y];
+    const w = fin.w || 40, h = fin.h || 20;
+    const dx = valv.x - fin.x, dy = valv.y - fin.y;
+    if (Math.abs(dx) * h >= Math.abs(dy) * w) return [fin.x + Math.sign(dx || 1) * w, fin.y + (dx ? (dy * w) / Math.abs(dx) : 0)];
+    return [fin.x + (dy ? (dx * h) / Math.abs(dy) : 0), fin.y + Math.sign(dy || 1) * h];
+  }
+
+  const AJUSTES_BASE = [':L<%^E!@', '1:Current.vdf', '9:Current', '22:$,Dollar,Dollars,$s', '22:Hour,Hours', '22:Month,Months',
+    '22:Person,People,Persons', '22:Unit,Units', '22:Week,Weeks', '22:Year,Years', '22:Day,Days', '15:0,0,0,0,0,0', '19:100,0',
+    '27:2,', '34:0,', '4:Time', '35:Date', '36:YYYY-MM-DD', '37:2000', '38:1', '39:1', '40:2', '41:0', '42:1', '24:0'];
+
+  function aMdl(M) {
+    actualizarTasas(M);
+    const vistas = M.vistas.map((v) => vistaMdl(M, v)).join('\n');
+    let ajustes = M.ajustes && M.ajustes.length ? M.ajustes.slice() : AJUSTES_BASE.slice();
+    ajustes = ajustes.filter((l) => !/^(25|26):/.test(l));
+    ajustes.push(`25:${M.control.final}`, `26:${M.control.final}`);
+    return ecuacionesMdl(M) + vistas + '\n///---\\\\\\\n' + ajustes.join('\n') + '\n';
+  }
+
+  // ------------------------------------------------------------ edición
+  function nuevoNombre(M, base) {
+    let i = 1, n = base;
+    while (M.vars[norm(n)]) n = `${base} ${++i}`;
+    return n;
+  }
+
+  function agregarVariable(M, tipo, nombre, grupo) {
+    const k = norm(nombre);
+    M.vars[k] = { nombre, tipo, ecuacion: tipo === 'nivel' ? '0' : '', inicial: tipo === 'nivel' ? '0' : '', tasaManual: false, unidades: '', comentario: '', rango: null, grupo: grupo || '' };
+    M.orden.push(k);
+    return k;
+  }
+
+  function renombrar(M, viejaKey, nuevo) {
+    const nombre = String(nuevo).replace(/\s+/g, ' ').trim();
+    const err = errorNombre(M, nombre, viejaKey);
+    if (err) throw new Error(err);
+    const k = norm(nombre);
+    const v = M.vars[viejaKey];
+    for (const kk of M.orden) {
+      const w = M.vars[kk];
+      w.ecuacion = reemplazarNombre(w.ecuacion, viejaKey, nombre);
+      w.inicial = reemplazarNombre(w.inicial, viejaKey, nombre);
+    }
+    v.nombre = nombre;
+    if (k !== viejaKey) {
+      delete M.vars[viejaKey];
+      M.vars[k] = v;
+      M.orden = M.orden.map((x) => (x === viejaKey ? k : x));
+      for (const vista of M.vistas) for (const it of vista.items) if (it.key === viejaKey) it.key = k;
+    }
+    return k;
+  }
+
+  /** Borra un item. Si es la definición (no una sombra) borra la variable de todo el modelo. */
+  function borrarItem(M, vista, itemId) {
+    const it = vista.items.find((x) => x.id === itemId);
+    if (!it) return;
+    if (it.t === 'flecha' || it.t === 'nota' || it.t === 'sombra' || it.t === 'nube') {
+      quitarItems(M, vista, new Set([it.id]));
+      return;
+    }
+    if (it.key) borrarVariable(M, it.key);
+  }
+
+  function borrarVariable(M, key) {
+    for (const vista of M.vistas) {
+      const ids = new Set(vista.items.filter((x) => x.key === key).map((x) => x.id));
+      // los flujos conectados a un nivel borrado pasan a terminar en una nube
+      for (const it of vista.items) {
+        if (it.t !== 'valvula' || ids.has(it.id)) continue;
+        for (const lado of ['desde', 'hacia']) {
+          if (ids.has(it[lado])) {
+            const st = vista.items.find((x) => x.id === it[lado]);
+            const nube = { id: nuevoId(M), t: 'nube', x: st.x, y: st.y };
+            vista.items.push(nube);
+            it[lado] = nube.id;
+          }
+        }
+      }
+      quitarItems(M, vista, ids);
+    }
+    delete M.vars[key];
+    M.orden = M.orden.filter((x) => x !== key);
+  }
+
+  function quitarItems(M, vista, ids) {
+    // al quitar una válvula se quitan sus nubes si nadie más las usa
+    for (const it of vista.items) {
+      if (it.t === 'valvula' && ids.has(it.id)) {
+        for (const lado of ['desde', 'hacia']) {
+          const n = vista.items.find((x) => x.id === it[lado]);
+          if (n && n.t === 'nube') ids.add(n.id);
+        }
+      }
+    }
+    let cambio = true;
+    while (cambio) {
+      cambio = false;
+      for (const it of vista.items) {
+        if (it.t === 'flecha' && !ids.has(it.id) && (ids.has(it.de) || ids.has(it.a))) { ids.add(it.id); cambio = true; }
+      }
+    }
+    vista.items = vista.items.filter((x) => !ids.has(x.id));
+  }
+
+  /** Dónde está definida (no sombra) cada variable: key -> {vista, item}. */
+  function definiciones(M) {
+    const d = new Map();
+    M.vistas.forEach((vista, vi) => {
+      for (const it of vista.items) {
+        if ((it.t === 'nivel' || it.t === 'var' || it.t === 'valvula') && it.key && !d.has(it.key)) d.set(it.key, { vista: vi, item: it });
+      }
+    });
+    return d;
+  }
+
+  /** Flechas que la ecuación necesita y no están dibujadas: [{de, a}] por clave. */
+  function flechasFaltantes(M) {
+    const falt = [];
+    const defs = definiciones(M);
+    for (const k of M.orden) {
+      const v = M.vars[k];
+      const d = defs.get(k);
+      if (!d) continue;
+      const vista = M.vistas[d.vista];
+      const porId = new Map(vista.items.map((it) => [it.id, it]));
+      const entrantes = new Set(vista.items.filter((it) => it.t === 'flecha' && it.a === d.item.id)
+        .map((it) => porId.get(it.de)).filter(Boolean).map((it) => it.key));
+      const deps = v.tipo === 'nivel' ? usa(M, v.inicial) : usa(M, v.ecuacion);
+      const flujos = v.tipo === 'nivel' ? new Set([...flujosDe(M, k).entradas, ...flujosDe(M, k).salidas]) : new Set();
+      for (const dep of deps) {
+        if (dep === k || flujos.has(dep) || entrantes.has(dep)) continue;
+        falt.push({ de: dep, a: k });
+      }
+    }
+    return falt;
+  }
+
+  /** Dibuja las flechas faltantes; crea sombras cuando la causa está en otra vista. */
+  function agregarFlechasFaltantes(M) {
+    const defs = definiciones(M);
+    let n = 0;
+    for (const { de, a } of flechasFaltantes(M)) {
+      const d = defs.get(a);
+      const vista = M.vistas[d.vista];
+      let fuente = vista.items.find((it) => it.key === de && (it.t !== 'valvula' || true) && it.t !== 'flecha');
+      if (!fuente) {
+        const otras = vista.items.filter((it) => it.t === 'sombra' && Math.abs(it.x - (d.item.x - 130)) < 60);
+        fuente = { id: nuevoId(M), t: 'sombra', key: de, x: d.item.x - 130, y: d.item.y - 60 - 22 * otras.length, w: medioAncho(M.vars[de].nombre), h: 8 };
+        vista.items.push(fuente);
+      }
+      vista.items.push({ id: nuevoId(M), t: 'flecha', de: fuente.id, a: d.item.id, pol: '', cx: null, cy: null, inicial: M.vars[a].tipo === 'nivel' });
+      n++;
+    }
+    return n;
+  }
+
+  /** Errores y avisos: [{nivel:'error'|'aviso', key, texto}] */
+  function problemas(M) {
+    const out = [];
+    const defs = definiciones(M);
+    for (const k of M.orden) {
+      const v = M.vars[k];
+      const campos = v.tipo === 'nivel' ? [['tasa', v.ecuacion], ['valor inicial', v.inicial]] : [['ecuación', v.ecuacion]];
+      for (const [qué, expr] of campos) {
+        if (!String(expr || '').trim()) { out.push({ nivel: 'error', key: k, texto: `${v.nombre}: falta la ${qué}` }); continue; }
+        if (v.tipo === 'tabla') continue;
+        for (const t of identificadores(expr)) {
+          const tk = norm(t.texto);
+          if (M.vars[tk] || tk === 'time' || CONTROL.includes(tk)) continue;
+          if (t.llamada && FUNCIONES.includes(tk)) continue;
+          out.push({ nivel: 'error', key: k, texto: t.llamada ? `${v.nombre}: función desconocida «${t.texto}»` : `${v.nombre}: «${t.texto}» no existe` });
+        }
+      }
+      if (!defs.has(k)) out.push({ nivel: 'aviso', key: k, texto: `${v.nombre} no está en ninguna vista` });
+      if (v.tipo === 'nivel' && v.tasaManual && !tasaCoincide(M, k)) out.push({ nivel: 'aviso', key: k, texto: `${v.nombre}: la tasa escrita no coincide con los flujos dibujados` });
+    }
+    for (const f of flechasFaltantes(M)) {
+      out.push({ nivel: 'aviso', key: f.a, texto: `Falta la flecha ${M.vars[f.de].nombre} → ${M.vars[f.a].nombre}`, falta: true });
+    }
+    for (const vista of M.vistas) {
+      const porId = new Map(vista.items.map((it) => [it.id, it]));
+      for (const it of vista.items) {
+        if (it.t !== 'flecha') continue;
+        const a = porId.get(it.de), b = porId.get(it.a);
+        if (!a || !b || !a.key || !b.key) continue;
+        const vb = M.vars[b.key];
+        if (!vb) continue;
+        const usados = vb.tipo === 'nivel' ? usa(M, vb.inicial) : usa(M, vb.ecuacion);
+        if (!usados.includes(a.key)) out.push({ nivel: 'aviso', key: b.key, texto: `La flecha ${M.vars[a.key].nombre} → ${vb.nombre} no se usa en la ecuación`, flecha: it.id, vista: vista.nombre });
+      }
+    }
+    return out;
+  }
+
+  function vacio() {
+    return { control: { inicial: 0, final: 60, paso: 0.25, guardar: 1, unidad: 'Month' }, vars: {}, orden: [], vistas: [{ nombre: 'Vista 1', items: [] }], ajustes: [], sig: 1 };
+  }
+
+  return {
+    norm, desdeMdl, aMdl, ecuacionesMdl, identificadores, usa, renombrar, errorNombre, nuevoNombre, agregarVariable,
+    borrarItem, borrarVariable, quitarItems, flujosDe, tasaAuto, tasaCoincide, actualizarTasas, definiciones,
+    flechasFaltantes, agregarFlechasFaltantes, problemas, vacio, nuevoId, ancla, clon, medioAncho, FUNCIONES, CONTROL,
+  };
+});
+</script>
+<script>/*
+ * app.js — interfaz del simulador: lienzo tipo Vensim + tablero.
+ * Depende de motor.js (window.Motor) y modelo.js (window.Modelo).
+ */
 (function () {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
   const el = (tag, attrs = {}, ...kids) => {
     const n = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) {
-      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v);
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else n.setAttribute(k, v === true ? '' : v);
     }
+    for (const k of kids) if (k !== null && k !== undefined && k !== false) n.append(k);
+    return n;
+  };
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs = {}, ...kids) => {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) if (v !== null && v !== undefined) n.setAttribute(k, v);
     for (const k of kids) if (k) n.append(k);
     return n;
   };
-  const SVG = 'http://www.w3.org/2000/svg';
-  const sv = (tag, attrs = {}) => { const n = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
-  const norm = (s) => s.replace(/[\s_]+/g, ' ').trim().toLowerCase();
-
-  const CFG = JSON.parse($('#config').textContent);
-  let modelo;
-  try { modelo = Motor.leer($('#modelo-mdl').textContent); }
-  catch (e) { document.querySelector('.page').prepend(el('p', { class: 'error', text: 'No se pudo leer el modelo: ' + e.message })); return; }
+  const N = Modelo.norm;
+  const clon = (o) => JSON.parse(JSON.stringify(o));
+  const almacen = {
+    leer(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
+    escribir(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } },
+    borrar(k) { try { localStorage.removeItem(k); } catch (e) { /* sin almacenamiento */ } },
+  };
 
   // ---------------------------------------------------------- formatos
   const TILDES = { fraccion: 'fracción', prospeccion: 'prospección', conversion: 'conversión', duracion: 'duración',
@@ -2029,24 +2906,26 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
     numero: 'número', decision: 'decisión', informacion: 'información', rotacion: 'rotación',
     capacitacion: 'capacitación', vicerrectoria: 'vicerrectoría', rectoria: 'rectoría', educacion: 'educación',
     innovacion: 'innovación', segun: 'según', tambien: 'también', aun: 'aún', esten: 'estén', area: 'área' };
-  const tildes = (txt) => txt.replace(/[A-Za-z]+/g, (w) => {
+  const tildes = (txt) => String(txt).replace(/[A-Za-z]+/g, (w) => {
     const t = TILDES[w.toLowerCase()];
     return !t ? w : w[0] === w[0].toUpperCase() ? t[0].toUpperCase() + t.slice(1) : t;
   });
   const etiqueta = (n) => { const s = tildes(n); return s.charAt(0).toUpperCase() + s.slice(1); };
   const nf = (d) => new Intl.NumberFormat('es', { maximumFractionDigits: d });
   const fmt = (v) => {
-    if (!isFinite(v)) return '—';
+    if (v === undefined || v === null || !isFinite(v)) return '—';
     const a = Math.abs(v);
     if (a >= 1e6) return nf(2).format(v / 1e6) + ' M';
     if (a >= 1e4) return nf(1).format(v / 1e3) + ' mil';
     if (a >= 100) return nf(0).format(v);
     if (a >= 1) return nf(1).format(v);
-    return nf(2).format(v);
+    if (a === 0) return '0';
+    if (a < 0.01) return v.toExponential(1).replace('.', ',');
+    return nf(3).format(v);
   };
   const UNID = { Month: 'meses', Dmnl: '', Institucion: 'inst.', Unidad: 'unid.', Docente: 'docentes', Credencial: 'cred.',
     Persona: 'personas', Empresa: 'empresas', Busqueda: 'búsq.', Uso: 'usos', Contratacion: 'contrat.', Dia: 'días' };
-  const fmtUnidad = (u) => u.replace(/\(([^)]*)\)/g, (m, d) => d.split('*').join('/'))
+  const fmtUnidad = (u) => String(u || '').replace(/\(([^)]*)\)/g, (m, d) => d.split('*').join('/'))
     .replace(/[A-Za-z]+/g, (w) => (w === 'Month' ? 'mes' : w in UNID ? UNID[w] : w)).replace(/\*/g, '·').trim();
   const fmtValor = (c, v) => {
     const u = c.unidades;
@@ -2056,160 +2935,1219 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
     if (u === 'Month') return nf(0).format(v) + ' meses';
     return nf(v < 10 ? 2 : 0).format(v) + ' ' + fmtUnidad(u);
   };
+  const lineas = (texto, max = 16) => {
+    const out = []; let cur = '';
+    for (const w of String(texto).split(' ')) {
+      if (cur && (cur + ' ' + w).length > max) { out.push(cur); cur = w; } else cur = cur ? cur + ' ' + w : w;
+    }
+    if (cur) out.push(cur);
+    return out.length ? out : [''];
+  };
 
   // ------------------------------------------------------------ estado
-  const CONSTS = modelo.constantes();
-  const porNombre = new Map(CONSTS.map((c) => [norm(c.nombre), c]));
-  const estado = { cambios: {}, final: CFG.horizontes.includes(60) ? 60 : CFG.horizontes[0], hover: null, metrica: 0 };
-  const CLAVE = 'simulador:' + CFG.titulo;
-  try {
-    const g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
-    if (g) {
-      for (const [k, v] of Object.entries(g.cambios || {})) if (porNombre.has(norm(k))) estado.cambios[norm(k)] = v;
-      if (CFG.horizontes.includes(g.final)) estado.final = g.final;
+  const CFG_EMB = JSON.parse($('#config').textContent || '{}');
+  const S = {
+    M: null, cfg: null, vista: 0, herr: 'sel', sel: [], cam: { x: 0, y: 0, k: 1 },
+    hist: [], fut: [], histFoco: false,
+    comp: null, res: null, probs: [], errSim: null, minis: true,
+    guardado: '', guardando: false, soloLectura: false, artifact: null, downloads: null,
+    pestana: 'lienzo', tableroSucio: true, arr: null, espacio: false,
+  };
+  const CLAVE_BORRADOR = () => 'lienzo:' + (S.cfg && S.cfg.titulo || 'modelo');
+  const vistaAct = () => S.M.vistas[S.vista];
+  const itemsVista = () => vistaAct().items;
+  const item = (id) => itemsVista().find((x) => x.id === id);
+  const textoMdl = () => Modelo.aMdl(clon(S.M));
+  // lo que se guarda: el modelo y la configuración del tablero (gráficos agregados o quitados)
+  const estadoGuardable = () => textoMdl() + '\n' + JSON.stringify(S.cfg);
+
+  // ----------------------------------------------------------- historial
+  function pushHist() {
+    S.hist.push(JSON.stringify({ M: S.M, vista: S.vista, sel: S.sel }));
+    if (S.hist.length > 120) S.hist.shift();
+    S.fut = [];
+    pintarHerramientas();
+  }
+  function restaurar(snap) {
+    const o = JSON.parse(snap);
+    S.M = o.M; S.vista = Math.min(o.vista, S.M.vistas.length - 1); S.sel = o.sel.filter((id) => item(id));
+    cambio({ estructura: true });
+  }
+  function deshacer() { if (!S.hist.length) return; S.fut.push(JSON.stringify({ M: S.M, vista: S.vista, sel: S.sel })); restaurar(S.hist.pop()); }
+  function rehacer() { if (!S.fut.length) return; S.hist.push(JSON.stringify({ M: S.M, vista: S.vista, sel: S.sel })); restaurar(S.fut.pop()); }
+
+  // ------------------------------------------------------------ cambios
+  let tSim = null, tBorrador = null;
+  function cambio({ estructura = false, inspector = estructura } = {}) {
+    Modelo.actualizarTasas(S.M);
+    pintarLienzo();
+    if (estructura) pintarVistas();
+    if (inspector) pintarInspector();
+    pintarHerramientas();
+    clearTimeout(tSim); tSim = setTimeout(simular, 180);
+    clearTimeout(tBorrador); tBorrador = setTimeout(guardarBorrador, 700);
+    pintarGuardado();
+  }
+
+  // ----------------------------------------------------------- simulación
+  function simular() {
+    S.probs = Modelo.problemas(S.M);
+    const errores = S.probs.filter((p) => p.nivel === 'error');
+    S.errores = new Set(errores.map((p) => p.key));
+    if (!S.M.orden.length) {
+      S.errSim = 'Modelo vacío: crea un nivel o una variable para empezar.'; S.comp = null; S.res = null;
+    } else if (errores.length) {
+      S.errSim = `${errores.length} ${errores.length === 1 ? 'error impide' : 'errores impiden'} simular; se muestran los últimos resultados válidos.`;
+    } else {
+      try {
+        const comp = Motor.leer(textoMdl());
+        S.res = comp.simular();
+        S.comp = comp; S.errSim = null;
+        S.tableroSucio = true;
+      } catch (e) {
+        S.errSim = e.message;
+      }
     }
-  } catch (e) { /* almacenamiento no disponible */ }
-  const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify({ cambios: estado.cambios, final: estado.final })); } catch (e) { /* sin almacenamiento */ } };
+    pintarLienzo(); pintarEstadoSim(); pintarProblemas(); pintarGraficoInspector(); pintarErrorInspector();
+    if (S.pestana === 'tablero') montarTablero();
+  }
+  const serie = (key) => {
+    if (!S.res || !S.M.vars[key]) return null;
+    try { return S.res.serie(S.M.vars[key].nombre); } catch (e) { return null; }
+  };
 
-  let base, esc;
-  const valorActual = (c) => (norm(c.nombre) in estado.cambios ? estado.cambios[norm(c.nombre)] : c.valor);
+  // ============================================================ LIENZO
+  const SVG = $('#lienzo'), MUNDO = $('#mundo');
+  const CAPA = { tub: $('#capa-tub'), fle: $('#capa-fle'), nod: $('#capa-nod'), prev: $('#capa-prev') };
 
-  // ------------------------------------------------------ cabecera
-  $('#titulo').textContent = CFG.titulo;
-  $('#antetitulo').textContent = CFG.antetitulo || '';
-  $('#bajada').textContent = CFG.bajada || '';
-  $('#pie').textContent = CFG.pie || '';
+  function aplicarCam() {
+    MUNDO.setAttribute('transform', `translate(${S.cam.x},${S.cam.y}) scale(${S.cam.k})`);
+    $('#z-pct').textContent = Math.round(S.cam.k * 100) + '%';
+  }
+  function aMundo(e) {
+    const r = SVG.getBoundingClientRect();
+    return { x: (e.clientX - r.left - S.cam.x) / S.cam.k, y: (e.clientY - r.top - S.cam.y) / S.cam.k };
+  }
+  function zoom(f, cx, cy) {
+    const r = SVG.getBoundingClientRect();
+    if (cx === undefined) { cx = r.width / 2; cy = r.height / 2; }
+    const k = Math.min(3, Math.max(0.2, S.cam.k * f));
+    S.cam.x = cx - ((cx - S.cam.x) * k) / S.cam.k;
+    S.cam.y = cy - ((cy - S.cam.y) * k) / S.cam.k;
+    S.cam.k = k; aplicarCam();
+  }
+  function ajustar() {
+    const its = itemsVista().filter((it) => it.t !== 'flecha');
+    const r = SVG.getBoundingClientRect();
+    if (r.width) S.ajustado = true;
+    if (!its.length || !r.width) { S.cam = { x: r.width / 2 || 300, y: r.height / 2 || 200, k: 1 }; aplicarCam(); return; }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const it of its) {
+      const g = geo(it);
+      x0 = Math.min(x0, it.x - g.w); x1 = Math.max(x1, it.x + g.w);
+      y0 = Math.min(y0, it.y - g.h); y1 = Math.max(y1, it.y + g.h + (S.minis ? 22 : 0));
+      if (it.t === 'valvula') { x0 = Math.min(x0, it.x + it.lx - 60); x1 = Math.max(x1, it.x + it.lx + 60); y1 = Math.max(y1, it.y + it.ly + 30); }
+    }
+    const pad = 40;
+    const k = Math.min(1.4, Math.max(0.25, Math.min((r.width - 2 * pad) / (x1 - x0 || 1), (r.height - 2 * pad) / (y1 - y0 || 1))));
+    S.cam = { k, x: (r.width - (x1 - x0) * k) / 2 - x0 * k, y: (r.height - (y1 - y0) * k) / 2 - y0 * k };
+    aplicarCam();
+  }
 
-  // ------------------------------------------------------ controles
-  const controles = new Map();
-  function control(c) {
-    const k = norm(c.nombre);
-    const r = c.rango || { min: 0, max: c.valor * 2 || 1, paso: null };
-    const min = r.min ?? 0, max = r.max ?? Math.max(c.valor * 2, 1);
-    const paso = r.paso || (max - min) / 100;
-    const id = 'c-' + k.replace(/[^a-z0-9]+/g, '-');
-    const out = el('output', { for: id });
-    const input = el('input', { type: 'range', id, min, max, step: paso });
-    input.value = valorActual(c);
-    const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al supuesto de partida', title: 'Volver al supuesto de partida', text: '↺' });
-    const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, ''));
-    const box = el('div', { class: 'ctl' },
-      el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
-      el('div', { class: 'ctl-row' }, input, reset),
-      help ? el('p', { class: 'ctl-help', text: help }) : null);
-    const pintar = () => {
-      const v = valorActual(c);
-      out.textContent = fmtValor(c, v);
-      box.classList.toggle('cambiado', k in estado.cambios);
+  /** Medio ancho y medio alto de un elemento (para anclar flechas y tuberías). */
+  function geo(it) {
+    if (it.t === 'nivel') {
+      const v = S.M.vars[it.key];
+      const ls = lineas(v ? v.nombre : '', 14);
+      return { w: Math.max(it.w || 40, Math.max(...ls.map((l) => l.length)) * 3.4 + 10), h: Math.max(it.h || 20, ls.length * 7.5 + 8) };
+    }
+    if (it.t === 'var' || it.t === 'sombra') {
+      const v = S.M.vars[it.key];
+      const ls = lineas((it.t === 'sombra' ? '<' : '') + (v ? v.nombre : '') + (it.t === 'sombra' ? '>' : ''), 16);
+      return { w: Math.max(...ls.map((l) => l.length)) * 3.3 + 5, h: ls.length * 7.5 + 2 };
+    }
+    if (it.t === 'valvula') return { w: 8, h: 8 };
+    if (it.t === 'nube') return { w: 12, h: 9 };
+    if (it.t === 'nota') return it.bucle ? { w: 14, h: 14 } : { w: Math.min(140, it.texto.length * 3.3 + 6), h: 9 };
+    return { w: 10, h: 10 };
+  }
+  const dentro = (p, it) => { const g = geo(it); return Math.abs(p.x - it.x) <= g.w && Math.abs(p.y - it.y) <= g.h; };
+  const qb = (p0, p1, p2, t) => ({ x: (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x, y: (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y });
+  const blossom = (p0, p1, p2, a, b) => ({
+    x: (1 - a) * (1 - b) * p0.x + (a * (1 - b) + b * (1 - a)) * p1.x + a * b * p2.x,
+    y: (1 - a) * (1 - b) * p0.y + (a * (1 - b) + b * (1 - a)) * p1.y + a * b * p2.y,
+  });
+  function curvaFlecha(f, a, b) {
+    const p0 = { x: a.x, y: a.y }, p2 = { x: b.x, y: b.y };
+    // (cx, cy) es un punto por el que pasa la curva (convención de Vensim); de ahí sale el punto de control
+    const p1 = f.cx !== null && f.cx !== undefined ? { x: 2 * f.cx - (a.x + b.x) / 2, y: 2 * f.cy - (a.y + b.y) / 2 } : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const salida = (it, desde) => {
+      let lo = desde ? 0 : 1, hi = desde ? 1 : 0;
+      if (!dentro(qb(p0, p1, p2, lo), it)) return lo;
+      for (let i = 0; i < 22; i++) { const m = (lo + hi) / 2; if (dentro(qb(p0, p1, p2, m), it)) lo = m; else hi = m; }
+      return hi;
     };
-    input.addEventListener('input', () => {
-      const v = parseFloat(input.value);
-      if (Math.abs(v - c.valor) < 1e-12) delete estado.cambios[k]; else estado.cambios[k] = v;
-      pintar(); programar();
+    const t0 = salida(a, true), t1 = Math.max(t0 + 0.01, salida(b, false));
+    const q0 = blossom(p0, p1, p2, t0, t0), q1 = blossom(p0, p1, p2, t0, t1), q2 = blossom(p0, p1, p2, t1, t1);
+    return { q0, q1, q2, medio: qb(p0, p1, p2, 0.5), p0, p2 };
+  }
+
+  function pintarLienzo() {
+    if (!S.M) return;
+    const vista = vistaAct();
+    const porId = new Map(vista.items.map((it) => [it.id, it]));
+    const sel = new Set(S.sel);
+    for (const c of Object.values(CAPA)) if (c !== CAPA.prev) c.replaceChildren();
+    const errores = S.errores || new Set();
+
+    // tuberías y válvulas
+    for (const it of vista.items) {
+      if (it.t !== 'valvula') continue;
+      const d = porId.get(it.desde), h = porId.get(it.hacia);
+      const pd = d ? anclaTub(d, it) : { x: it.x - 60, y: it.y }, ph = h ? anclaTub(h, it) : { x: it.x + 60, y: it.y };
+      const dpath = `M${pd.x},${pd.y} L${it.x},${it.y} L${ph.x},${ph.y}`;
+      const ang = Math.atan2(ph.y - it.y, ph.x - it.x);
+      const g = sv('g', { 'data-id': it.id, class: sel.has(it.id) ? 'sel' : null });
+      g.append(sv('path', { d: dpath, class: 'tub-ext' }), sv('path', { d: dpath, class: 'tub-int' }));
+      const tip = { x: ph.x, y: ph.y };
+      const bx = tip.x - Math.cos(ang) * 11, by = tip.y - Math.sin(ang) * 11;
+      const nx = -Math.sin(ang) * 7, ny = Math.cos(ang) * 7;
+      g.append(sv('polygon', { points: `${tip.x},${tip.y} ${bx + nx},${by + ny} ${bx - nx},${by - ny}`, class: 'tub-punta' }));
+      CAPA.tub.append(g);
+    }
+    // flechas
+    for (const it of vista.items) {
+      if (it.t !== 'flecha') continue;
+      const a = porId.get(it.de), b = porId.get(it.a);
+      if (!a || !b) continue;
+      const c = curvaFlecha(it, a, b);
+      const d = `M${c.q0.x},${c.q0.y} Q${c.q1.x},${c.q1.y} ${c.q2.x},${c.q2.y}`;
+      const g = sv('g', { 'data-id': it.id, class: sel.has(it.id) ? 'sel' : null });
+      g.append(sv('path', { d, class: 'fle-hit' }));
+      g.append(sv('path', { d, class: 'fle' + (it.inicial ? ' ini' : ''), 'marker-end': sel.has(it.id) ? 'url(#m-fle-sel)' : 'url(#m-fle)' }));
+      if (it.pol) {
+        const t = 0.82, p = qb(c.q0, c.q1, c.q2, t), q = qb(c.q0, c.q1, c.q2, t - 0.02);
+        const dx = p.x - q.x, dy = p.y - q.y, len = Math.hypot(dx, dy) || 1;
+        g.append(sv('text', { x: p.x - (dy / len) * 9, y: p.y + (dx / len) * 9 + 4, 'text-anchor': 'middle', class: 'pol' }, document.createTextNode(it.pol === '-' ? '−' : '+')));
+      }
+      if (sel.has(it.id) && S.sel.length === 1) g.append(sv('circle', { cx: c.medio.x, cy: c.medio.y, r: 5, class: 'asa', 'data-asa': it.id }));
+      CAPA.fle.append(g);
+    }
+    // nodos
+    for (const it of vista.items) {
+      if (it.t === 'flecha') continue;
+      const g = sv('g', { 'data-id': it.id, transform: `translate(${it.x},${it.y})` });
+      const cls = [];
+      if (sel.has(it.id)) cls.push('sel');
+      const v = it.key ? S.M.vars[it.key] : null;
+      if (v && errores.has(it.key)) cls.push('err');
+      if (it.t === 'nivel') {
+        const gg = geo(it);
+        g.append(sv('rect', { x: -gg.w, y: -gg.h, width: 2 * gg.w, height: 2 * gg.h, rx: 3, class: 'n-caja' }));
+        textoMultilinea(g, lineas(v.nombre, 14), 0, 0);
+        mini(g, it.key, gg.h + 5, gg.w * 2);
+      } else if (it.t === 'var' || it.t === 'sombra') {
+        const gg = geo(it);
+        const esConst = it.t === 'var' && esConstante(v);
+        if (esConst) cls.push('n-const');
+        if (it.t === 'sombra') cls.push('n-sombra');
+        g.append(sv('rect', { x: -gg.w - 3, y: -gg.h - 2, width: 2 * gg.w + 6, height: 2 * gg.h + 4, rx: 6, class: 'n-fondo' }));
+        textoMultilinea(g, lineas((it.t === 'sombra' ? '<' : '') + v.nombre + (it.t === 'sombra' ? '>' : ''), 16), 0, 0);
+        if (it.t === 'var') {
+          if (esConst) { if (S.minis) g.append(sv('text', { x: 0, y: gg.h + 11, 'text-anchor': 'middle', class: 'valor' }, document.createTextNode('= ' + fmt(parseFloat(v.ecuacion))))); }
+          else mini(g, it.key, gg.h + 4, 56);
+        }
+      } else if (it.t === 'valvula') {
+        const d = porId.get(it.desde), h = porId.get(it.hacia);
+        const vert = d && h ? Math.abs(h.y - d.y) > Math.abs(h.x - d.x) : false;
+        g.append(sv('path', { d: vert ? 'M-6,-7 L6,7 L-6,7 L6,-7 Z' : 'M-7,-6 L7,6 L7,-6 L-7,6 Z', class: 'valv' }));
+        g.append(sv('circle', { r: 11, class: 'n-hit' }));
+        const lg = sv('g', { transform: `translate(${it.lx},${it.ly})` });
+        const ls = lineas(v.nombre, 16);
+        // con varias líneas, el bloque crece alejándose de la válvula (hacia abajo o hacia arriba)
+        const dy = Math.abs(it.lx) > Math.abs(it.ly) ? 0 : (ls.length - 1) * 7.5 * (it.ly < 0 ? -1 : 1);
+        lg.append(sv('rect', { x: -Math.max(...ls.map((l) => l.length)) * 3.3 - 6, y: dy - ls.length * 7.5 - 2, width: Math.max(...ls.map((l) => l.length)) * 6.6 + 12, height: ls.length * 15 + 4, rx: 6, class: 'n-fondo' }));
+        textoMultilinea(lg, ls, 0, dy);
+        mini(lg, it.key, dy + ls.length * 7.5 + 4, 56);
+        g.append(lg);
+      } else if (it.t === 'nube') {
+        g.append(sv('path', { d: 'M-11,5 a5,5 0 0 1 1,-9.5 a6.5,6.5 0 0 1 12,-1.5 a5.5,5.5 0 0 1 8.5,6 a4.5,4.5 0 0 1 -2,8 h-16 a4.5,4.5 0 0 1 -3.5,-3 z', class: 'nube' }));
+      } else if (it.t === 'nota') {
+        if (it.bucle) {
+          g.append(sv('circle', { r: 13, class: 'bucle-c' }));
+          g.append(sv('path', { d: it.horario ? 'M-9,-9 A13,13 0 0 1 9,-9' : 'M9,-9 A13,13 0 0 0 -9,-9', fill: 'none', stroke: 'var(--accent)', 'stroke-width': 1.4, 'marker-end': 'url(#m-fle-sel)' }));
+          g.append(sv('text', { y: 4, 'text-anchor': 'middle', class: 'bucle-t' }, document.createTextNode(it.bucle)));
+        } else {
+          const gg = geo(it);
+          g.append(sv('rect', { x: -gg.w - 4, y: -gg.h - 3, width: 2 * gg.w + 8, height: 2 * gg.h + 6, rx: 6, class: 'n-fondo' }));
+          g.append(sv('text', { y: 4, 'text-anchor': 'middle', class: 'nota-t' }, document.createTextNode(it.texto)));
+        }
+      }
+      if (v && errores.has(it.key)) { const gg = geo(it); g.append(sv('circle', { cx: gg.w + 4, cy: -gg.h, r: 3.5, class: 'err-dot' })); }
+      if (v) g.append(sv('title', {}, document.createTextNode(tooltipVar(it.key))));
+      if (cls.length) g.setAttribute('class', cls.join(' '));
+      CAPA.nod.append(g);
+    }
+    SVG.classList.toggle('h-crear', S.herr !== 'sel');
+  }
+
+  function anclaTub(fin, valv) {
+    if (fin.t === 'nube') {
+      const dx = valv.x - fin.x, dy = valv.y - fin.y, L = Math.hypot(dx, dy) || 1;
+      return { x: fin.x + (dx / L) * 13, y: fin.y + (dy / L) * 10 };
+    }
+    const g = geo(fin);
+    const [x, y] = Modelo.ancla({ t: 'nivel', x: fin.x, y: fin.y, w: g.w, h: g.h }, valv);
+    return { x, y };
+  }
+  function textoMultilinea(g, ls, x, y) {
+    const y0 = y - ((ls.length - 1) * 15) / 2 + 4;
+    ls.forEach((l, i) => g.append(sv('text', { x, y: y0 + i * 15, 'text-anchor': 'middle', class: 'n-txt' }, document.createTextNode(l))));
+  }
+  function mini(g, key, y, ancho) {
+    if (!S.minis) return;
+    const s = serie(key);
+    if (!s || s.length < 2) return;
+    let lo = Math.min(...s), hi = Math.max(...s);
+    if (!isFinite(lo) || !isFinite(hi)) return;
+    if (hi - lo < 1e-12) { lo -= 1; hi += 1; }
+    const w = Math.min(ancho, 64), h = 14;
+    const pts = s.map((v, i) => `${(-w / 2 + (w * i) / (s.length - 1)).toFixed(1)},${(y + h - ((v - lo) / (hi - lo)) * h).toFixed(1)}`).join(' ');
+    g.append(sv('line', { x1: -w / 2, x2: w / 2, y1: y + h, y2: y + h, class: 'spark-base' }));
+    g.append(sv('polyline', { points: pts, class: 'spark' }));
+  }
+  function esConstante(v) { return v && v.tipo === 'aux' && /^-?\s*(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(String(v.ecuacion).trim()); }
+  function tooltipVar(key) {
+    const v = S.M.vars[key];
+    if (!v) return '';
+    const s = serie(key);
+    const fin = s ? ` · al final: ${fmt(s[s.length - 1])}` : '';
+    const eq = v.tipo === 'nivel' ? `INTEG(${v.ecuacion}, ${v.inicial})` : v.ecuacion;
+    return `${v.nombre}${v.unidades ? ' [' + v.unidades + ']' : ''}${fin}\n= ${eq}`;
+  }
+
+  // ------------------------------------------------------- herramientas
+  const ICONOS = {
+    sel: 'M5 3 L5 17 L9 13 L12 19 L14 18 L11 12 L16 12 Z',
+    nivel: 'M3 6 H17 V14 H3 Z',
+    flujo: 'M1 9 H6 M14 9 H19 M7 5 L13 13 L13 5 L7 13 Z M16 6 L19 9 L16 12',
+    var: 'M10 4 A6 6 0 1 0 10.01 4 M7 10 H13',
+    flecha: 'M3 15 Q8 3 16 8 M13 5 L16 8 L12 10',
+    nota: 'M4 5 H16 M10 5 V16 M7 16 H13',
+    borrar: 'M5 6 H15 M8 6 V4 H12 V6 M6 6 L7 17 H13 L14 6',
+    deshacer: 'M7 6 L3 10 L7 14 M3 10 H12 A4 4 0 0 1 12 18 H9',
+    rehacer: 'M13 6 L17 10 L13 14 M17 10 H8 A4 4 0 0 0 8 18 H11',
+  };
+  const HERR = [
+    ['sel', 'Seleccionar y mover (V)'], ['nivel', 'Nivel / stock (S)'], ['flujo', 'Flujo (F): arrastra de un nivel o un espacio vacío a otro'],
+    ['var', 'Variable auxiliar o constante (A)'], ['flecha', 'Flecha causal (C): arrastra de la causa al efecto'], ['nota', 'Comentario (T)'],
+  ];
+  const PISTAS = {
+    nivel: 'Clic en el lienzo para crear un nivel. Esc para volver a seleccionar.',
+    var: 'Clic en el lienzo para crear una variable. Esc para volver a seleccionar.',
+    flujo: 'Arrastra desde un nivel (o un espacio vacío = nube) hasta otro nivel (o un espacio vacío).',
+    flecha: 'Arrastra desde la causa hasta el efecto.',
+    nota: 'Clic en el lienzo para escribir un comentario.',
+  };
+  function pintarHerramientas() {
+    const box = $('#herramientas');
+    if (!box.childElementCount) {
+      const icono = (d) => { const s = sv('svg', { width: 20, height: 20, viewBox: '0 0 20 20', 'aria-hidden': 'true' }); s.append(sv('path', { d, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' })); return s; };
+      for (const [h, t] of HERR) {
+        const b = el('button', { type: 'button', 'data-h': h, title: t, 'aria-label': t, 'aria-pressed': 'false' }, icono(ICONOS[h]));
+        b.addEventListener('click', () => usarHerr(h));
+        box.append(b);
+      }
+      box.append(el('div', { class: 'sep' }));
+      for (const [id, t, fn] of [['borrar', 'Eliminar selección (Supr)', borrarSel], ['deshacer', 'Deshacer (Ctrl+Z)', deshacer], ['rehacer', 'Rehacer (Ctrl+Shift+Z)', rehacer]]) {
+        const b = el('button', { type: 'button', 'data-a': id, title: t, 'aria-label': t }, icono(ICONOS[id]));
+        b.addEventListener('click', fn);
+        box.append(b);
+      }
+    }
+    box.querySelectorAll('[data-h]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.h === S.herr)));
+    box.querySelector('[data-a=borrar]').disabled = !S.sel.length;
+    box.querySelector('[data-a=deshacer]').disabled = !S.hist.length;
+    box.querySelector('[data-a=rehacer]').disabled = !S.fut.length;
+    const p = $('#pista');
+    p.hidden = !PISTAS[S.herr];
+    p.textContent = PISTAS[S.herr] || '';
+  }
+  function usarHerr(h) { S.herr = h; cancelarArrastre(); pintarHerramientas(); pintarLienzo(); }
+
+  // ------------------------------------------------------ interacción
+  const conectable = (it) => it && ['nivel', 'var', 'sombra', 'valvula'].includes(it.t);
+  function bajoPuntero(e) {
+    const n = document.elementFromPoint(e.clientX, e.clientY);
+    const g = n && n.closest && n.closest('#lienzo [data-id]');
+    return g ? item(g.dataset.id) : null;
+  }
+  function cancelarArrastre() { S.arr = null; CAPA.prev.replaceChildren(); SVG.classList.remove('h-pan'); }
+
+  SVG.addEventListener('pointerdown', (e) => {
+    if (!S.M) return;
+    const p = aMundo(e);
+    const asa = e.target.closest && e.target.closest('[data-asa]');
+    const g = e.target.closest && e.target.closest('[data-id]');
+    const it = g ? item(g.dataset.id) : null;
+    SVG.setPointerCapture(e.pointerId);
+    if (e.button === 1 || S.espacio) { S.arr = { tipo: 'pan', sx: e.clientX, sy: e.clientY, cx: S.cam.x, cy: S.cam.y }; SVG.classList.add('h-pan'); return; }
+    if (asa) { S.arr = { tipo: 'curva', id: asa.dataset.asa, hist: false }; return; }
+    switch (S.herr) {
+      case 'sel':
+        if (it) {
+          if (e.shiftKey) S.sel = S.sel.includes(it.id) ? S.sel.filter((x) => x !== it.id) : [...S.sel, it.id];
+          else if (!S.sel.includes(it.id)) S.sel = [it.id];
+          const orig = new Map();
+          for (const id of S.sel) { const x = item(id); if (x && x.t !== 'flecha') orig.set(id, { x: x.x, y: x.y }); }
+          const fles = itemsVista().filter((f) => f.t === 'flecha' && f.cx !== null && f.cx !== undefined).map((f) => ({ f, cx: f.cx, cy: f.cy }));
+          S.arr = { tipo: 'mover', x0: p.x, y0: p.y, orig, fles, movido: false };
+          pintarLienzo(); pintarInspector(); pintarHerramientas();
+        } else {
+          if (!e.shiftKey && S.sel.length) { S.sel = []; pintarLienzo(); pintarInspector(); pintarHerramientas(); }
+          S.arr = { tipo: 'pan', sx: e.clientX, sy: e.clientY, cx: S.cam.x, cy: S.cam.y }; SVG.classList.add('h-pan');
+        }
+        break;
+      case 'nivel': case 'var': case 'nota':
+        crear(S.herr, p); break;
+      case 'flujo':
+        S.arr = { tipo: 'flujo', desde: it && it.t === 'nivel' ? it.id : null, x0: it && it.t === 'nivel' ? it.x : p.x, y0: it && it.t === 'nivel' ? it.y : p.y, x: p.x, y: p.y };
+        break;
+      case 'flecha':
+        if (conectable(it)) S.arr = { tipo: 'flecha', de: it.id, x: p.x, y: p.y };
+        break;
+    }
+  });
+  SVG.addEventListener('pointermove', (e) => {
+    const A = S.arr;
+    if (!A) return;
+    const p = aMundo(e);
+    if (A.tipo === 'pan') { S.cam.x = A.cx + e.clientX - A.sx; S.cam.y = A.cy + e.clientY - A.sy; aplicarCam(); return; }
+    if (A.tipo === 'mover') {
+      let dx = p.x - A.x0, dy = p.y - A.y0;
+      if (!A.movido && Math.hypot(dx, dy) * S.cam.k < 3) return;
+      if (!A.movido) { pushHist(); A.movido = true; }
+      dx = Math.round(dx); dy = Math.round(dy);
+      for (const [id, o] of A.orig) { const x = item(id); if (x) { x.x = o.x + dx; x.y = o.y + dy; } }
+      for (const { f, cx, cy } of A.fles) {
+        const n = (A.orig.has(f.de) ? 1 : 0) + (A.orig.has(f.a) ? 1 : 0);
+        if (n) { f.cx = cx + (dx * n) / 2; f.cy = cy + (dy * n) / 2; }
+      }
+      pintarLienzo(); return;
+    }
+    if (A.tipo === 'curva') {
+      const f = item(A.id);
+      const a = item(f.de), b = item(f.a);
+      if (!A.hist) { pushHist(); A.hist = true; }
+      f.cx = Math.round(p.x); f.cy = Math.round(p.y);
+      pintarLienzo(); return;
+    }
+    if (A.tipo === 'flujo' || A.tipo === 'flecha') {
+      A.x = p.x; A.y = p.y;
+      CAPA.prev.replaceChildren();
+      const o = A.tipo === 'flecha' ? item(A.de) : { x: A.x0, y: A.y0 };
+      CAPA.prev.append(sv('line', { x1: o.x, y1: o.y, x2: p.x, y2: p.y, class: A.tipo === 'flujo' ? 'prev-tub' : 'prev' }));
+    }
+  });
+  SVG.addEventListener('pointerup', (e) => {
+    const A = S.arr;
+    if (!A) return;
+    S.arr = null; CAPA.prev.replaceChildren(); SVG.classList.remove('h-pan');
+    if (A.tipo === 'mover' && A.movido) cambio({});
+    if (A.tipo === 'curva' && A.hist) cambio({});
+    if (A.tipo === 'flujo') {
+      const p = aMundo(e);
+      const it = bajoPuntero(e);
+      const hacia = it && it.t === 'nivel' ? it.id : null;
+      if (Math.hypot(p.x - A.x0, p.y - A.y0) < 20 && !hacia) return;
+      if (hacia && hacia === A.desde) return;
+      crearFlujo(A.desde, { x: A.x0, y: A.y0 }, hacia, p);
+    }
+    if (A.tipo === 'flecha') {
+      const it = bajoPuntero(e);
+      if (conectable(it) && it.id !== A.de) crearFlecha(A.de, it.id);
+    }
+  });
+  SVG.addEventListener('pointercancel', cancelarArrastre);
+  SVG.addEventListener('dblclick', (e) => {
+    const g = e.target.closest && e.target.closest('[data-id]');
+    const it = g ? item(g.dataset.id) : null;
+    if (!it) return;
+    S.sel = [it.id]; pintarLienzo(); pintarInspector();
+    const f = $('#insp-eq') || $('#insp-nota');
+    if (f) { f.focus(); if (f.select) f.select(); }
+  });
+  SVG.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const r = SVG.getBoundingClientRect();
+    if (e.ctrlKey || e.metaKey) zoom(Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top);
+    else { S.cam.x -= e.deltaX; S.cam.y -= e.deltaY; aplicarCam(); }
+  }, { passive: false });
+  $('#z-mas').addEventListener('click', () => zoom(1.2));
+  $('#z-menos').addEventListener('click', () => zoom(1 / 1.2));
+  $('#z-ajustar').addEventListener('click', ajustar);
+  $('#minis').addEventListener('change', (e) => { S.minis = e.target.checked; pintarLienzo(); });
+
+  // ----------------------------------------------------------- creación
+  function grupoVista() {
+    const cuenta = new Map();
+    for (const it of itemsVista()) {
+      if (!it.key || it.t === 'sombra') continue;
+      const g = S.M.vars[it.key] && S.M.vars[it.key].grupo;
+      if (g) cuenta.set(g, (cuenta.get(g) || 0) + 1);
+    }
+    let mejor = '', n = 0;
+    for (const [g, c] of cuenta) if (c > n) { mejor = g; n = c; }
+    return mejor || vistaAct().nombre.replace(/^\d+\s+/, '');
+  }
+  function crear(tipo, p) {
+    pushHist();
+    const x = Math.round(p.x), y = Math.round(p.y);
+    let it;
+    if (tipo === 'nota') it = { id: Modelo.nuevoId(S.M), t: 'nota', texto: 'Comentario', x, y, bucle: null, horario: true };
+    else {
+      const nombre = Modelo.nuevoNombre(S.M, tipo === 'nivel' ? 'Nuevo nivel' : 'nueva variable');
+      const k = Modelo.agregarVariable(S.M, tipo === 'nivel' ? 'nivel' : 'aux', nombre, grupoVista());
+      if (tipo === 'var') S.M.vars[k].ecuacion = '';
+      it = tipo === 'nivel' ? { id: Modelo.nuevoId(S.M), t: 'nivel', key: k, x, y, w: 40, h: 20 } : { id: Modelo.nuevoId(S.M), t: 'var', key: k, x, y, w: Modelo.medioAncho(nombre), h: 8 };
+    }
+    itemsVista().push(it);
+    S.sel = [it.id]; S.herr = 'sel';
+    cambio({ estructura: true });
+    const f = tipo === 'nota' ? $('#insp-nota') : $('#insp-nombre');
+    if (f) { f.focus(); f.select(); }
+  }
+  function crearFlujo(desdeId, p0, haciaId, p1) {
+    pushHist();
+    const items = itemsVista();
+    const nube = (p) => { const n = { id: Modelo.nuevoId(S.M), t: 'nube', x: Math.round(p.x), y: Math.round(p.y) }; items.push(n); return n.id; };
+    const dId = desdeId || nube(p0);
+    const hId = haciaId || nube(p1);
+    const d = item(dId), h = item(hId);
+    const nombre = Modelo.nuevoNombre(S.M, 'nuevo flujo');
+    const k = Modelo.agregarVariable(S.M, 'flujo', nombre, grupoVista());
+    const vert = Math.abs(h.y - d.y) > Math.abs(h.x - d.x);
+    const v = { id: Modelo.nuevoId(S.M), t: 'valvula', key: k, x: Math.round((d.x + h.x) / 2), y: Math.round((d.y + h.y) / 2), lx: vert ? 0 : 0, ly: vert ? 0 : 22, desde: dId, hacia: hId };
+    if (vert) v.lx = 14 + Modelo.medioAncho(nombre);
+    items.push(v);
+    S.sel = [v.id];
+    cambio({ estructura: true });
+    const f = $('#insp-nombre');
+    if (f) { f.focus(); f.select(); }
+  }
+  function crearFlecha(de, a) {
+    const ya = itemsVista().find((f) => f.t === 'flecha' && f.de === de && f.a === a);
+    if (ya) { S.sel = [ya.id]; pintarLienzo(); pintarInspector(); return; }
+    pushHist();
+    const b = item(a);
+    const f = { id: Modelo.nuevoId(S.M), t: 'flecha', de, a, pol: '', cx: null, cy: null, inicial: b.t === 'nivel' };
+    itemsVista().push(f);
+    S.sel = [f.id];
+    cambio({ estructura: true });
+  }
+  function borrarSel() {
+    if (!S.sel.length) return;
+    pushHist();
+    for (const id of S.sel) Modelo.borrarItem(S.M, vistaAct(), id);
+    S.sel = [];
+    cambio({ estructura: true });
+  }
+
+  // ------------------------------------------------------------- vistas
+  function pintarVistas() {
+    const bar = $('#vistas-bar'); bar.replaceChildren();
+    S.M.vistas.forEach((v, i) => {
+      const b = el('button', { type: 'button', role: 'tab', class: 'vt', 'aria-selected': String(i === S.vista), title: 'Doble clic para renombrar', text: v.nombre });
+      b.addEventListener('click', () => irVista(i));
+      b.addEventListener('dblclick', () => renombrarVista(i, b));
+      bar.append(b);
     });
-    reset.addEventListener('click', () => { delete estado.cambios[k]; input.value = c.valor; pintar(); programar(); });
-    controles.set(k, { input, pintar, c });
-    pintar();
-    return box;
+    const mas = el('button', { type: 'button', class: 'vt vt-mas', title: 'Agregar una vista', 'aria-label': 'Agregar una vista', text: '+' });
+    mas.addEventListener('click', () => { pushHist(); S.M.vistas.push({ nombre: `Vista ${S.M.vistas.length + 1}`, items: [] }); S.vista = S.M.vistas.length - 1; S.sel = []; cambio({ estructura: true }); ajustar(); });
+    bar.append(mas);
+  }
+  function irVista(i) { if (i === S.vista) return; S.vista = i; S.sel = []; pintarVistas(); pintarLienzo(); pintarInspector(); ajustar(); pintarHerramientas(); }
+  function renombrarVista(i, boton) {
+    const inp = el('input', { class: 'vt-input', type: 'text', 'aria-label': 'Nombre de la vista' });
+    inp.value = S.M.vistas[i].nombre;
+    boton.replaceWith(inp); inp.focus(); inp.select();
+    const fin = (ok) => {
+      const n = inp.value.replace(/\s+/g, ' ').trim();
+      if (ok && n && n !== S.M.vistas[i].nombre && !/[\r\n]/.test(n)) { pushHist(); S.M.vistas[i].nombre = n; cambio({ estructura: true }); } else pintarVistas();
+    };
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') fin(true); if (e.key === 'Escape') fin(false); });
+    inp.addEventListener('blur', () => fin(true));
+  }
+  function ir(key, itemId) {
+    const defs = Modelo.definiciones(S.M);
+    let vi = S.vista, id = itemId;
+    if (key && !itemId) { const d = defs.get(key); if (!d) return; vi = d.vista; id = d.item.id; }
+    if (vi !== S.vista) { S.vista = vi; pintarVistas(); }
+    S.sel = id ? [id] : [];
+    const it = item(id);
+    if (it) {
+      const r = SVG.getBoundingClientRect();
+      const x = it.t === 'flecha' ? (item(it.de).x + item(it.a).x) / 2 : it.x, y = it.t === 'flecha' ? (item(it.de).y + item(it.a).y) / 2 : it.y;
+      S.cam.x = r.width / 2 - x * S.cam.k; S.cam.y = r.height / 2 - y * S.cam.k; aplicarCam();
+    }
+    pintarLienzo(); pintarInspector(); pintarHerramientas();
+    $('#lienzo-wrap').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  const esBucle = (c) => norm(c.nombre) in normBucles;
-  const normBucles = Object.fromEntries(Object.entries(CFG.bucles || {}).map(([k, v]) => [norm(k), v]));
-  const palancas = CONSTS.filter((c) => /PALANCA/.test(c.comentario) && !esBucle(c));
-  palancas.forEach((c) => $('#palancas').append(control(c)));
-
-  const grupos = new Map();
-  for (const c of CONSTS) {
-    if (esBucle(c) || palancas.includes(c)) continue;
-    if (!grupos.has(c.grupo)) grupos.set(c.grupo, []);
-    grupos.get(c.grupo).push(c);
+  // ------------------------------------------------------------ inspector
+  const FUNCS = [
+    ['MIN(a, b)', 'MIN( , )'], ['MAX(a, b)', 'MAX( , )'], ['IF THEN ELSE(cond, sí, no)', 'IF THEN ELSE( , , )'],
+    ['XIDZ(a, b, si b=0)', 'XIDZ( , , )'], ['ZIDZ(a, b)', 'ZIDZ( , )'], ['SMOOTH(entrada, tiempo)', 'SMOOTH( , )'],
+    ['SMOOTH3(entrada, tiempo)', 'SMOOTH3( , )'], ['DELAY1(entrada, tiempo)', 'DELAY1( , )'], ['DELAY3(entrada, tiempo)', 'DELAY3( , )'],
+    ['STEP(altura, tiempo)', 'STEP( , )'], ['RAMP(pendiente, inicio, fin)', 'RAMP( , , )'], ['PULSE(inicio, duración)', 'PULSE( , )'],
+    ['EXP(x)', 'EXP( )'], ['LN(x)', 'LN( )'], ['ABS(x)', 'ABS( )'], ['INITIAL(x)', 'INITIAL( )'], ['Time', 'Time'],
+  ];
+  function insertar(campo, texto) {
+    if (!campo) return;
+    const a = campo.selectionStart ?? campo.value.length, b = campo.selectionEnd ?? campo.value.length;
+    const antes = campo.value.slice(0, a), despues = campo.value.slice(b);
+    const sep = antes && !/[\s(,*/+\-^]$/.test(antes) ? '' : '';
+    campo.value = antes + sep + texto + despues;
+    const pos = (antes + sep + texto).length;
+    campo.focus(); campo.setSelectionRange(pos, pos);
+    campo.dispatchEvent(new Event('input', { bubbles: true }));
   }
-  for (const [g, lista] of grupos) {
-    const det = el('details', { class: 'grupo' }, el('summary', { text: (CFG.grupos || {})[g] || etiqueta(g) + ` (${lista.length})` }));
-    if ((CFG.grupos || {})[g]) det.firstChild.textContent = CFG.grupos[g] + ` (${lista.length})`;
-    const cuerpo = el('div', { class: 'cuerpo' });
-    lista.forEach((c) => cuerpo.append(control(c)));
-    det.append(cuerpo);
-    $('#supuestos').append(det);
+  function campo(etq, control, extra) {
+    const id = control.id;
+    return el('div', { class: 'campo' }, el('label', { for: id, text: etq }), control, extra || null);
+  }
+  function entradaTexto(id, valor, onFin, attrs = {}) {
+    const i = el('input', { type: 'text', id, autocomplete: 'off', spellcheck: 'false', ...attrs });
+    i.value = valor ?? '';
+    i.addEventListener('change', () => onFin(i.value, i));
+    i.addEventListener('keydown', (e) => { if (e.key === 'Enter') i.blur(); });
+    return i;
+  }
+  function areaEcuacion(id, valor, onInput) {
+    const t = el('textarea', { id, class: 'eq', spellcheck: 'false', autocomplete: 'off', rows: 3 });
+    t.value = valor ?? '';
+    t.addEventListener('focus', () => { S.histFoco = false; });
+    t.addEventListener('input', () => { if (!S.histFoco) { pushHist(); S.histFoco = true; } onInput(t.value); });
+    t.addEventListener('blur', () => { S.histFoco = false; });
+    return t;
   }
 
-  // interruptores de bucles
-  const bucleCtl = new Map();
-  for (const c of CONSTS.filter(esBucle)) {
-    const k = norm(c.nombre), meta = normBucles[k];
-    const id = 'b-' + meta.codigo;
-    const sw = el('input', { type: 'checkbox', class: 'switch', id, role: 'switch' });
-    sw.checked = valorActual(c) !== 0;
-    const fila = el('div', { class: 'bucle' },
-      el('span', { class: 'codigo', text: meta.codigo }),
-      el('label', { class: 'bucle-nombre', for: id, text: meta.nombre }), sw,
-      el('span', { class: 'bucle-desc', text: meta.descripcion }));
-    const pintar = () => {
-      const on = valorActual(c) !== 0;
-      sw.checked = on; fila.classList.toggle('off', !on);
-      document.querySelectorAll('#mapa [data-loop]').forEach((n) => {
-        if (norm(n.getAttribute('data-loop')) === k) n.classList.toggle('apagado', !on);
+  function pintarInspector() {
+    const box = $('#inspector'); box.replaceChildren();
+    if (!S.M) return;
+    if (S.sel.length > 1) {
+      box.append(el('div', { class: 'ins-head' }, el('h2', { text: `${S.sel.length} elementos` }), el('p', { class: 'ayuda nota', text: 'Arrástralos juntos o elimínalos.' })));
+      const b = el('button', { type: 'button', class: 'btn peligro', text: 'Eliminar selección' }); b.addEventListener('click', borrarSel);
+      box.append(b); return;
+    }
+    const it = S.sel.length ? item(S.sel[0]) : null;
+    if (!it) return inspectorModelo(box);
+    if (it.t === 'flecha') return inspectorFlecha(box, it);
+    if (it.t === 'nota') return inspectorNota(box, it);
+    if (it.t === 'nube') {
+      box.append(el('div', { class: 'ins-head' }, el('span', { class: 'tipo-chip', text: 'Nube' }), el('h2', { text: 'Límite del modelo' })),
+        el('p', { class: 'nota', text: 'Indica que el flujo viene de fuera del sistema o sale de él. Para conectar el flujo a un nivel, borra el flujo y vuelve a dibujarlo desde o hacia ese nivel.' }));
+      return;
+    }
+    inspectorVariable(box, it);
+  }
+
+  function inspectorModelo(box) {
+    const c = S.M.control;
+    box.append(el('div', { class: 'ins-head' }, el('span', { class: 'tipo-chip', text: 'Modelo' }),
+      el('h2', { text: `${S.M.orden.length} variables · ${S.M.vistas.length} ${S.M.vistas.length === 1 ? 'vista' : 'vistas'}` })));
+    const num = (id, etq, valor, fn, attrs = {}) => {
+      const i = el('input', { type: 'number', id, step: 'any', ...attrs }); i.value = valor;
+      i.addEventListener('change', () => { const v = parseFloat(i.value); if (!isFinite(v)) { i.value = valor; return; } pushHist(); fn(v); cambio({}); });
+      return el('div', { class: 'campo' }, el('label', { for: id, text: etq }), i);
+    };
+    box.append(el('div', { class: 'fila3' },
+      num('c-ini', 'Inicio', c.inicial, (v) => { c.inicial = v; }),
+      num('c-fin', 'Fin', c.final, (v) => { c.final = v; }),
+      num('c-paso', 'Paso (dt)', c.paso, (v) => { if (v > 0) c.paso = v; }, { min: 0 })));
+    const u = entradaTexto('c-unidad', c.unidad, (val) => { pushHist(); c.unidad = val.trim() || 'Month'; cambio({}); });
+    const g = num('c-guardar', 'Guardar cada', c.guardar === null ? c.paso : c.guardar, (v) => { c.guardar = v > 0 ? v : null; });
+    box.append(el('div', { class: 'fila3' }, campo('Unidad de tiempo', u), g));
+    box.append(el('p', { class: 'campo ayuda', text: 'Usa un paso que sea potencia de 2 (1, 0,5, 0,25, 0,125…) y al menos 4 veces menor que la constante de tiempo más corta.' }));
+
+    // buscador
+    const q = el('input', { type: 'search', class: 'buscar', id: 'buscar', placeholder: 'Buscar variable…', 'aria-label': 'Buscar variable' });
+    const lista = el('div', { class: 'lista-res' });
+    const defs = Modelo.definiciones(S.M);
+    const pintarRes = () => {
+      lista.replaceChildren();
+      const t = N(q.value);
+      const keys = S.M.orden.filter((k) => !t || k.includes(t)).slice(0, 60);
+      for (const k of keys) {
+        const v = S.M.vars[k], d = defs.get(k);
+        const b = el('button', { type: 'button' }, el('span', { text: v.nombre }), el('small', { text: `${{ nivel: 'nivel', flujo: 'flujo', aux: esConstante(v) ? 'constante' : 'auxiliar', tabla: 'tabla' }[v.tipo]} · ${d ? S.M.vistas[d.vista].nombre : 'sin vista'}` }));
+        b.addEventListener('click', () => (d ? ir(k) : null));
+        lista.append(b);
+      }
+    };
+    q.addEventListener('input', pintarRes); pintarRes();
+    box.append(el('div', { class: 'campo' }, el('span', { class: 'lbl', text: 'Variables' }), q, lista));
+
+    const sinVista = S.M.orden.filter((k) => !defs.has(k));
+    if (sinVista.length) {
+      const b = el('button', { type: 'button', class: 'btn', text: `Colocar ${sinVista.length} sin vista aquí` });
+      b.addEventListener('click', () => { pushHist(); colocarSinVista(sinVista); cambio({ estructura: true }); ajustar(); });
+      box.append(b);
+    }
+    const borrarV = el('button', { type: 'button', class: 'btn peligro', text: `Eliminar la vista «${vistaAct().nombre}»`, disabled: S.M.vistas.length < 2 });
+    borrarV.addEventListener('click', () => confirmar(`Eliminar la vista «${vistaAct().nombre}»`, 'Se borran también las variables definidas en ella (las sombras en otras vistas quedan sin definición).', 'Eliminar vista', () => {
+      pushHist();
+      const vista = vistaAct();
+      for (const it of vista.items.slice()) if ((it.t === 'nivel' || it.t === 'var' || it.t === 'valvula') && it.key && S.M.vars[it.key]) Modelo.borrarVariable(S.M, it.key);
+      S.M.vistas.splice(S.vista, 1); S.vista = 0; S.sel = [];
+      cambio({ estructura: true }); ajustar();
+    }));
+    box.append(borrarV);
+    box.append(el('div', { class: 'atajos' },
+      el('span', {}, el('kbd', { text: 'V' }), ' seleccionar · ', el('kbd', { text: 'S' }), ' nivel · ', el('kbd', { text: 'F' }), ' flujo · ', el('kbd', { text: 'A' }), ' variable · ', el('kbd', { text: 'C' }), ' flecha · ', el('kbd', { text: 'T' }), ' comentario'),
+      el('span', {}, el('kbd', { text: 'Supr' }), ' eliminar · ', el('kbd', { text: 'Ctrl+Z' }), ' deshacer · ', el('kbd', { text: 'Ctrl+S' }), ' guardar'),
+      el('span', {}, 'Arrastra el fondo o usa la rueda para moverte; ', el('kbd', { text: 'Ctrl' }), ' + rueda para acercar.')));
+  }
+
+  function colocarSinVista(keys) {
+    const items = itemsVista();
+    let x0 = 0, y0 = 0;
+    if (items.length) { y0 = Math.max(...items.filter((i) => i.y !== undefined).map((i) => i.y)) + 90; x0 = Math.min(...items.filter((i) => i.x !== undefined).map((i) => i.x)); }
+    keys.forEach((k, i) => {
+      const v = S.M.vars[k];
+      const x = x0 + (i % 5) * 190, y = y0 + Math.floor(i / 5) * 80;
+      if (v.tipo === 'nivel') items.push({ id: Modelo.nuevoId(S.M), t: 'nivel', key: k, x, y, w: 40, h: 20 });
+      else items.push({ id: Modelo.nuevoId(S.M), t: 'var', key: k, x, y, w: Modelo.medioAncho(v.nombre), h: 8 });
+      if (v.tipo === 'flujo') v.tipo = 'aux';
+    });
+  }
+
+  function inspectorVariable(box, it) {
+    const key = it.key, v = S.M.vars[key];
+    if (!v) return;
+    const tipoTxt = it.t === 'sombra' ? 'Sombra' : { nivel: 'Nivel (stock)', flujo: 'Flujo', aux: esConstante(v) ? 'Constante' : 'Variable auxiliar', tabla: 'Tabla (lookup)' }[v.tipo];
+    const nombreErr = el('p', { class: 'error-txt', hidden: true });
+    const nombre = entradaTexto('insp-nombre', v.nombre, (val, inp) => {
+      const n = val.replace(/\s+/g, ' ').trim();
+      if (n === v.nombre) return;
+      const err = Modelo.errorNombre(S.M, n, key);
+      if (err) { nombreErr.textContent = err; nombreErr.hidden = false; inp.value = v.nombre; return; }
+      pushHist(); Modelo.renombrar(S.M, key, n); cambio({ estructura: true });
+    });
+    box.append(el('div', { class: 'ins-head' }, el('span', { class: 'tipo-chip', text: tipoTxt })));
+    box.append(campo('Nombre', nombre, nombreErr));
+    if (it.t === 'sombra') {
+      const b = el('button', { type: 'button', class: 'btn', text: 'Ir a la definición' });
+      b.addEventListener('click', () => ir(key));
+      box.append(el('p', { class: 'nota', text: 'Una sombra muestra en esta vista una variable definida en otra. Lo que edites aquí cambia la variable original.' }), b);
+    }
+
+    // entradas disponibles (causas con flecha en esta vista)
+    const porId = new Map(itemsVista().map((x) => [x.id, x]));
+    const entradas = [];
+    for (const f of itemsVista()) {
+      if (f.t !== 'flecha' || f.a !== it.id) continue;
+      const o = porId.get(f.de);
+      if (o && o.key && !entradas.includes(o.key)) entradas.push(o.key);
+    }
+    const chipsEntradas = (campoDestino) => {
+      if (!entradas.length) return el('p', { class: 'ayuda', text: 'Dibuja flechas hacia esta variable para tener sus causas a mano.' });
+      const ch = el('div', { class: 'chips' });
+      for (const k of entradas) {
+        const b = el('button', { type: 'button', class: 'chip-var', text: S.M.vars[k].nombre, title: 'Insertar en la ecuación' });
+        b.addEventListener('mousedown', (e) => e.preventDefault());
+        b.addEventListener('click', () => insertar(campoDestino(), S.M.vars[k].nombre));
+        ch.append(b);
+      }
+      return ch;
+    };
+    const selFunc = (campoDestino) => {
+      const s = el('select', { 'aria-label': 'Insertar función' }, el('option', { value: '', text: 'Insertar función…' }));
+      FUNCS.forEach(([t, ins]) => s.append(el('option', { value: ins, text: t })));
+      s.addEventListener('change', () => { if (s.value) insertar(campoDestino(), s.value); s.value = ''; });
+      return s;
+    };
+
+    if (v.tipo === 'nivel') {
+      const fl = Modelo.flujosDe(S.M, key);
+      const auto = Modelo.tasaAuto(S.M, key);
+      const tasaBox = el('div', { class: 'campo' }, el('span', { class: 'lbl', text: 'Tasa neta (entradas − salidas)' }));
+      if (!v.tasaManual) {
+        tasaBox.append(el('div', { class: 'tasa', text: fl.entradas.length || fl.salidas.length ? auto : '0 (todavía no hay flujos conectados)' }));
+        const b = el('button', { type: 'button', class: 'btn mini', text: 'Escribir la tasa a mano' });
+        b.addEventListener('click', () => { pushHist(); v.tasaManual = true; cambio({ inspector: true }); });
+        tasaBox.append(el('div', { class: 'fila' }, b));
+      } else {
+        const t = areaEcuacion('insp-tasa', v.ecuacion, (val) => { v.ecuacion = val; cambio({}); });
+        const b = el('button', { type: 'button', class: 'btn mini', text: 'Usar los flujos dibujados' });
+        b.addEventListener('click', () => { pushHist(); v.tasaManual = false; cambio({ inspector: true }); });
+        tasaBox.append(t, el('div', { class: 'fila' }, b));
+      }
+      box.append(tasaBox);
+      const ini = areaEcuacion('insp-eq', v.inicial, (val) => { v.inicial = val; cambio({}); });
+      box.append(el('div', { class: 'campo' }, el('label', { for: 'insp-eq', text: 'Valor inicial' }), ini, el('div', { class: 'fila' }, selFunc(() => $('#insp-eq'))), chipsEntradas(() => $('#insp-eq'))));
+    } else if (v.tipo === 'tabla') {
+      const t = areaEcuacion('insp-eq', v.ecuacion, (val) => { v.ecuacion = val; cambio({}); });
+      box.append(el('div', { class: 'campo' }, el('label', { for: 'insp-eq', text: 'Puntos de la tabla' }), t,
+        el('p', { class: 'ayuda', text: 'Formato de Vensim: [(xmin,ymin)-(xmax,ymax)],(x1,y1),(x2,y2),… Se usa como función: nombre(x).' })));
+    } else {
+      const t = areaEcuacion('insp-eq', v.ecuacion, (val) => { v.ecuacion = val; cambio({}); pintarSliderConst(); });
+      box.append(el('div', { class: 'campo' }, el('label', { for: 'insp-eq', text: v.tipo === 'flujo' ? 'Ecuación del flujo (por unidad de tiempo)' : 'Ecuación' }), t,
+        el('div', { class: 'fila' }, selFunc(() => $('#insp-eq'))), chipsEntradas(() => $('#insp-eq'))));
+    }
+    box.append(el('div', { id: 'insp-errores', class: 'campo' }));
+
+    // slider rápido para constantes
+    const sliderBox = el('div', { id: 'insp-slider', class: 'campo' });
+    box.append(sliderBox);
+    const pintarSliderConst = () => {
+      sliderBox.replaceChildren();
+      if (!esConstante(v)) return;
+      const val = parseFloat(v.ecuacion);
+      const r = v.rango || {};
+      const min = r.min ?? Math.min(0, val), max = r.max ?? (val ? Math.abs(val) * 2 : 1), paso = r.paso || (max - min) / 100 || 0.01;
+      const s = el('input', { type: 'range', id: 'insp-rango', min, max, step: paso, 'aria-label': 'Valor' });
+      s.value = val;
+      s.addEventListener('pointerdown', () => { pushHist(); });
+      s.addEventListener('keydown', () => { if (!S.histFoco) { pushHist(); S.histFoco = true; } });
+      s.addEventListener('input', () => { v.ecuacion = String(+s.value); const eq = $('#insp-eq'); if (eq) eq.value = v.ecuacion; cambio({}); });
+      sliderBox.append(el('span', { class: 'lbl', text: `Valor: ${v.ecuacion}` }), s);
+    };
+    pintarSliderConst();
+
+    // unidades, rango y comentario
+    const unidades = entradaTexto('insp-unidades', v.unidades, (val) => { pushHist(); v.unidades = val.trim(); cambio({}); });
+    box.append(campo('Unidades', unidades));
+    if (esConstante(v)) {
+      const r = v.rango || { min: null, max: null, paso: null };
+      const n = (id, etq, k) => {
+        const i = el('input', { type: 'number', id, step: 'any', placeholder: '—' }); i.value = r[k] ?? '';
+        i.addEventListener('change', () => {
+          pushHist();
+          const x = i.value === '' ? null : parseFloat(i.value);
+          v.rango = { ...(v.rango || { min: null, max: null, paso: null }), [k]: isFinite(x) ? x : null };
+          if (v.rango.min === null && v.rango.max === null && v.rango.paso === null) v.rango = null;
+          cambio({}); pintarSliderConst();
+        });
+        return el('div', { class: 'campo' }, el('label', { for: id, text: etq }), i);
+      };
+      box.append(el('div', { class: 'campo' }, el('span', { class: 'lbl', text: 'Rango del slider' }),
+        el('div', { class: 'fila3' }, n('insp-min', 'mín.', 'min'), n('insp-max', 'máx.', 'max'), n('insp-paso', 'paso', 'paso'))));
+    }
+    const com = el('textarea', { id: 'insp-com', rows: 2 }); com.value = v.comentario || '';
+    com.addEventListener('change', () => { pushHist(); v.comentario = com.value; cambio({}); });
+    box.append(campo('Comentario', com));
+
+    // aux ↔ nivel
+    if (it.t === 'var' && v.tipo === 'aux') {
+      const b = el('button', { type: 'button', class: 'btn mini', text: 'Convertir en nivel' });
+      b.addEventListener('click', () => { pushHist(); v.tipo = 'nivel'; v.inicial = v.ecuacion || '0'; v.ecuacion = '0'; v.tasaManual = false; it.t = 'nivel'; it.w = 40; it.h = 20; cambio({ estructura: true }); });
+      box.append(el('div', { class: 'fila' }, b));
+    } else if (it.t === 'nivel') {
+      const fl = Modelo.flujosDe(S.M, key);
+      const b = el('button', { type: 'button', class: 'btn mini', text: 'Convertir en variable', disabled: fl.entradas.length + fl.salidas.length > 0, title: 'Solo si no tiene flujos conectados' });
+      b.addEventListener('click', () => { pushHist(); v.tipo = 'aux'; v.ecuacion = v.inicial; v.inicial = ''; it.t = 'var'; cambio({ estructura: true }); });
+      box.append(el('div', { class: 'fila' }, b));
+    }
+
+    box.append(el('div', { id: 'insp-grafico', class: 'mini-chart campo' }));
+    const borrar = el('button', { type: 'button', class: 'btn peligro', text: it.t === 'sombra' ? 'Quitar esta sombra' : 'Eliminar variable' });
+    borrar.addEventListener('click', borrarSel);
+    box.append(borrar);
+    pintarErrorInspector(); pintarGraficoInspector();
+  }
+
+  function pintarErrorInspector() {
+    const box = $('#insp-errores');
+    if (!box) return;
+    box.replaceChildren();
+    const it = S.sel.length === 1 ? item(S.sel[0]) : null;
+    if (!it || !it.key) return;
+    const ps = Modelo.problemas(S.M).filter((p) => p.key === it.key);
+    for (const p of ps) box.append(el('p', { class: p.nivel === 'error' ? 'error-txt' : 'ayuda', text: (p.nivel === 'error' ? '✕ ' : '! ') + p.texto }));
+  }
+  function pintarGraficoInspector() {
+    const box = $('#insp-grafico');
+    if (!box) return;
+    box.replaceChildren();
+    const it = S.sel.length === 1 ? item(S.sel[0]) : null;
+    if (!it || !it.key) return;
+    const s = serie(it.key);
+    if (!s) return;
+    const t = S.res.tiempo;
+    const W = 300, H = 120, L = 46, R = 294, T = 8, B = 100;
+    let lo = Math.min(0, ...s), hi = Math.max(...s);
+    if (hi - lo < 1e-12) hi = lo + 1;
+    const X = (i) => L + ((R - L) * i) / (s.length - 1), Y = (v) => B - ((B - T) * (v - lo)) / (hi - lo);
+    const g = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `Trayectoria de ${S.M.vars[it.key].nombre}` });
+    for (const v of [lo, (lo + hi) / 2, hi]) {
+      g.append(sv('line', { x1: L, x2: R, y1: Y(v), y2: Y(v), class: v === lo ? 'basel' : 'gridl' }));
+      g.append(sv('text', { x: L - 5, y: Y(v) + 3, 'text-anchor': 'end', class: 'ax' }, document.createTextNode(fmt(v))));
+    }
+    g.append(sv('text', { x: L, y: B + 14, class: 'ax' }, document.createTextNode(String(t[0]))));
+    g.append(sv('text', { x: R, y: B + 14, 'text-anchor': 'end', class: 'ax' }, document.createTextNode(`${t[t.length - 1]} ${fmtUnidad(S.M.control.unidad)}`)));
+    g.append(sv('path', { d: s.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(''), class: 'l-esc' }));
+    g.append(sv('circle', { cx: X(s.length - 1), cy: Y(s[s.length - 1]), r: 4, class: 'dot' }));
+    box.append(el('span', { class: 'lbl', text: `Simulación · al final: ${fmt(s[s.length - 1])} ${fmtUnidad(S.M.vars[it.key].unidades)}` }), g);
+  }
+
+  function inspectorFlecha(box, f) {
+    const a = item(f.de), b = item(f.a);
+    const na = a && a.key ? S.M.vars[a.key].nombre : '?', nb = b && b.key ? S.M.vars[b.key].nombre : '?';
+    box.append(el('div', { class: 'ins-head' }, el('span', { class: 'tipo-chip', text: 'Flecha causal' }), el('h3', { text: `${na} → ${nb}` })));
+    const seg = el('div', { class: 'seg2', role: 'group', 'aria-label': 'Polaridad' });
+    for (const [p, t] of [['+', '+'], ['-', '−'], ['', 'sin signo']]) {
+      const bt = el('button', { type: 'button', 'aria-pressed': String(f.pol === p), text: t });
+      bt.addEventListener('click', () => { pushHist(); f.pol = p; cambio({ inspector: true }); });
+      seg.append(bt);
+    }
+    box.append(el('div', { class: 'campo' }, el('span', { class: 'lbl', text: 'Polaridad' }), seg,
+      el('p', { class: 'ayuda', text: '+ : si la causa sube, el efecto sube (respecto de lo que habría sido). − : se mueven en sentido contrario.' })));
+    const usada = b && b.key && (S.M.vars[b.key].tipo === 'nivel' ? Modelo.usa(S.M, S.M.vars[b.key].inicial) : Modelo.usa(S.M, S.M.vars[b.key].ecuacion)).includes(a && a.key);
+    if (!usada) box.append(el('p', { class: 'ayuda', text: `${nb} todavía no usa ${na} en su ecuación.` }));
+    const recta = el('button', { type: 'button', class: 'btn mini', text: 'Enderezar' });
+    recta.addEventListener('click', () => { pushHist(); f.cx = null; f.cy = null; cambio({}); });
+    const borrar = el('button', { type: 'button', class: 'btn peligro', text: 'Eliminar flecha' });
+    borrar.addEventListener('click', borrarSel);
+    box.append(el('div', { class: 'fila' }, recta), el('p', { class: 'ayuda', text: 'Arrastra el punto azul para curvarla.' }), borrar);
+  }
+
+  function inspectorNota(box, n) {
+    box.append(el('div', { class: 'ins-head' }, el('span', { class: 'tipo-chip', text: n.bucle ? 'Marcador de bucle' : 'Comentario' })));
+    const t = el('input', { type: 'text', id: 'insp-nota' }); t.value = n.bucle || n.texto;
+    t.addEventListener('focus', () => { S.histFoco = false; });
+    t.addEventListener('input', () => {
+      if (!S.histFoco) { pushHist(); S.histFoco = true; }
+      if (n.bucle) n.bucle = (t.value.trim().toUpperCase().match(/^[RB]\d*/) || ['R'])[0]; else n.texto = t.value;
+      cambio({});
+    });
+    box.append(campo(n.bucle ? 'Código (R1, B2…)' : 'Texto', t));
+    const seg = el('div', { class: 'seg2', role: 'group', 'aria-label': 'Tipo' });
+    for (const [k, txt] of [[null, 'Texto'], ['R', 'Bucle R'], ['B', 'Bucle B']]) {
+      const b = el('button', { type: 'button', 'aria-pressed': String((n.bucle ? n.bucle[0] : null) === k), text: txt });
+      b.addEventListener('click', () => { pushHist(); if (k) { n.bucle = k + ((n.bucle || '').slice(1) || ''); } else { n.texto = n.texto || 'Comentario'; n.bucle = null; } cambio({ inspector: true }); });
+      seg.append(b);
+    }
+    box.append(el('div', { class: 'campo' }, el('span', { class: 'lbl', text: 'Tipo' }), seg));
+    if (n.bucle) {
+      const b = el('button', { type: 'button', class: 'btn mini', text: n.horario ? 'Sentido: horario' : 'Sentido: antihorario' });
+      b.addEventListener('click', () => { pushHist(); n.horario = !n.horario; cambio({ inspector: true }); });
+      box.append(b);
+    }
+    const borrar = el('button', { type: 'button', class: 'btn peligro', text: 'Eliminar' });
+    borrar.addEventListener('click', borrarSel);
+    box.append(borrar);
+  }
+
+  // ----------------------------------------------------------- problemas
+  function pintarEstadoSim() {
+    const e = $('#sim-estado');
+    if (S.errSim) { e.textContent = S.errSim; e.classList.add('err'); }
+    else if (S.res) { e.textContent = `Simulado de ${S.res.tiempo[0]} a ${S.res.tiempo[S.res.tiempo.length - 1]} ${fmtUnidad(S.M.control.unidad)} · ${S.M.orden.length} variables`; e.classList.remove('err'); }
+    else e.textContent = '';
+  }
+  function pintarProblemas() {
+    const box = $('#problemas'); box.replaceChildren();
+    const ps = S.probs || [];
+    const nErr = ps.filter((p) => p.nivel === 'error').length;
+    const faltan = ps.filter((p) => p.falta).length;
+    const head = el('div', { class: 'prob-head' }, el('h2', { text: ps.length ? `Revisión del modelo · ${nErr} ${nErr === 1 ? 'error' : 'errores'}, ${ps.length - nErr} ${ps.length - nErr === 1 ? 'aviso' : 'avisos'}` : 'Revisión del modelo: sin problemas' }));
+    if (faltan) {
+      const b = el('button', { type: 'button', class: 'btn', text: `Dibujar ${faltan} ${faltan === 1 ? 'flecha faltante' : 'flechas faltantes'}` });
+      b.addEventListener('click', () => { pushHist(); Modelo.agregarFlechasFaltantes(S.M); cambio({ estructura: true }); });
+      head.append(b);
+    }
+    box.append(head);
+    if (!ps.length) { box.append(el('p', { class: 'nota', text: 'Cada ecuación usa variables existentes y cada causa tiene su flecha.' })); return; }
+    const lista = el('div', { class: 'prob-lista' });
+    const orden = ps.slice().sort((a, b) => (a.nivel === b.nivel ? 0 : a.nivel === 'error' ? -1 : 1));
+    for (const p of orden.slice(0, 40)) {
+      const b = el('button', { type: 'button', class: 'btn mini', text: 'Ver' });
+      b.addEventListener('click', () => {
+        if (p.flecha) { const vi = S.M.vistas.findIndex((v) => v.nombre === p.vista); if (vi >= 0) { if (vi !== S.vista) { S.vista = vi; pintarVistas(); } ir(null, p.flecha); } }
+        else ir(p.key);
       });
-    };
-    sw.addEventListener('change', () => {
-      if (sw.checked === (c.valor !== 0)) delete estado.cambios[k]; else estado.cambios[k] = sw.checked ? 1 : 0;
-      pintar(); programar();
-    });
-    bucleCtl.set(k, { pintar, c, meta });
-    $('#bucles').append(fila);
-  }
-  if (!bucleCtl.size) $('#sec-bucles').hidden = true;
-  if (!$('#mapa').querySelector('svg')) $('#sec-mapa').hidden = true;
-
-  $('#restablecer').addEventListener('click', () => {
-    estado.cambios = {};
-    for (const { input, pintar, c } of controles.values()) { input.value = c.valor; pintar(); }
-    for (const b of bucleCtl.values()) b.pintar();
-    programar();
-  });
-
-  // horizonte
-  for (const h of CFG.horizontes) {
-    const b = el('button', { type: 'button', 'aria-pressed': String(h === estado.final), text: h % 12 === 0 ? `${h / 12} años` : `${h} meses` });
-    b.addEventListener('click', () => {
-      estado.final = h;
-      $('#horizonte').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-      base = modelo.simular({ final: estado.final });
-      programar();
-    });
-    $('#horizonte').append(b);
+      lista.append(el('div', { class: 'prob' }, el('span', { class: 'nivel ' + p.nivel, text: p.nivel }), el('span', { class: 'texto', text: p.texto }), b));
+    }
+    if (orden.length > 40) lista.append(el('p', { class: 'nota', text: `y ${orden.length - 40} más.` }));
+    box.append(lista);
   }
 
-  // ------------------------------------------------------------ gráficos
-  const graficos = CFG.graficos.map((g) => {
-    const read = el('span', { class: 'chart-read' });
-    const svg = sv('svg', { viewBox: '0 0 320 150', role: 'img', 'aria-label': g.titulo });
-    const fig = el('figure', { class: 'chart', tabindex: '0' },
-      el('figcaption', {}, el('span', { class: 'chart-title', text: g.titulo }), read), svg);
-    $('#charts').append(fig);
-    const G = { g, svg, read, fig };
-    const mover = (ev) => {
-      const r = svg.getBoundingClientRect();
-      const x = ((ev.clientX - r.left) / r.width) * 320;
-      const n = esc.tiempo.length;
-      const i = Math.round(((x - G.x0) / (G.x1 - G.x0)) * (n - 1));
-      estado.hover = Math.max(0, Math.min(n - 1, i));
-      pintarHover();
-    };
-    svg.addEventListener('pointermove', mover);
-    svg.addEventListener('pointerdown', mover);
-    svg.addEventListener('pointerleave', () => { estado.hover = null; pintarHover(); });
-    fig.addEventListener('keydown', (ev) => {
-      if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
-      ev.preventDefault();
-      const n = esc.tiempo.length;
-      const i = estado.hover === null ? n - 1 : estado.hover;
-      estado.hover = Math.max(0, Math.min(n - 1, i + (ev.key === 'ArrowRight' ? 1 : -1)));
-      pintarHover();
-    });
-    fig.addEventListener('blur', () => { estado.hover = null; pintarHover(); });
-    return G;
+  // ------------------------------------------------------------ teclado
+  document.addEventListener('keydown', (e) => {
+    const t = e.target;
+    const enCampo = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); guardar(); return; }
+    if (!$('#modal').hidden) { if (e.key === 'Escape') cerrarModal(); return; }
+    if (enCampo) { if (e.key === 'Escape') t.blur(); return; }
+    if (S.pestana !== 'lienzo') return;
+    if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) rehacer(); else deshacer(); return; }
+    if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); rehacer(); return; }
+    if (mod && e.key.toLowerCase() === 'a') { e.preventDefault(); S.sel = itemsVista().map((x) => x.id); pintarLienzo(); pintarInspector(); pintarHerramientas(); return; }
+    if (e.key === ' ') { S.espacio = true; return; }
+    if (e.key === 'Escape') { S.herr = 'sel'; S.sel = []; cancelarArrastre(); pintarHerramientas(); pintarLienzo(); pintarInspector(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); borrarSel(); return; }
+    const mapa = { v: 'sel', s: 'nivel', f: 'flujo', a: 'var', c: 'flecha', t: 'nota' };
+    if (!mod && mapa[e.key.toLowerCase()]) { usarHerr(mapa[e.key.toLowerCase()]); return; }
+    const flechas = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    if (flechas[e.key] && S.sel.length) {
+      e.preventDefault();
+      pushHist();
+      const d = e.shiftKey ? 20 : 5;
+      for (const id of S.sel) { const x = item(id); if (x && x.t !== 'flecha') { x.x += flechas[e.key][0] * d; x.y += flechas[e.key][1] * d; } }
+      cambio({});
+    }
   });
+  document.addEventListener('keyup', (e) => { if (e.key === ' ') S.espacio = false; });
+
+  // ============================================================ GUARDAR
+  function pintarGuardado() {
+    const chip = $('#estado-guardado');
+    const sucio = S.M && estadoGuardable() !== S.guardado;
+    S.sucio = sucio;
+    chip.className = 'chip' + (S.guardando ? '' : sucio ? ' sucio' : ' ok');
+    chip.textContent = S.guardando ? 'Guardando…' : sucio ? (S.soloLectura ? 'Cambios solo en este navegador' : 'Cambios sin guardar') : 'Guardado';
+    const b = $('#btn-guardar');
+    b.disabled = !sucio || S.guardando || S.soloLectura || !S.artifact;
+    b.title = !S.artifact ? 'Guardar en el artifact solo funciona dentro de Claude; copia el .mdl para conservar los cambios' : S.soloLectura ? 'Solo lectura: no puedes guardar este artifact' : 'Guardar el modelo en el artifact (Ctrl+S)';
+    $('#btn-descargar').hidden = !S.downloads;
+  }
+  function guardarBorrador() {
+    if (!S.M) return;
+    if (estadoGuardable() === S.guardado) almacen.borrar(CLAVE_BORRADOR());
+    else almacen.escribir(CLAVE_BORRADOR(), { texto: textoMdl(), cfg: S.cfg, ts: Date.now() });
+  }
+  async function guardar() {
+    if (!S.artifact || S.soloLectura || S.guardando) return;
+    const texto = textoMdl();
+    const estado = estadoGuardable();
+    if (estado === S.guardado) return;
+    guardarBorrador();
+    S.guardando = true; pintarGuardado();
+    try {
+      await S.artifact.publish({
+        'modelo.mdl': { content: texto, contentType: 'text/plain' },
+        'tablero_config.json': { content: JSON.stringify(S.cfg, null, 2), contentType: 'application/json' },
+      });
+      S.guardado = estado;
+      almacen.borrar(CLAVE_BORRADOR());
+      aviso(null);
+    } catch (e) {
+      const c = e && e.code;
+      if (c === 'conflict') aviso('Alguien guardó otra versión mientras editabas; la página se recarga con esa versión. Tus cambios quedaron como borrador en este navegador.');
+      else if (['not_writer', 'not_granted', 'capability_disabled', 'not_declared', 'consent_required', 'capability_removed'].includes(c)) {
+        S.soloLectura = true;
+        aviso('Esta vista es de solo lectura: tus cambios quedan en este navegador. Usa «Copiar .mdl» para llevártelos.');
+      } else if (c === 'rate_limited') aviso('Guardaste muchas veces seguidas; espera un momento y vuelve a guardar.');
+      else if (c === 'too_large') aviso('El modelo es demasiado grande para guardarlo en el artifact. Usa «Copiar .mdl».');
+      else aviso('No se pudo guardar (' + (e && e.message || 'error desconocido') + '). Tus cambios siguen como borrador en este navegador.');
+    } finally {
+      S.guardando = false; pintarGuardado();
+    }
+  }
+  function aviso(texto, acciones = []) {
+    const b = $('#aviso');
+    b.replaceChildren();
+    if (!texto) { b.hidden = true; return; }
+    b.append(el('span', { text: texto }));
+    for (const [t, fn] of acciones) { const x = el('button', { type: 'button', class: 'btn mini', text: t }); x.addEventListener('click', fn); b.append(x); }
+    b.hidden = false;
+  }
+  $('#btn-guardar').addEventListener('click', guardar);
+  $('#btn-copiar').addEventListener('click', async () => {
+    const t = textoMdl();
+    try { await navigator.clipboard.writeText(t); toast('Copiado: pégalo en un archivo .mdl para abrirlo en Vensim.'); }
+    catch (e) { mostrarTexto('Copiar el modelo (.mdl)', t); }
+  });
+  $('#btn-descargar').addEventListener('click', async () => {
+    if (!S.downloads) return;
+    const base = (S.cfg.titulo || 'modelo').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    try { await S.downloads.save({ filename: `${base}.mdl.txt`, data: textoMdl() }); toast('Descargado como .txt: quítale la extensión .txt para abrirlo en Vensim.'); }
+    catch (e) { if (e && e.code !== 'declined') toast('No se pudo descargar aquí. Usa «Copiar .mdl».'); }
+  });
+  $('#btn-importar').addEventListener('click', importar);
+  $('#btn-nuevo').addEventListener('click', () => confirmar('Empezar un modelo nuevo', 'El lienzo queda vacío. Puedes deshacerlo con Ctrl+Z mientras no recargues la página.', 'Empezar en blanco', () => {
+    pushHist(); S.M = Modelo.vacio(); S.vista = 0; S.sel = []; cambio({ estructura: true }); ajustar();
+  }));
+
+  function toast(t) { aviso(t); clearTimeout(toast.t); toast.t = setTimeout(() => aviso(null), 4000); }
+
+  // --------------------------------------------------------------- modal
+  function abrirModal(titulo, cuerpo, acciones) {
+    const caja = $('#modal-caja'); caja.replaceChildren();
+    caja.append(el('h2', { id: 'modal-titulo', text: titulo }), ...[].concat(cuerpo));
+    const pie = el('div', { class: 'modal-acciones' });
+    const cerrar = el('button', { type: 'button', class: 'btn', text: 'Cancelar' }); cerrar.addEventListener('click', cerrarModal);
+    pie.append(cerrar);
+    for (const [t, fn, cls] of acciones) { const b = el('button', { type: 'button', class: 'btn ' + (cls || 'primario'), text: t }); b.addEventListener('click', fn); pie.append(b); }
+    caja.append(pie);
+    $('#modal').hidden = false;
+    const f = caja.querySelector('textarea, input, .primario'); if (f) f.focus();
+  }
+  function cerrarModal() { $('#modal').hidden = true; }
+  $('#modal').addEventListener('pointerdown', (e) => { if (e.target.id === 'modal') cerrarModal(); });
+  function confirmar(titulo, texto, accion, fn) { abrirModal(titulo, [el('p', { text: texto })], [[accion, () => { cerrarModal(); fn(); }, 'primario']]); }
+  function mostrarTexto(titulo, texto) {
+    const t = el('textarea', { readonly: true, 'aria-label': 'Texto del modelo' }); t.value = texto;
+    abrirModal(titulo, [el('p', { class: 'nota', text: 'Selecciona todo y cópialo (Ctrl+C). Guárdalo como archivo .mdl para abrirlo en Vensim.' }), t], []);
+    t.select();
+  }
+  function importar() {
+    const t = el('textarea', { placeholder: 'Pega aquí el contenido de un archivo .mdl de Vensim…', 'aria-label': 'Texto .mdl' });
+    const f = el('input', { type: 'file', accept: '.mdl,.txt,text/plain', 'aria-label': 'Archivo .mdl' });
+    const err = el('p', { class: 'modal-error' });
+    f.addEventListener('change', () => { const file = f.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => { t.value = r.result; }; r.readAsText(file); });
+    abrirModal('Importar un modelo .mdl', [
+      el('p', { class: 'nota', text: 'Abre un modelo de Vensim sin subíndices, macros ni datos externos. Reemplaza el modelo actual (Ctrl+Z para volver).' }), f, t, err,
+    ], [['Abrir modelo', () => {
+      try {
+        const M = Modelo.desdeMdl(t.value);
+        Motor.leer(Modelo.aMdl(Modelo.clon(M)));
+        pushHist(); S.M = M; S.vista = 0; S.sel = []; cerrarModal(); cambio({ estructura: true }); ajustar();
+      } catch (e) { err.textContent = e.message; }
+    }]]);
+  }
+
+  // ============================================================ TABLERO
+  const T = { cambios: {}, final: null, hover: null, metrica: 0, base: null, esc: null, aportes: null, graficos: [], controles: new Map(), bucles: new Map() };
+  const CLAVE_T = () => 'simulador:' + (S.cfg.titulo || '');
+  function montarTablero() {
+    if (!S.comp) { $('#kpis').replaceChildren(el('p', { class: 'error', text: 'Corrige los errores del lienzo para ver el tablero.' })); return; }
+    S.tableroSucio = false;
+    const cfg = S.cfg;
+    const modelo = S.comp;
+    const CONSTS = modelo.constantes();
+    const existe = (n) => { try { return !!modelo.variable(n); } catch (e) { return false; } };
+    const porNombre = new Map(CONSTS.map((c) => [N(c.nombre), c]));
+    for (const k of Object.keys(T.cambios)) if (!porNombre.has(k)) delete T.cambios[k];
+    const horizontes = cfg.horizontes && cfg.horizontes.length ? cfg.horizontes : [S.M.control.final];
+    if (T.final === null || !horizontes.includes(T.final)) T.final = horizontes.includes(S.M.control.final) ? S.M.control.final : horizontes[0];
+    const valorActual = (c) => (N(c.nombre) in T.cambios ? T.cambios[N(c.nombre)] : c.valor);
+    const normBucles = Object.fromEntries(Object.entries(cfg.bucles || {}).map(([k, v]) => [N(k), v]));
+    const esBucle = (c) => N(c.nombre) in normBucles;
+
+    // controles
+    T.controles = new Map();
+    const control = (c) => {
+      const k = N(c.nombre);
+      const r = c.rango || { min: 0, max: c.valor * 2 || 1, paso: null };
+      const min = r.min ?? 0, max = r.max ?? Math.max(c.valor * 2, 1);
+      const paso = r.paso || (max - min) / 100;
+      const id = 'c-' + k.replace(/[^a-z0-9]+/g, '-');
+      const out = el('output', { for: id });
+      const input = el('input', { type: 'range', id, min, max, step: paso });
+      input.value = valorActual(c);
+      const reset = el('button', { class: 'reset-one', type: 'button', 'aria-label': 'Volver al valor del modelo', title: 'Volver al valor del modelo', text: '↺' });
+      const help = tildes(c.comentario.replace(/^(SUPUESTO \/ PALANCA|SUPUESTO)[.:]?\s*/i, ''));
+      const box = el('div', { class: 'ctl' }, el('div', { class: 'ctl-top' }, el('label', { for: id, text: etiqueta(c.nombre) }), out),
+        el('div', { class: 'ctl-row' }, input, reset), help ? el('p', { class: 'ctl-help', text: help }) : null);
+      const pintar = () => { out.textContent = fmtValor(c, valorActual(c)); box.classList.toggle('cambiado', k in T.cambios); };
+      input.addEventListener('input', () => { const v = parseFloat(input.value); if (Math.abs(v - c.valor) < 1e-12) delete T.cambios[k]; else T.cambios[k] = v; pintar(); programarT(); });
+      reset.addEventListener('click', () => { delete T.cambios[k]; input.value = c.valor; pintar(); programarT(); });
+      T.controles.set(k, { input, pintar, c });
+      pintar();
+      return box;
+    };
+    const palancas = CONSTS.filter((c) => /PALANCA/.test(c.comentario) && !esBucle(c));
+    $('#palancas').replaceChildren(...palancas.map(control));
+    if (!palancas.length) $('#palancas').append(el('p', { class: 'ctl-help', text: 'Marca constantes como palancas escribiendo PALANCA en su comentario.' }));
+    const grupos = new Map();
+    for (const c of CONSTS) {
+      if (esBucle(c) || palancas.includes(c)) continue;
+      if (!grupos.has(c.grupo)) grupos.set(c.grupo, []);
+      grupos.get(c.grupo).push(c);
+    }
+    const sup = $('#supuestos'); sup.replaceChildren();
+    for (const [g, lista] of grupos) {
+      const det = el('details', { class: 'grupo' }, el('summary', { text: `${(cfg.grupos || {})[g] || etiqueta(g || 'otros')} (${lista.length})` }));
+      det.append(el('div', { class: 'cuerpo' }, ...lista.map(control)));
+      sup.append(det);
+    }
+    // bucles
+    T.bucles = new Map();
+    const bx = $('#bucles'); bx.replaceChildren();
+    for (const c of CONSTS.filter(esBucle)) {
+      const k = N(c.nombre), meta = normBucles[k];
+      const id = 'b-' + meta.codigo;
+      const sw = el('input', { type: 'checkbox', class: 'switch', id, role: 'switch' });
+      const fila = el('div', { class: 'bucle' }, el('span', { class: 'codigo', text: meta.codigo }), el('label', { class: 'bucle-nombre', for: id, text: meta.nombre }), sw, el('span', { class: 'bucle-desc', text: meta.descripcion }));
+      const pintar = () => {
+        const on = valorActual(c) !== 0;
+        sw.checked = on; fila.classList.toggle('off', !on);
+        document.querySelectorAll('#mapa [data-loop]').forEach((n) => { if (N(n.getAttribute('data-loop')) === k) n.classList.toggle('apagado', !on); });
+      };
+      sw.addEventListener('change', () => { if (sw.checked === (c.valor !== 0)) delete T.cambios[k]; else T.cambios[k] = sw.checked ? 1 : 0; pintar(); programarT(); });
+      T.bucles.set(k, { pintar, c, meta });
+      bx.append(fila);
+      pintar();
+    }
+    $('#sec-bucles').hidden = !T.bucles.size;
+    $('#sec-aporte').hidden = !T.bucles.size;
+    $('#sec-mapa').hidden = !$('#mapa').querySelector('svg');
+
+    // horizonte
+    const hz = $('#horizonte'); hz.replaceChildren();
+    for (const h of horizontes) {
+      const b = el('button', { type: 'button', 'aria-pressed': String(h === T.final), text: h % 12 === 0 && /month/i.test(S.M.control.unidad) ? `${h / 12} años` : `${h}` });
+      b.addEventListener('click', () => { T.final = h; hz.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); T.base = modelo.simular({ final: T.final }); programarT(); });
+      hz.append(b);
+    }
+
+    // gráficos
+    const charts = $('#charts'); charts.replaceChildren();
+    T.graficos = (cfg.graficos || []).filter((g) => existe(g.variable)).map((g) => {
+      const read = el('span', { class: 'chart-read' });
+      const svg = sv('svg', { viewBox: '0 0 320 150', role: 'img', 'aria-label': g.titulo });
+      const quitar = el('button', { type: 'button', class: 'quitar', title: 'Quitar gráfico', 'aria-label': `Quitar gráfico ${g.titulo}`, text: '×' });
+      const fig = el('figure', { class: 'chart', tabindex: '0' }, el('figcaption', {}, el('span', { class: 'chart-title', text: g.titulo }), read), svg, quitar);
+      quitar.addEventListener('click', () => { cfg.graficos = cfg.graficos.filter((x) => x !== g); montarTablero(); pintarGuardado(); guardarBorrador(); });
+      charts.append(fig);
+      const G = { g, svg, read, fig };
+      const mover = (ev) => {
+        const r = svg.getBoundingClientRect();
+        const x = ((ev.clientX - r.left) / r.width) * 320;
+        const n = T.esc.tiempo.length;
+        T.hover = Math.max(0, Math.min(n - 1, Math.round(((x - G.x0) / (G.x1 - G.x0)) * (n - 1))));
+        pintarHoverT();
+      };
+      svg.addEventListener('pointermove', mover); svg.addEventListener('pointerdown', mover);
+      svg.addEventListener('pointerleave', () => { T.hover = null; pintarHoverT(); });
+      fig.addEventListener('keydown', (ev) => {
+        if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+        ev.preventDefault();
+        const n = T.esc.tiempo.length, i = T.hover === null ? n - 1 : T.hover;
+        T.hover = Math.max(0, Math.min(n - 1, i + (ev.key === 'ArrowRight' ? 1 : -1))); pintarHoverT();
+      });
+      fig.addEventListener('blur', () => { T.hover = null; pintarHoverT(); });
+      return G;
+    });
+    const ag = $('#agregar-grafico'); ag.replaceChildren(el('option', { value: '', text: 'Elige una variable…' }));
+    for (const k of S.M.orden) {
+      const v = S.M.vars[k];
+      if (v.tipo === 'tabla' || esConstante(v)) continue;
+      if ((cfg.graficos || []).some((g) => N(g.variable) === k)) continue;
+      ag.append(el('option', { value: v.nombre, text: etiqueta(v.nombre) }));
+    }
+    ag.onchange = () => {
+      if (!ag.value) return;
+      const v = S.M.vars[N(ag.value)];
+      cfg.graficos = (cfg.graficos || []).concat([{ variable: v.nombre, titulo: etiqueta(v.nombre), unidad: fmtUnidad(v.unidades) }]);
+      montarTablero(); pintarGuardado(); guardarBorrador();
+    };
+
+    // métricas de aporte
+    const met = $('#metrica'); met.replaceChildren();
+    T.metricas = (cfg.metricas_aporte || []).filter((m) => existe(m.variable));
+    T.metricas.forEach((m, i) => met.append(el('option', { value: String(i), text: m.etiqueta })));
+    if (T.metrica >= T.metricas.length) T.metrica = 0;
+    met.value = String(T.metrica);
+    met.onchange = () => { T.metrica = +met.value; pintarAportes(); };
+
+    T.modelo = modelo; T.existe = existe; T.valorActual = valorActual;
+    T.base = modelo.simular({ final: T.final });
+    correrT();
+  }
 
   const limpio = (max) => {
     if (max <= 0) return 1;
@@ -2217,94 +4155,79 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
     for (const m of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= max) return m * p;
     return 10 * p;
   };
-
-  function dibujar(G) {
+  function dibujarT(G) {
     const { svg, g } = G;
-    const t = esc.tiempo, a = esc.serie(g.variable), b = base.serie(g.variable);
-    const L = 52, R = 312, T = 8, B = 128;
+    const t = T.esc.tiempo, a = T.esc.serie(g.variable), b = T.base.serie(g.variable);
+    const L = 52, R = 312, Tp = 8, B = 128;
     G.x0 = L; G.x1 = R;
+    const lo = Math.min(0, ...a, ...b);
     const ymax = limpio(Math.max(...a, ...b) * 1.04);
     const X = (i) => L + ((R - L) * i) / (t.length - 1);
-    const Y = (v) => B - ((B - T) * Math.max(0, v)) / ymax;
+    const Y = (v) => B - ((B - Tp) * (v - lo)) / (ymax - lo || 1);
     svg.replaceChildren();
     for (let k = 0; k <= 4; k++) {
-      const v = (ymax * k) / 4, y = Y(v);
+      const v = lo + ((ymax - lo) * k) / 4, y = Y(v);
       svg.append(sv('line', { x1: L, x2: R, y1: y, y2: y, class: k === 0 ? 'basel' : 'gridl' }));
-      if (k % 2 === 0) { const tx = sv('text', { x: L - 6, y: y + 3, 'text-anchor': 'end', class: 'ax' }); tx.textContent = fmt(v); svg.append(tx); }
+      if (k % 2 === 0) svg.append(sv('text', { x: L - 6, y: y + 3, 'text-anchor': 'end', class: 'ax' }, document.createTextNode(fmt(v))));
     }
-    const paso = t[t.length - 1] - t[0] > 72 ? 24 : 12;
-    t.forEach((tt, i) => {
-      if (tt % paso === 0) {
-        const tx = sv('text', { x: X(i), y: B + 14, 'text-anchor': 'middle', class: 'ax' });
-        tx.textContent = tt === 0 ? 'mes 0' : String(tt);
-        svg.append(tx);
-      }
-    });
+    const span = t[t.length - 1] - t[0];
+    const paso = span > 72 ? 24 : span > 24 ? 12 : span > 8 ? 2 : 1;
+    t.forEach((tt, i) => { if (Math.abs(tt / paso - Math.round(tt / paso)) < 1e-9) svg.append(sv('text', { x: X(i), y: B + 14, 'text-anchor': 'middle', class: 'ax' }, document.createTextNode(String(tt)))); });
     const path = (s) => s.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
-    svg.append(sv('path', { d: path(b), class: 'l-base' }));
-    svg.append(sv('path', { d: path(a), class: 'l-esc' }));
+    svg.append(sv('path', { d: path(b), class: 'l-base' }), sv('path', { d: path(a), class: 'l-esc' }));
     svg.append(sv('circle', { cx: X(t.length - 1), cy: Y(a[a.length - 1]), r: 4, class: 'dot' }));
-    G.cross = sv('line', { y1: T, y2: B, class: 'cross', visibility: 'hidden' });
+    G.cross = sv('line', { y1: Tp, y2: B, class: 'cross', visibility: 'hidden' });
     G.hdot = sv('circle', { r: 4, class: 'dot', visibility: 'hidden' });
     svg.append(G.cross, G.hdot);
     G.X = X; G.Y = Y; G.a = a; G.b = b;
   }
-
-  function pintarHover() {
-    const n = esc.tiempo.length;
-    const i = estado.hover === null ? n - 1 : estado.hover;
-    for (const G of graficos) {
-      const vis = estado.hover === null ? 'hidden' : 'visible';
+  function pintarHoverT() {
+    if (!T.esc) return;
+    const n = T.esc.tiempo.length, i = T.hover === null ? n - 1 : T.hover;
+    for (const G of T.graficos) {
+      if (!G.cross) continue;
+      const vis = T.hover === null ? 'hidden' : 'visible';
       G.cross.setAttribute('visibility', vis); G.hdot.setAttribute('visibility', vis);
       G.cross.setAttribute('x1', G.X(i)); G.cross.setAttribute('x2', G.X(i));
       G.hdot.setAttribute('cx', G.X(i)); G.hdot.setAttribute('cy', G.Y(G.a[i]));
-      G.read.replaceChildren(`mes ${nf(0).format(esc.tiempo[i])} · `, el('b', { text: fmt(G.a[i]) }), ` · base ${fmt(G.b[i])} · ${G.g.unidad || ''}`);
+      G.read.replaceChildren(`${fmtUnidad(S.M.control.unidad) === 'meses' ? 'mes' : 't ='} ${nf(2).format(T.esc.tiempo[i])} · `, el('b', { text: fmt(G.a[i]) }), ` · base ${fmt(G.b[i])} · ${G.g.unidad || ''}`);
     }
   }
-
-  // ------------------------------------------------------------ KPI
   function pintarKpis() {
     const cont = $('#kpis'); cont.replaceChildren();
-    for (const k of CFG.kpis) {
-      const a = esc.serie(k.variable), b = base.serie(k.variable);
+    for (const k of (S.cfg.kpis || []).filter((x) => T.existe(x.variable))) {
+      const a = T.esc.serie(k.variable), b = T.base.serie(k.variable);
       const v = a[a.length - 1], vb = b[b.length - 1];
       const d = vb ? (v - vb) / Math.abs(vb) : 0;
       const delta = el('span', { class: 'kpi-delta' + (Math.abs(d) < 0.0005 ? '' : d > 0 ? ' up' : ' down') });
       delta.textContent = Math.abs(d) < 0.0005 ? 'igual que la base' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} % vs base (${fmt(vb)})`;
-      cont.append(el('div', { class: 'kpi' },
-        el('span', { class: 'kpi-label', text: `${k.etiqueta}, mes ${esc.tiempo[esc.tiempo.length - 1]}` }),
-        el('span', { class: 'kpi-value', text: fmt(v) }), delta));
+      cont.append(el('div', { class: 'kpi' }, el('span', { class: 'kpi-label', text: `${k.etiqueta}, t = ${T.esc.tiempo[T.esc.tiempo.length - 1]}` }), el('span', { class: 'kpi-value', text: fmt(v) }), delta));
     }
-    const R = CFG.restriccion;
+    const R = S.cfg.restriccion;
     const box = $('#restriccion'); box.replaceChildren();
-    if (R) {
-      const real = esc.serie(R.real), des = esc.serie(R.deseado);
+    if (R && T.existe(R.real) && T.existe(R.deseado)) {
+      const real = T.esc.serie(R.real), des = T.esc.serie(R.deseado);
       const meses = real.filter((v, i) => v < des[i] * (1 - 1e-6)).length;
-      const total = real.length - 1;
       const warn = meses > 0;
       const ic = sv('svg', { width: 16, height: 16, viewBox: '0 0 16 16', 'aria-hidden': 'true' });
-      ic.append(sv(warn ? 'path' : 'path', warn
-        ? { d: 'M8 1.5 15 14H1z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linejoin': 'round' }
-        : { d: 'M3 8.5l3 3 7-7', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round' }));
-      if (warn) { ic.append(sv('line', { x1: 8, y1: 6, x2: 8, y2: 9.5, stroke: 'currentColor', 'stroke-width': '1.6' })); ic.append(sv('circle', { cx: 8, cy: 11.8, r: 0.9, fill: 'currentColor' })); }
-      box.append(el('span', { class: 'estado ' + (warn ? 'warn' : 'ok') }, ic,
-        document.createTextNode(warn ? `${R.texto} en ${meses} de ${total} meses` : `${R.texto.replace('limita', 'no limita')} en ningún mes`)));
+      ic.append(sv('path', warn ? { d: 'M8 1.5 15 14H1z', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'stroke-linejoin': 'round' } : { d: 'M3 8.5l3 3 7-7', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round' }));
+      if (warn) ic.append(sv('line', { x1: 8, y1: 6, x2: 8, y2: 9.5, stroke: 'currentColor', 'stroke-width': '1.6' }), sv('circle', { cx: 8, cy: 11.8, r: 0.9, fill: 'currentColor' }));
+      box.append(el('span', { class: 'estado ' + (warn ? 'warn' : 'ok') }, ic, document.createTextNode(warn ? `${R.texto} en ${meses} de ${real.length - 1} periodos` : `${R.texto.replace('limita', 'no limita')} en ningún periodo`)));
     }
   }
-
-  // ------------------------------------------------------------ tabla
   function pintarTabla() {
-    const t = esc.tiempo, filas = CFG.tabla || CFG.graficos.map((g) => g.variable);
-    const idx = t.map((tt, i) => (tt % 12 === 0 ? i : -1)).filter((i) => i >= 0);
+    const t = T.esc.tiempo, filas = (S.cfg.tabla || (S.cfg.graficos || []).map((g) => g.variable)).filter(T.existe);
+    let idx = t.map((tt, i) => (Math.abs(tt % 12) < 1e-9 ? i : -1)).filter((i) => i >= 0);
+    if (idx.length < 2) idx = [0, Math.floor((t.length - 1) / 2), t.length - 1];
     const tab = $('#tabla'); tab.replaceChildren();
     const hr = el('tr', {}, el('th', { text: 'Variable' }));
-    idx.forEach((i) => hr.append(el('th', { text: t[i] === 0 ? 'inicio' : `año ${t[i] / 12}` })));
+    idx.forEach((i) => hr.append(el('th', { text: t[i] === 0 ? 'inicio' : (/month/i.test(S.M.control.unidad) && t[i] % 12 === 0 ? `año ${t[i] / 12}` : `t = ${t[i]}`) })));
     hr.append(el('th', { text: 'vs base' }));
     tab.append(el('thead', {}, hr));
     const tb = el('tbody');
     for (const v of filas) {
-      const a = esc.serie(v), b = base.serie(v);
-      const tr = el('tr', {}, el('td', { text: etiqueta(modelo.variable(v).nombre) }));
+      const a = T.esc.serie(v), b = T.base.serie(v);
+      const tr = el('tr', {}, el('td', { text: etiqueta(T.modelo.variable(v).nombre) }));
       idx.forEach((i) => tr.append(el('td', { text: fmt(a[i]) })));
       const d = b[b.length - 1] ? (a[a.length - 1] - b[b.length - 1]) / Math.abs(b[b.length - 1]) : 0;
       tr.append(el('td', { text: Math.abs(d) < 0.0005 ? '=' : `${d > 0 ? '+' : '−'}${nf(1).format(Math.abs(d) * 100)} %` }));
@@ -2312,57 +4235,111 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,1
     }
     tab.append(tb);
   }
-
-  // ------------------------------------------------------ aporte de bucles
-  const metricas = CFG.metricas_aporte || [];
-  metricas.forEach((m, i) => $('#metrica').append(el('option', { value: String(i), text: m.etiqueta })));
-  $('#metrica').addEventListener('change', () => { estado.metrica = +$('#metrica').value; pintarAportes(); });
-  let aportes = null;
   function calcularAportes() {
-    aportes = [];
-    for (const [k, b] of bucleCtl) {
-      if (valorActual(b.c) === 0) { aportes.push({ meta: b.meta, off: true }); continue; }
-      const r = modelo.simular({ cambios: { ...estado.cambios, [k]: 0 }, final: estado.final });
-      aportes.push({ meta: b.meta, r });
+    T.aportes = [];
+    for (const [k, b] of T.bucles) {
+      if (T.valorActual(b.c) === 0) { T.aportes.push({ meta: b.meta, off: true }); continue; }
+      T.aportes.push({ meta: b.meta, r: T.modelo.simular({ cambios: { ...T.cambios, [k]: 0 }, final: T.final }) });
     }
     pintarAportes();
   }
   function pintarAportes() {
-    if (!aportes || !metricas.length) return;
-    const m = metricas[estado.metrica];
-    const s = esc.serie(m.variable), v = s[s.length - 1];
-    const filas = aportes.map((a) => {
-      if (a.off) return { ...a, p: null };
-      const so = a.r.serie(m.variable);
-      return { ...a, p: v ? (v - so[so.length - 1]) / v : 0 };
-    }).sort((x, y) => (y.p ?? -1) - (x.p ?? -1));
+    if (!T.aportes || !T.metricas || !T.metricas.length) return;
+    const m = T.metricas[T.metrica];
+    const s = T.esc.serie(m.variable), v = s[s.length - 1];
+    const filas = T.aportes.map((a) => (a.off ? { ...a, p: null } : { ...a, p: v ? (v - a.r.serie(m.variable).at(-1)) / v : 0 })).sort((x, y) => (y.p ?? -1) - (x.p ?? -1));
     const cont = $('#barras'); cont.replaceChildren();
     for (const f of filas) {
       const w = f.p === null ? 0 : Math.max(0, Math.min(1, f.p)) * 100;
       cont.append(el('div', { class: 'barra' + (f.p === null ? ' off' : '') },
         el('span', { class: 'barra-label' }, el('span', { class: 'codigo', text: f.meta.codigo }), el('span', { text: f.meta.nombre })),
-        el('div', { class: 'track' }, Object.assign(el('div', { class: 'fill' }), { style: `width:${w}%` })),
+        el('div', { class: 'track' }, el('div', { class: 'fill', style: `width:${w}%` })),
         el('span', { class: 'barra-val', text: f.p === null ? 'apagado' : `${nf(0).format(f.p * 100)} %` })));
     }
-    $('#nota-aporte').textContent = `Qué parte de las ${m.etiqueta} al mes ${esc.tiempo[esc.tiempo.length - 1]} se pierde si se apaga cada bucle, con todo lo demás como está. Los bucles se potencian entre sí, por eso los aportes pueden sumar más de 100 %.`;
+    $('#nota-aporte').textContent = `Qué parte de las ${m.etiqueta} al final del horizonte se pierde si se apaga cada bucle, con todo lo demás como está. Los bucles se potencian entre sí, por eso los aportes pueden sumar más de 100 %.`;
   }
-
-  // ------------------------------------------------------------ ciclo
-  let pendiente = null, pendAporte = null;
-  function programar() {
-    if (pendiente) return;
-    pendiente = requestAnimationFrame(() => {
-      pendiente = null;
-      esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
-      graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla(); pintarAportes(); guardar();
-      clearTimeout(pendAporte); pendAporte = setTimeout(calcularAportes, 140);
-    });
+  let pendT = null, pendAporte = null;
+  function correrT() {
+    T.esc = T.modelo.simular({ cambios: T.cambios, final: T.final });
+    T.graficos.forEach(dibujarT); pintarHoverT(); pintarKpis(); pintarTabla(); pintarAportes();
+    almacen.escribir(CLAVE_T(), { cambios: T.cambios, final: T.final });
+    clearTimeout(pendAporte); pendAporte = setTimeout(calcularAportes, 140);
   }
+  function programarT() { if (pendT) return; pendT = requestAnimationFrame(() => { pendT = null; correrT(); }); }
+  $('#restablecer').addEventListener('click', () => {
+    T.cambios = {};
+    for (const { input, pintar, c } of T.controles.values()) { input.value = c.valor; pintar(); }
+    for (const b of T.bucles.values()) b.pintar();
+    programarT();
+  });
+  $('#fijar').addEventListener('click', () => {
+    const ks = Object.keys(T.cambios);
+    if (!ks.length) { toast('No hay cambios en los sliders para fijar.'); return; }
+    pushHist();
+    for (const k of ks) if (S.M.vars[k]) S.M.vars[k].ecuacion = String(T.cambios[k]);
+    T.cambios = {};
+    cambio({ inspector: true });
+    toast(`${ks.length} ${ks.length === 1 ? 'valor fijado' : 'valores fijados'} en el modelo. Guarda para conservarlos.`);
+  });
 
-  base = modelo.simular({ final: estado.final });
-  esc = modelo.simular({ cambios: estado.cambios, final: estado.final });
-  graficos.forEach(dibujar); pintarHover(); pintarKpis(); pintarTabla();
-  for (const b of bucleCtl.values()) b.pintar();
-  calcularAportes();
+  // ------------------------------------------------------------ pestañas
+  function pestana(p) {
+    S.pestana = p;
+    $('#tab-lienzo').setAttribute('aria-selected', String(p === 'lienzo'));
+    $('#tab-tablero').setAttribute('aria-selected', String(p === 'tablero'));
+    $('#vista-lienzo').hidden = p !== 'lienzo';
+    $('#vista-tablero').hidden = p !== 'tablero';
+    if (p === 'tablero' && (S.tableroSucio || !T.esc)) montarTablero();
+    if (p === 'lienzo') { pintarLienzo(); }
+    almacen.escribir('pestana:' + (S.cfg.titulo || ''), p);
+  }
+  $('#tab-lienzo').addEventListener('click', () => pestana('lienzo'));
+  $('#tab-tablero').addEventListener('click', () => pestana('tablero'));
+
+  // ------------------------------------------------------------- inicio
+  async function leerArchivo(nombre) {
+    if (location.protocol === 'file:') return null;
+    try {
+      const r = await Promise.race([fetch(nombre, { cache: 'no-store' }), new Promise((res) => setTimeout(() => res(null), 2500))]);
+      return r && r.ok ? await r.text() : null;
+    } catch (e) { return null; }
+  }
+  function cargarTexto(texto) { S.M = Modelo.desdeMdl(texto); }
+  async function iniciar() {
+    let texto = $('#modelo-mdl').textContent;
+    let cfg = CFG_EMB;
+    const [t, c] = await Promise.all([leerArchivo('modelo.mdl'), leerArchivo('tablero_config.json')]);
+    if (t && /INTEG|=/.test(t)) texto = t;
+    if (c) { try { cfg = JSON.parse(c); } catch (e) { /* se usa la configuración incrustada */ } }
+    S.cfg = cfg;
+    $('#titulo').textContent = cfg.titulo || 'Simulador';
+    $('#antetitulo').textContent = cfg.antetitulo || '';
+    $('#bajada').textContent = cfg.bajada || '';
+    $('#pie').textContent = cfg.pie || '';
+    try { cargarTexto(texto); } catch (e) { S.M = Modelo.vacio(); aviso('No se pudo abrir el modelo guardado: ' + e.message); }
+    S.guardado = estadoGuardable();
+    const g = almacen.leer(CLAVE_T());
+    if (g) { T.cambios = g.cambios || {}; T.final = g.final ?? null; }
+    const b = almacen.leer(CLAVE_BORRADOR());
+    if (b && b.texto && (b.texto + '\n' + JSON.stringify(b.cfg || S.cfg)) !== S.guardado) {
+      const fecha = new Date(b.ts).toLocaleString('es');
+      aviso(`Tienes cambios sin guardar de una sesión anterior (${fecha}).`, [
+        ['Recuperarlos', () => { try { pushHist(); cargarTexto(b.texto); if (b.cfg) S.cfg = b.cfg; S.vista = 0; S.sel = []; cambio({ estructura: true }); ajustar(); aviso(null); } catch (e) { aviso('No se pudo recuperar el borrador: ' + e.message); } }],
+        ['Descartarlos', () => { almacen.borrar(CLAVE_BORRADOR()); aviso(null); }],
+      ]);
+    }
+    pintarHerramientas(); pintarVistas(); pintarInspector();
+    requestAnimationFrame(() => { ajustar(); pintarLienzo(); });
+    simular();
+    pintarGuardado();
+    const p = almacen.leer('pestana:' + (cfg.titulo || ''));
+    if (p === 'tablero') pestana('tablero');
+    new ResizeObserver(() => { if (!S.ajustado) { ajustar(); pintarLienzo(); } }).observe(SVG);
+    if (window.claude && typeof window.claude.use === 'function') {
+      window.claude.use('artifact').then((a) => { S.artifact = a; pintarGuardado(); }).catch(() => {});
+      window.claude.use('downloads').then((d) => { S.downloads = d; pintarGuardado(); }).catch(() => {});
+    }
+  }
+  iniciar();
 })();
 </script>

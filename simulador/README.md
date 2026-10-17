@@ -1,38 +1,70 @@
 # Simulador propio ("nuestro Vensim")
 
-Herramientas para construir, simular y explorar modelos de dinámica de sistemas sin licencia de Vensim, guardándolos en el formato `.mdl` de Vensim para que sigan siendo portables.
+Herramientas para construir, simular y explorar modelos de dinámica de sistemas sin licencia de Vensim. Los modelos se guardan en el formato `.mdl` de Vensim, así que siguen siendo portables: se abren en Vensim, PySD y Simlin.
 
 | Pieza | Qué hace |
 |---|---|
 | `motor.js` | Intérprete de `.mdl` en JavaScript, para navegador y Node. Lee las ecuaciones y simula con Euler, como Vensim por defecto |
-| `plantilla_tablero.html` | Tablero genérico: KPIs, gráficos escenario vs. base, palancas, interruptores de bucles, aporte de cada bucle, mapa y tabla |
-| `construir_tablero.py` | Incrusta el motor, el `.mdl`, la configuración y el diagrama en un solo `tablero.html` |
+| `modelo.js` | Modelo editable: convierte un `.mdl` (ecuaciones + vistas del diagrama) en un objeto que el lienzo edita y lo vuelve a escribir como `.mdl`. También renombra, borra, detecta flechas faltantes y revisa el modelo |
+| `app.js` | La interfaz: **lienzo** tipo Vensim y **tablero** de escenarios |
+| `plantilla_tablero.html` | HTML y estilos de la página |
+| `construir_tablero.py` | Incrusta motor, modelo, app, `.mdl`, configuración y diagrama en un solo `tablero.html` |
 | `pruebas/verificar_contra_pysd.py` | Compara el motor con PySD variable por variable, en la base y con cada bucle apagado |
-| `../.claude/skills/vensim/scripts/mdlgen.py` | Genera `.mdl` con diagrama (varias vistas, sombras, polaridades) desde Python |
+| `pruebas/ida_y_vuelta.js` | Lee cada `.mdl`, lo reescribe y verifica que la simulación, el diagrama, las curvas y las polaridades no cambien |
+| `../.claude/skills/vensim/scripts/mdlgen.py` | Genera `.mdl` con diagrama desde Python (varias vistas, sombras, polaridades) |
 
-## Flujo de trabajo
+## El lienzo
 
-1. **Modelar.** Escribir el generador del modelo (ver `modelos/ecosistema_credenciales/generar_modelo.py`). Cada constante lleva rango `[min,max,paso]` en sus unidades, y ese rango define el slider.
-2. **Verificar.** Correr `python pruebas/verificar_contra_pysd.py modelo.mdl`, que pide `pip install pysd` y `node`.
-3. **Explorar.** Escribir `tablero_config.json` en la carpeta del modelo y ejecutar `python construir_tablero.py <carpeta>`.
+Funciona como el sketch y el editor de ecuaciones de Vensim.
 
-En el tablero:
-- las constantes cuyo comentario dice `PALANCA` aparecen como **palancas**; el resto queda en **Supuestos**, agrupado por la sección (`.grupo`) del `.mdl`;
-- las constantes listadas en `bucles` de la configuración se muestran como **interruptores**, y el tablero mide cuánto cae cada métrica al apagarlas.
+| Herramienta | Tecla | Uso |
+|---|---|---|
+| Seleccionar | `V` | Clic para seleccionar, arrastrar para mover, `Shift`+clic para seleccionar varios. Arrastrar el fondo mueve el lienzo |
+| Nivel (stock) | `S` | Clic en el lienzo para crear un nivel |
+| Flujo | `F` | Arrastrar desde un nivel (o un espacio vacío, que crea una nube) hasta otro nivel (o un espacio vacío) |
+| Variable | `A` | Clic para crear una variable auxiliar o una constante |
+| Flecha | `C` | Arrastrar desde la causa hasta el efecto |
+| Comentario | `T` | Texto libre o marcador de bucle (R/B) |
+
+Atajos: `Supr` elimina, `Ctrl+Z` y `Ctrl+Shift+Z` deshacen y rehacen, `Ctrl+S` guarda, `Ctrl`+rueda acerca o aleja y doble clic abre la ecuación.
+
+- **Inspector.** Al seleccionar un elemento se pueden editar nombre, ecuación, unidades, rango del slider y comentario. Al renombrar, el nombre se actualiza en todas las ecuaciones.
+  - Las causas conectadas con flechas aparecen como botones para insertarlas en la ecuación, y hay un menú de funciones.
+  - En los niveles, la tasa sale de los flujos dibujados (entradas − salidas) y se puede escribir a mano.
+  - Cada variable muestra su gráfico de simulación.
+- **Revisión del modelo.** Señala ecuaciones vacías, variables o funciones que no existen, flechas que faltan y flechas que sobran. El botón *Dibujar flechas faltantes* las agrega y crea sombras si la causa está en otra vista.
+- **Simulación en vivo.** Cada cambio vuelve a simular; con *Mini gráficos* cada variable muestra su trayectoria, como el SyntheSim de Vensim.
+- **Vistas.** Una pestaña por vista: doble clic para renombrar y `+` para agregar.
+- **Guardar.** Dentro de Claude, *Guardar* publica `modelo.mdl` y `tablero_config.json` como nueva versión del artifact (capacidad `artifact`). Mientras tanto, los cambios quedan como borrador en el navegador. *Copiar .mdl* y *Descargar* (se guarda como `.mdl.txt`) llevan el modelo a Vensim. *Importar* abre un `.mdl` de Vensim.
+- **Tablero.** Usa el modelo del lienzo: sliders para las constantes (las que dicen `PALANCA` en el comentario van arriba), interruptores de bucles, aporte de cada bucle, gráficos (se pueden agregar y quitar) y *Fijar en el modelo* para volver permanentes los valores de los sliders.
 
 ## Qué soporta el motor
 
 Constantes, auxiliares, `INTEG`, lookups (`tabla(x)` y `WITH LOOKUP`), operadores `+ - * / ^`, comparaciones, `:AND:`, `:OR:` y `:NOT:`. Funciones: `ABS EXP LN LOG SQRT SIN COS TAN MIN MAX INTEGER MODULO QUANTUM XIDZ ZIDZ IF THEN ELSE STEP RAMP PULSE PULSE TRAIN INITIAL ACTIVE INITIAL SMOOTH SMOOTHI SMOOTH3 SMOOTH3I DELAY1 DELAY1I DELAY3 DELAY3I`.
 
-**No soporta** subíndices, macros, datos externos (`GET XLS`, variables `:=`), `DELAY FIXED`, `DELAY N`, `SMOOTH N`, funciones aleatorias ni otros métodos de integración. Si un modelo los usa, `Motor.leer()` lanza un error que dice qué falta. Para esos modelos se usa PySD, o se amplía el motor.
+**No soporta** subíndices, macros, datos externos (`GET XLS`, variables `:=`), `DELAY FIXED`, `DELAY N`, `SMOOTH N`, funciones aleatorias ni otros métodos de integración. Si un modelo los usa, `Motor.leer()` y `Modelo.desdeMdl()` lanzan un error que dice qué falta.
 
-**Verificación:** coincide con PySD (diferencia relativa ≤ 1e-15) en el modelo del ecosistema, en 8 escenarios, y en 6 modelos de ejemplo del skill de Vensim (`SMOOTH`, `SMOOTH3`, `DELAY3`, `STEP`, lookups, `XIDZ`, `ZIDZ`, `LN`).
+## Verificación
+
+- El motor coincide con PySD (diferencia relativa ≤ 1e-15) en el modelo del ecosistema, en 8 escenarios, y en 6 modelos de ejemplo del skill.
+- La ida y vuelta `.mdl` → lienzo → `.mdl` no cambia la simulación, los elementos del diagrama, las curvas ni las polaridades. Se probó con el modelo del ecosistema, los ejemplos del skill y dos modelos creados por Vensim (`teacup` y `SIR` de SDXorg/test-models). Simlin y PySD leen los archivos exportados.
+
+```bash
+node simulador/pruebas/ida_y_vuelta.js modelo.mdl
+python simulador/pruebas/verificar_contra_pysd.py modelo.mdl     # requiere pip install pysd
+python simulador/construir_tablero.py modelos/<carpeta>
+```
+
+## API
 
 ```js
-const Motor = require('./motor.js');               // o <script src="motor.js"> → window.Motor
-const modelo = Motor.leer(textoDelMdl);
+const modelo = Motor.leer(textoDelMdl);            // simulación
 modelo.constantes();                               // [{nombre, valor, unidades, comentario, rango, grupo}]
 const r = modelo.simular({ cambios: { 'fraccion de prospeccion': 0.006 }, final: 84 });
-r.tiempo;                                          // instantes guardados (SAVEPER)
-r.serie('Instituciones cliente');                  // valores
+r.tiempo; r.serie('Instituciones cliente');
+
+const M = Modelo.desdeMdl(textoDelMdl);            // edición
+Modelo.renombrar(M, 'tasa de natalidad', 'natalidad');
+Modelo.problemas(M);                               // [{nivel: 'error'|'aviso', key, texto}]
+const texto = Modelo.aMdl(M);                      // .mdl completo con diagrama
 ```

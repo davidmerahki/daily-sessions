@@ -111,7 +111,10 @@ python -c "import pysd; m = pysd.read_vensim('modelo.mdl'); print(m.run().tail()
 python -c "import pysd; m = pysd.read_vensim('modelo.mdl'); print(m.run(time_step=0.0625, saveper=1).tail())"  # prueba dt/2
 ```
 - Atajo: `python scripts/validar_modelo.py modelo.mdl [--time-step 0.0625]` traduce, simula y resume los stocks (NaN/inf, mín/máx).
-- En el repositorio `daily-sessions` hay además un motor propio en JavaScript (`simulador/motor.js`, verificado contra PySD) que simula `.mdl` sin subíndices en Node o en el navegador, y `simulador/construir_tablero.py`, que convierte un modelo en un tablero interactivo con palancas e interruptores de bucles (ver `simulador/README.md`).
+- En el repositorio `daily-sessions` hay además un simulador propio (ver `simulador/README.md`):
+  - `simulador/motor.js`, un motor JavaScript verificado contra PySD que simula `.mdl` sin subíndices en Node o en el navegador;
+  - `simulador/modelo.js`, que lee y escribe `.mdl` con su diagrama;
+  - un **lienzo tipo Vensim** con su tablero, que `simulador/construir_tablero.py` empaqueta en un artifact.
 - Con Simlin (`simlin render modelo.mdl > d.svg`) se puede ver el diagrama guardado en el `.mdl` sin Vensim; detecta errores de formato del sketch, por ejemplo una vista sin su cabecera `V300`.
 - `read_vensim` escribe un `.py` junto al `.mdl` (copia el modelo a una carpeta de trabajo). Si regeneras y retraduces un `.mdl` con el mismo nombre y tamaño en el mismo segundo, puede reutilizar bytecode viejo.
 - Para cambiar el paso usa **`run(time_step=..., saveper=...)`**, no `params={"TIME STEP": ...}` (en PySD 3.14.3 da resultados inconsistentes). `run(params={...})` cambia constantes; los `params` persisten entre `run()` (usa `reload()`).

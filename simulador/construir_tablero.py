@@ -7,8 +7,10 @@ Lee de la carpeta del modelo:
   - el único .mdl de la carpeta (o el indicado con --mdl),
   - tablero_config.json (títulos, gráficos, KPIs, nombres de los bucles...),
   - el SVG del diagrama si la configuración lo nombra ("diagrama").
-y escribe tablero.html en esa misma carpeta, con motor.js, el modelo y la
-configuración incrustados: un solo archivo que funciona sin servidor.
+y escribe tablero.html en esa misma carpeta, con motor.js, modelo.js, app.js,
+el modelo y la configuración incrustados: un solo archivo que funciona sin
+servidor. Publicado como artifact, la página lee además modelo.mdl y
+tablero_config.json publicados junto a ella (y los reescribe al guardar).
 """
 import argparse
 import glob
@@ -35,6 +37,10 @@ def construir(carpeta, mdl=None, salida=None):
         modelo = f.read()
     with open(os.path.join(AQUI, "motor.js"), encoding="utf-8") as f:
         motor = f.read()
+    with open(os.path.join(AQUI, "modelo.js"), encoding="utf-8") as f:
+        modelo_js = f.read()
+    with open(os.path.join(AQUI, "app.js"), encoding="utf-8") as f:
+        app = f.read()
     with open(os.path.join(AQUI, "plantilla_tablero.html"), encoding="utf-8") as f:
         html = f.read()
     diagrama = ""
@@ -44,6 +50,8 @@ def construir(carpeta, mdl=None, salida=None):
 
     html = (html.replace("__TITULO__", config.get("titulo", "Simulador"))
                 .replace("/*__MOTOR__*/", _sin_cierre(motor))
+                .replace("/*__MODELO_JS__*/", _sin_cierre(modelo_js))
+                .replace("/*__APP__*/", _sin_cierre(app))
                 .replace("__MODELO__", _sin_cierre(modelo))
                 .replace("__CONFIG__", _sin_cierre(json.dumps(config, ensure_ascii=False)))
                 .replace("<!--__DIAGRAMA__-->", diagrama))

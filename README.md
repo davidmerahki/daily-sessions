@@ -2,8 +2,8 @@
 
 | Carpeta | Qué hay |
 |---|---|
-| [`modelos/ecosistema_credenciales/`](modelos/ecosistema_credenciales/README.md) | Modelo de dinámica de sistemas del ecosistema de credenciales digitales (instituciones, unidades académicas, docentes, estudiantes y empresas) con sus flywheels. Hipótesis v0.1; [tablero interactivo](https://claude.ai/artifact/5VjtbXGjGgtFBgRnZxrXuJ) |
-| [`simulador/`](simulador/README.md) | "Nuestro Vensim": motor JavaScript que simula archivos `.mdl`, verificado contra PySD, y un tablero genérico con palancas e interruptores de bucles |
+| [`modelos/ecosistema_credenciales/`](modelos/ecosistema_credenciales/README.md) | Modelo de dinámica de sistemas del ecosistema de credenciales digitales (instituciones, unidades académicas, docentes, estudiantes y empresas) con sus flywheels. Hipótesis v0.1; [simulador interactivo](https://claude.ai/artifact/5VjtbXGjGgtFBgRnZxrXuJ) con lienzo y tablero |
+| [`simulador/`](simulador/README.md) | "Nuestro Vensim": **lienzo** para dibujar niveles, flujos, variables y fórmulas; motor JavaScript que simula `.mdl` (verificado contra PySD); y tablero con palancas e interruptores de bucles |
 | [`.claude/skills/vensim/`](.claude/skills/vensim/SKILL.md) | Base de conocimiento experta sobre Vensim (ver abajo) |
 
 ## Vensim: base de conocimiento experta
