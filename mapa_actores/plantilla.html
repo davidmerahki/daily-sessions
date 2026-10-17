@@ -1,0 +1,1158 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mapa de actores merahki × POK</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: mesa de trabajo cartográfica — encabezado y franja de filtros arriba; lienzo del grafo a la izquierda, ficha a la derecha (abajo en el teléfono). */
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --panel:#fbfcfd; --ink:#12161b; --ink-2:#47505b; --muted:#7e8792;
+  --line:#e1e5ea; --line-2:#cdd3da; --dot:#dde2e8; --accent:#1c5cab; --accent-ink:#ffffff;
+  --st-sin:#c4cad3; --st-contacto:#86b6ef; --st-prosp:#5598e7; --st-neg:#256abf; --st-cliente:#0d366b;
+  --p-activo:#b8461a; --p-tibio:#eb6834; --p-frio:#f3a77f; --p-sin:#c4cad3;
+  --city:#ffffff; --halo:#f4f6f8; --warn-bg:#fff6e5; --warn-ink:#7a4b00; --crit:#d03b3b; --tier1:#e0a100; --ok:#0ca30c; --alerta:#e8a10c;
+  --font-display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1216; --surface:#151a1f; --panel:#12161b; --ink:#eef1f4; --ink-2:#b7bec7; --muted:#7c8590;
+    --line:#252b33; --line-2:#333b45; --dot:#1e242b; --accent:#86b6ef; --accent-ink:#0b1626;
+    --st-sin:#3b434d; --st-contacto:#1c5cab; --st-prosp:#2a78d6; --st-neg:#6da7ec; --st-cliente:#b7d3f6;
+    --p-activo:#ffa477; --p-tibio:#e0632f; --p-frio:#8f4424; --p-sin:#3b434d;
+    --city:#151a1f; --halo:#0f1216; --warn-bg:#2a2210; --warn-ink:#f2c46b; --tier1:#f2c14e; --ok:#0ca30c; --alerta:#fab219; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --surface:#151a1f; --panel:#12161b; --ink:#eef1f4; --ink-2:#b7bec7; --muted:#7c8590;
+  --line:#252b33; --line-2:#333b45; --dot:#1e242b; --accent:#86b6ef; --accent-ink:#0b1626;
+  --st-sin:#3b434d; --st-contacto:#1c5cab; --st-prosp:#2a78d6; --st-neg:#6da7ec; --st-cliente:#b7d3f6;
+  --p-activo:#ffa477; --p-tibio:#e0632f; --p-frio:#8f4424; --p-sin:#3b434d;
+  --city:#151a1f; --halo:#0f1216; --warn-bg:#2a2210; --warn-ink:#f2c46b; --tier1:#f2c14e; --ok:#0ca30c; --alerta:#fab219; color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body);margin:0}
+*{box-sizing:border-box}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{height:100%;display:grid;grid-template-rows:auto auto 1fr;min-height:0}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{padding-block:14px 10px;border-bottom:1px solid var(--line);background:var(--surface);display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+header.top h1{font:700 clamp(18px,2.2vw,24px)/1.15 var(--font-display);margin:0;letter-spacing:-.01em;text-wrap:balance;max-width:60ch}
+header.top>div{min-width:0;flex:1 1 320px}
+header.top p{margin:4px 0 0;color:var(--ink-2);max-width:78ch;font-size:13px}
+.fuente{font:12px/1.4 var(--font-mono);color:var(--muted);text-align:right;white-space:nowrap}
+
+.barra{padding-block:10px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;border-bottom:1px solid var(--line);background:var(--panel)}
+.grupo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0;max-width:100%}
+.etq{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:2px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:3px 10px 3px 8px;cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.chip[aria-pressed="true"]{border-color:var(--ink-2);color:var(--ink);background:var(--bg)}
+.chip[aria-pressed="false"] .pt{opacity:.35}
+.chip .n{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.pt{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
+select.sel{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:4px 8px;font-size:12.5px;max-width:200px}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:4px 10px;font-size:12.5px;cursor:pointer}
+.btn:hover,.chip:hover{border-color:var(--ink-2)}
+.buscar{position:relative;flex:1 1 220px;max-width:340px;min-width:0}
+.buscar input{width:100%;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px}
+.res{position:absolute;z-index:20;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:4px;max-height:340px;overflow:auto}
+.res button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:0;background:none;padding:6px 8px;border-radius:6px;cursor:pointer}
+.res button:hover,.res button[aria-selected="true"]{background:var(--bg)}
+.res small{color:var(--muted);font-size:11.5px}
+
+main.area{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
+.lienzo{position:relative;min-width:0;min-height:0;background-color:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:22px 22px;overflow:hidden}
+#grafo{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+#grafo:active{cursor:grabbing}
+aside.ficha{border-left:1px solid var(--line);background:var(--surface);overflow:auto;min-height:0;padding:16px 18px 28px}
+
+/* grafo */
+.l{stroke:var(--line-2);stroke-width:1}
+.l-rp{stroke:var(--line-2);stroke-width:1.6;stroke-dasharray:2 5}
+.l-pc{stroke:var(--line-2);stroke-width:1.2}
+.l-iu,.l-up{stroke:var(--muted);stroke-opacity:.55}
+.n{cursor:pointer}
+.n-raiz circle{fill:var(--ink)}
+.n-pais circle{fill:var(--city);stroke:var(--ink);stroke-width:3}
+.n-pais.pend circle{stroke-dasharray:5 4;stroke:var(--muted)}
+.n-ciudad circle{fill:var(--city);stroke:var(--ink-2);stroke-width:1.8}
+.n-ciudad.pend circle{stroke-dasharray:4 3;stroke:var(--muted)}
+.n-inst circle{stroke:var(--bg);stroke-width:1.5}
+.n-inst.abierta circle{stroke:var(--ink);stroke-width:2.5}
+.st-cliente circle{fill:var(--st-cliente)} .st-negociacion circle{fill:var(--st-neg)} .st-prospeccion circle{fill:var(--st-prosp)}
+.st-contacto circle{fill:var(--st-contacto)} .st-sin_contacto circle{fill:var(--st-sin)}
+.n-inst.tier1 circle{fill:var(--tier1);stroke-width:3.2}
+.n-inst.tier1.st-cliente circle{stroke:var(--st-cliente)} .n-inst.tier1.st-negociacion circle{stroke:var(--st-neg)}
+.n-inst.tier1.st-prospeccion circle{stroke:var(--st-prosp)} .n-inst.tier1.st-contacto circle{stroke:var(--st-contacto)}
+.n-inst.tier1.st-sin_contacto circle{stroke:var(--st-sin)}
+.n-inst.tier1 .lb{font-weight:700}
+.dorado{background:var(--tier1)!important;border:2.5px solid var(--st-neg)}
+.tag1{font:600 10.5px var(--font-body);color:var(--warn-ink);background:var(--warn-bg);border-radius:999px;padding:0 6px;margin-left:6px}
+.n-unidad rect{fill:var(--ink-2);stroke:var(--bg);stroke-width:1.5}
+.n-unidad.porid rect{fill:var(--surface);stroke:var(--muted);stroke-dasharray:2 2}
+.n-persona circle{stroke:var(--bg);stroke-width:1.2}
+.ca-activo circle{fill:var(--p-activo)} .ca-tibio circle{fill:var(--p-tibio)} .ca-frio circle{fill:var(--p-frio)}
+.ca-sin circle{fill:var(--surface);stroke:var(--muted);stroke-width:1.3}
+.n-persona.vencida circle{stroke:var(--crit);stroke-width:2.6}
+.n.sel circle,.n.sel rect{stroke:var(--accent)!important;stroke-width:3.5!important}
+#grafo{--k:1}
+.lb{font-family:var(--font-body);font-size:calc(11px / var(--k));fill:var(--ink-2);paint-order:stroke;stroke:var(--halo);stroke-width:calc(3.5px / var(--k));stroke-linejoin:round;pointer-events:none}
+.n-raiz .lb{font-family:var(--font-display);font-weight:700;font-size:calc(16px / var(--k));fill:var(--ink)}
+.n-pais .lb{font-family:var(--font-display);font-weight:700;font-size:calc(15px / var(--k));fill:var(--ink)}
+.n-pais .lb .cnt{font-family:var(--font-mono);font-weight:500;font-size:calc(11px / var(--k));fill:var(--muted)}
+.n-ciudad .lb{font-family:var(--font-display);font-weight:600;font-size:calc(13px / var(--k));fill:var(--ink)}
+.n-ciudad .lb .cnt{font-family:var(--font-mono);font-weight:500;font-size:calc(10.5px / var(--k));fill:var(--muted)}
+.n-inst .lb{font-weight:500;fill:var(--ink)}
+.n-unidad .lb{font-size:calc(10.5px / var(--k));font-weight:600;fill:var(--ink-2)}
+.n-persona .lb{font-size:calc(10px / var(--k))}
+.n-inst:not(.clave):not(.abierta):not(.sel) .lb{display:none}
+.z3 .n-inst .lb{display:inline!important}
+.n-persona .lb{display:none}
+.z2 .n-persona .lb,.n-persona.sel .lb{display:inline}
+.aten{opacity:.16}
+#grafo .n.aten .lb{display:none!important}
+.l.aten{opacity:.12}
+.n-ciudad.chica .lb{display:none}
+.z2 .n-ciudad.chica .lb,.n-ciudad.chica.sel .lb{display:inline}
+.tip{position:absolute;z-index:15;pointer-events:none;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.12);max-width:280px}
+.tip b{display:block;font-weight:600}
+.tip span{color:var(--muted)}
+.leyenda{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11.5px;max-width:calc(100% - 24px)}
+.leyenda .cuerpo{display:grid;gap:6px}
+.leyenda summary{cursor:pointer;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.leyenda[open] summary{margin-bottom:4px}
+.leyenda .fila{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.leyenda .fila>span{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2)}
+.leyenda .tt{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);min-width:78px}
+.sq{width:9px;height:9px;background:var(--ink-2);display:inline-block}
+.hueco{background:var(--surface)!important;border:1.3px solid var(--muted)}
+.zoomctl{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:4px}
+.control{position:absolute;z-index:6;top:12px;left:max(12px,env(safe-area-inset-left,0px));width:min(352px,calc(100% - 72px));max-height:calc(100% - 24px);overflow:auto;background:color-mix(in srgb,var(--surface) 95%,transparent);border:1px solid var(--line-2);border-radius:10px;padding:8px 12px 10px;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.control summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.control summary::-webkit-details-marker{display:none}
+.control summary b{font:700 13px var(--font-display)}
+.control summary span{font:11px var(--font-mono);color:var(--muted)}
+.control .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:999px;overflow:hidden;margin:6px 0 2px}
+.control .seg button{border:0;background:none;padding:2px 10px;font-size:11.5px;cursor:pointer;color:var(--ink-2)}
+.control .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.control table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.control th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:6px 0 1px}
+.control th .seg{margin:0 0 0 8px;vertical-align:middle}
+.control td{padding:2px 0;vertical-align:top;border-top:1px solid var(--line);white-space:nowrap}
+.control td.v{text-align:right;white-space:nowrap;font-weight:600;padding-left:10px}
+.control td.v small{display:block;font-weight:400;color:var(--muted);font-size:10.5px;white-space:normal;max-width:180px;margin-left:auto}
+.control td:first-child{white-space:normal}
+.control .sem{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;vertical-align:middle}
+.control .nota{margin:6px 0 0;font-size:10.5px}
+.zoomctl .btn{width:32px;height:32px;padding:0;display:grid;place-items:center;font-size:16px;line-height:1}
+
+/* ficha */
+.migas{display:flex;flex-wrap:wrap;gap:2px 4px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.migas button{border:0;background:none;padding:0;color:var(--accent);cursor:pointer;font-size:12px}
+.migas span.sep{color:var(--line-2)}
+.ficha h2{font:700 21px/1.2 var(--font-display);margin:0 0 4px;text-wrap:balance;letter-spacing:-.01em}
+.ficha .sub{color:var(--ink-2);margin:0 0 12px}
+.ficha h3{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600;margin:20px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 9px;font-size:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink-2)}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;margin:0}
+.kv dt{color:var(--muted);font-size:12.5px}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.kv dd small{display:block;color:var(--muted);font-size:11.5px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 4px}
+.stat{background:var(--bg);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font:600 22px/1.1 var(--font-display)}
+.stat span{font-size:11.5px;color:var(--ink-2)}
+.lista{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.lista button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:none;padding:5px 6px;border-radius:6px;cursor:pointer;min-width:0}
+.lista button:hover{background:var(--bg)}
+.lista .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lista .nm small{color:var(--muted);margin-left:6px}
+.lista .num{font:500 11.5px var(--font-mono);color:var(--muted)}
+.unidad{margin:10px 0 4px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.unidad .num{font:500 11.5px var(--font-mono);color:var(--muted);font-weight:400}
+.unidad.foco{color:var(--accent)}
+.neg{border:1px solid var(--line);border-radius:8px;padding:7px 9px;margin-bottom:6px}
+.neg b{display:block;font-weight:500;font-size:13px}
+.neg span{font-size:12px;color:var(--muted)}
+.linea{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;font-size:13px;padding:3px 0}
+.linea b{font-weight:600}
+.aviso{background:var(--warn-bg);color:var(--warn-ink);border-radius:8px;padding:7px 10px;font-size:12.5px;margin:6px 0}
+.enlace{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:6px 12px;border-radius:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:500;font-size:13px}
+.enlaces{display:flex;flex-wrap:wrap;gap:6px}
+.mono{font-family:var(--font-mono);font-size:12px}
+.nota{color:var(--muted);font-size:12px;margin:6px 0 0}
+.defs{margin:0;padding-left:16px;color:var(--ink-2);font-size:12.5px;display:grid;gap:4px}
+.act{display:grid;gap:2px;padding:8px 0;border-bottom:1px solid var(--line)}
+.act:last-of-type{border-bottom:0}
+.act-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11.5px;color:var(--muted)}
+.act-tipo{font-weight:600;color:var(--ink-2)}
+.act-f{white-space:nowrap;font-variant-numeric:tabular-nums}
+.act p{margin:0;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.act small{color:var(--muted);font-size:11.5px}
+.act.venc .act-f{color:var(--crit);font-weight:600}
+.fuera{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;font-size:10.5px;font-weight:500;color:var(--warn-ink);background:var(--warn-bg);white-space:nowrap}
+.act button.con{border:0;background:none;padding:0;color:var(--accent);cursor:pointer;font-size:11.5px}
+.mas{font-size:12px;color:var(--muted);margin:6px 0 0}
+.anillo{background:var(--surface)!important;border:2.5px solid var(--crit)}
+
+@media (max-width:760px){
+  main.area{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(300px,58%) minmax(0,1fr)}
+  aside.ficha{border-left:0;border-top:1px solid var(--line)}
+  .fuente{text-align:left;white-space:normal}
+  .leyenda .tt{min-width:0}
+  .leyenda{font-size:11px}
+  select.sel{max-width:none;flex:1 1 140px}
+  .buscar{max-width:none;flex-basis:100%}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+.lb.oculta{visibility:hidden}
+.n-inst.empresa circle{stroke:var(--ink-2);stroke-width:1.8;stroke-dasharray:2.5 2}
+.l-canal{stroke:var(--accent);stroke-width:1.6;stroke-dasharray:5 4;stroke-opacity:.9}
+.neg a{color:inherit;text-decoration:none}
+.neg a:hover b,.neg a:focus-visible b{text-decoration:underline}
+.neg .meta{display:block;font-size:12px;color:var(--muted)}
+.neg.ganado{opacity:.75}
+.tag{font:600 10.5px var(--font-body);color:var(--ink-2);background:var(--dot);border-radius:999px;padding:0 6px;margin-left:6px}
+.fila-neg{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px}
+.cob{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin:4px 0 8px}
+.cob th,.cob td{padding:4px;border-bottom:1px solid var(--line);text-align:right;vertical-align:bottom}
+.cob th{font-weight:500;color:var(--muted);font-size:11px}
+.cob th:first-child,.cob td:first-child{text-align:left}
+details.calidad{margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+details.calidad summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--ink-2)}
+</style>
+
+<div class="app">
+  <header class="top wrap">
+    <div>
+      <h1>El mapa de actores muestra al equipo comercial de merahki y POK las instituciones educativas y las empresas que hemos contactado, quién las lleva y qué negocios tienen</h1>
+      <p>Arranca en Colombia y el filtro de país muestra los demás. Haz clic en una institución para ver sus negocios, sus unidades y las personas con las que hemos hablado. Haz clic en una persona para ver su ficha.</p>
+    </div>
+    <div class="fuente" id="fuente"></div>
+  </header>
+
+  <div class="barra wrap" role="toolbar" aria-label="Filtros del mapa">
+    <div class="buscar">
+      <input id="q" type="search" placeholder="Buscar persona, cargo o institución" autocomplete="off" aria-label="Buscar persona, cargo o institución" aria-controls="res">
+      <div class="res" id="res" role="listbox" hidden></div>
+    </div>
+    <div class="grupo" id="vista" role="group" aria-label="Línea de negocio"><span class="etq">Línea</span></div>
+    <div class="grupo" id="estados"><span class="etq">Estado</span></div>
+    <div class="grupo">
+      <select class="sel" id="pais" aria-label="País"></select>
+      <select class="sel" id="tipo" aria-label="Tipo de institución"></select>
+      <select class="sel" id="ciudad" aria-label="Ciudad"></select>
+      <select class="sel" id="resp" aria-label="Responsable"></select>
+      <select class="sel" id="negf" aria-label="Negocios">
+        <option value="todos">Todos los negocios</option>
+        <option value="trimestre">Con cierre estimado en este trimestre</option>
+        <option value="alta">Con un negocio de prioridad alta</option>
+      </select>
+    </div>
+    <div class="grupo">
+      <button class="btn" id="expandir" type="button">Abrir todas</button>
+      <button class="btn" id="contraer" type="button">Cerrar todas</button>
+    </div>
+  </div>
+
+  <main class="area">
+    <div class="lienzo" id="lienzo">
+      <svg id="grafo" role="img" aria-label="Grafo de ciudades, instituciones, unidades y personas"></svg>
+      <details class="control" id="control" open><summary><b>Control del equipo comercial</b><span id="control-fecha"></span></summary><div id="control-cuerpo"></div></details>
+      <div class="zoomctl">
+        <button class="btn" id="zmas" type="button" aria-label="Acercar">+</button>
+        <button class="btn" id="zmenos" type="button" aria-label="Alejar">−</button>
+        <button class="btn" id="zver" type="button" aria-label="Ver todo el mapa">⤢</button>
+      </div>
+      <details class="leyenda" id="leyenda"><summary>Leyenda</summary><div class="cuerpo" id="leyenda-cuerpo"></div></details>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <aside class="ficha" id="ficha" aria-live="polite"></aside>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+const D = {};
+
+const EST = {
+  cliente:      {t:"Cliente", d:"Tiene al menos un negocio ganado de POK o de merahki."},
+  negociacion:  {t:"En negociación", d:"Tiene un negocio abierto entre la etapa 2 (discovery) y la 5 (sesión de cierre)."},
+  prospeccion:  {t:"Prospección", d:"Solo tiene negocios en la etapa 1 (investigar y contactar) o en «Retomar en 3-6 meses»."},
+  contacto:     {t:"Solo contacto", d:"Hay correos, llamadas, reuniones o mensajes con sus personas, pero ningún negocio comercial."},
+  sin_contacto: {t:"Sin contacto registrado", d:"Sus contactos están en HubSpot sin ninguna actividad registrada."}
+};
+const EST_VAR = {cliente:"--st-cliente", negociacion:"--st-neg", prospeccion:"--st-prosp", contacto:"--st-contacto", sin_contacto:"--st-sin"};
+const CAL = {
+  activo:{t:"Activo", d:"último contacto en los últimos 30 días", v:"--p-activo"},
+  tibio:{t:"Tibio", d:"último contacto hace 31 a 90 días", v:"--p-tibio"},
+  frio:{t:"Frío", d:"último contacto hace más de 90 días", v:"--p-frio"},
+  sin:{t:"Sin registro", d:"sin contacto registrado en HubSpot", v:"--p-sin"}
+};
+const ORDEN_LINEA = ["POK","merahki","Mixto","Sin clasificar","Alianza","PMI"];
+const NOMBRE_LINEA = {"POK":"POK","merahki":"merahki","Mixto":"Mixto (POK y merahki)","Sin clasificar":"Sin línea","Alianza":"Alianzas","PMI":"PMI (congreso)"};
+const ESTADO_NEG = {abierto:"abierto", ganado:"ganado", perdido:"perdido", retomar:"para retomar"};
+const HS = id => `https://app.hubspot.com/contacts/${D.portal}/record/0-1/${id}`;
+const HSC = id => `https://app.hubspot.com/contacts/${D.portal}/record/0-2/${id}`;
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const clave = s => (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fechaTxt = s => { if(!s) return ""; const [y,m,d] = s.split("-").map(Number); return `${d} ${MES[m-1]} ${y}`; };
+const hace = s => { if(!s) return ""; const dias = Math.round((Date.now() - new Date(s+"T12:00:00-05:00"))/864e5); return dias<=0?"hoy":dias===1?"hace 1 día":`hace ${dias} días`; };
+const plural = (n, a, b) => `${n.toLocaleString("es-CO")} ${n===1?a:b}`;
+
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){
+    if (v==null || v===false) continue;
+    if (k==="class") e.className = v;
+    else if (k==="style") e.setAttribute("style", v);
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v===true ? "" : v);
+  }
+  for (const kid of kids.flat(Infinity)){
+    if (kid==null || kid===false) continue;
+    e.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return e;
+}
+const punto = v => h("span",{class:"pt",style:`background:var(${v})`});
+const poner = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter(k => k != null && k !== false));
+
+/* ───────── datos ───────── */
+const INST = new Map(D.instituciones.map(i => [i.id, i]));
+for (const i of D.instituciones) i.personas = [];
+for (const p of D.personas){ const i = INST.get(p.inst); if (i) i.personas.push(p); }
+const ORD_CAL = {activo:0,tibio:1,frio:2,sin:3};
+for (const i of D.instituciones){
+  i.personas.sort((a,b) => (ORD_CAL[a.calor]-ORD_CAL[b.calor]) || a.nombre.localeCompare(b.nombre,"es"));
+  i.n = i.personas.length;
+}
+const PERS = new Map(D.personas.map(p => [p.id, p]));
+const HSD = id => `https://app.hubspot.com/contacts/${D.portal}/record/0-3/${id}`;
+const PRIO = {high:"Prioridad alta", medium:"Prioridad media", low:"Prioridad baja"};
+const COP = n => "COP " + (n/1e6).toLocaleString("es-CO", {maximumFractionDigits: 1}) + " M";
+const HOY_ISO = new Date(Date.now() - 5*3600e3).toISOString().slice(0,10);
+const FIN_TRIM = (() => { const [y,m] = HOY_ISO.split("-").map(Number); return new Date(Date.UTC(y, Math.floor((m-1)/3)*3+3, 0)).toISOString().slice(0,10); })();
+const abiertos = i => (i.deals||[]).filter(n => n.estado==="abierto");
+const cierraTrim = n => n.estado==="abierto" && n.paso>=2 && n.cierre && n.cierre >= HOY_ISO && n.cierre <= FIN_TRIM;
+const decide = p => p.nivel === "Decide";
+const decAct = i => i.personas.filter(p => decide(p) && (p.calor==="activo" || p.calor==="tibio"));
+const sinDecisor = i => (i.estado==="negociacion" || i.estado==="cliente") && i.n > 0 && !decAct(i).length;
+const comoCanal = i => (D.canales || []).filter(c => c.canal === i.id);
+const comoCliente = i => (D.canales || []).filter(c => c.cliente === i.id);
+const frioTA = i => i.tier==="Tier A" && (i.calor==="frio" || i.calor==="sin");
+let MONTOS = false; try { MONTOS = localStorage.getItem("mapa-montos") === "1"; } catch(e){}
+
+/* Vista por línea: POK y merahki tienen pipelines separados en HubSpot. En la
+   vista de una línea, el estado, los negocios y el responsable de cada
+   institución se calculan solo con los negocios de esa línea. */
+const VISTAS = {todas:"Todas", POK:"POK", merahki:"merahki"};
+for (const i of D.instituciones){
+  i.deals = i.deals || [];
+  Object.assign(i, {_deals:i.deals, _negocios:i.negocios, _estado:i.estado, _responsable:i.responsable, _fuente_responsable:i.fuente_responsable});
+}
+for (const p of D.personas) p._negocios = p.negocios;
+const deLinea = (d, v) => d.linea === v || d.linea === "Mixto";
+function estadoDe(i, ds){
+  if (ds.some(d => d.estado==="ganado")) return "cliente";
+  const ab = ds.filter(d => d.estado==="abierto");
+  if (ab.some(d => d.paso>=2)) return "negociacion";
+  if (ab.length || ds.some(d => d.estado==="retomar")) return "prospeccion";
+  return (i.ultimo || i.n_acc) ? "contacto" : "sin_contacto";
+}
+function aplicarVista(v){
+  for (const i of D.instituciones){
+    if (v==="todas"){
+      Object.assign(i, {deals:i._deals, negocios:i._negocios, estado:i._estado, responsable:i._responsable, fuente_responsable:i._fuente_responsable});
+      continue;
+    }
+    i.deals = i._deals.filter(d => deLinea(d, v));
+    i.negocios = {};
+    for (const d of i.deals){ const c = i.negocios[d.linea] = i.negocios[d.linea] || {}; c[d.estado] = (c[d.estado] || 0) + 1; }
+    i.estado = estadoDe(i, i.deals);
+    const ab = i.deals.filter(d => d.estado==="abierto" && d.owner).sort((a,b) => b.paso - a.paso);
+    if (ab.length) Object.assign(i, {responsable:ab[0].owner, fuente_responsable:`Dueño del negocio ${v} abierto más avanzado`});
+    else Object.assign(i, {responsable:i._responsable, fuente_responsable:i._fuente_responsable});
+  }
+  for (const p of D.personas) p.negocios = v==="todas" ? p._negocios : p._negocios.filter(n => deLinea(n, v));
+}
+let VISTA = "todas"; try { VISTA = VISTAS[localStorage.getItem("mapa-vista")] ? localStorage.getItem("mapa-vista") : "todas"; } catch(e){}
+aplicarVista(VISTA);
+
+const S = {
+  estados: new Set(Object.keys(EST)),
+  tipo: "todos", ciudad: "todas", resp: "todos", negf: "todos",
+  pais: D.instituciones.some(i => i.pais==="Colombia") ? "Colombia" : "todos",
+  abiertas: new Set(), forzadas: new Set(), sel: null
+};
+function pasa(i){
+  if (S.forzadas.has(i.id)) return true;
+  if (!S.estados.has(i.estado)) return false;
+  if (S.tipo !== "todos" && i.tipo !== S.tipo) return false;
+  if (S.pais !== "todos" && i.pais !== S.pais) return false;
+  if (S.ciudad !== "todas" && `${i.pais}|${i.ciudad}` !== S.ciudad) return false;
+  if (S.resp !== "todos" && (i.responsable||"") !== (S.resp==="sin" ? "" : S.resp)) return false;
+  if (S.negf==="trimestre" && !(i.deals||[]).some(cierraTrim)) return false;
+  if (S.negf==="alta" && !abiertos(i).some(n => n.prioridad==="high")) return false;
+  return true;
+}
+
+/* ───────── modelo del grafo ───────── */
+const CACHE = new Map();
+let modelo = {nodes:[], links:[]};
+function nodo(id, props, padre){
+  let n = CACHE.get(id);
+  if (!n){
+    n = {id};
+    if (padre && padre.x != null){ const a = Math.random()*Math.PI*2, r = 12 + Math.random()*18; n.x = padre.x + Math.cos(a)*r; n.y = padre.y + Math.sin(a)*r; }
+    CACHE.set(id, n);
+  }
+  Object.assign(n, props);
+  return n;
+}
+function construir(){
+  const insts = D.instituciones.filter(pasa);
+  const nodes = [], links = [];
+  const raiz = nodo("raiz", {tipo:"raiz", nombre:D.raiz, r:18});
+  raiz.fx = 0; raiz.fy = 0;
+  nodes.push(raiz);
+  const porPais = d3.groups(insts, i => i.pais).sort((a,b) => b[1].length - a[1].length);
+  porPais.forEach(([pa, lp], kp) => {
+    const pn = nodo("pa:"+pa, {tipo:"pais", nombre:pa, n:lp.length, np:d3.sum(lp, i => i.n), r:12 + Math.sqrt(lp.length)*1.5, pend:pa==="País por confirmar"});
+    if (pn.x == null){ const a = (kp/porPais.length)*Math.PI*2 - Math.PI/2, rr = 420 + (kp%2)*140; pn.x = Math.cos(a)*rr; pn.y = Math.sin(a)*rr; }
+    nodes.push(pn); links.push({source:"raiz", target:pn.id, k:"rp", key:"raiz>"+pn.id});
+    const porCiudad = d3.groups(lp, i => i.ciudad).sort((a,b) => b[1].length - a[1].length);
+    for (const [c, lista] of porCiudad){
+      const cn = nodo(`c:${pa}|${c}`, {tipo:"ciudad", nombre:c, pais:pa, n:lista.length, np:d3.sum(lista, i => i.n), insts:lista, r:6 + Math.sqrt(lista.length)*2.2, pend:c==="Ciudad por confirmar"}, pn);
+      nodes.push(cn); links.push({source:pn.id, target:cn.id, k:"pc", key:pn.id+">"+cn.id});
+      for (const i of lista){
+        const t1 = i.tier === "Tier A";
+        const ino = nodo("i:"+i.id, {tipo:"inst", ref:i, t1, padre:cn, r: t1 ? 10 + Math.sqrt(Math.max(i.n,1))*1.9 : 4 + Math.sqrt(Math.max(i.n,1))*1.6}, cn);
+        nodes.push(ino); links.push({source:cn.id, target:ino.id, k:"ci", key:cn.id+">"+ino.id});
+        if (S.abiertas.has(i.id)){
+          const porU = d3.groups(i.personas, p => p.unidad).sort((a,b) => (a[0]==="Unidad por identificar") - (b[0]==="Unidad por identificar") || b[1].length - a[1].length);
+          for (const [u, ps] of porU){
+            const un = nodo(`u:${i.id}:${u}`, {tipo:"unidad", nombre:u, n:ps.length, inst:i, padre:ino, r:5.5}, ino);
+            nodes.push(un); links.push({source:ino.id, target:un.id, k:"iu", key:ino.id+">"+un.id});
+            for (const p of ps){
+              const pn2 = nodo("p:"+p.id, {tipo:"persona", ref:p, padre:un, r: decide(p) ? 7 : 5}, un);
+              nodes.push(pn2); links.push({source:un.id, target:pn2.id, k:"up", key:un.id+">"+pn2.id});
+            }
+          }
+        }
+      }
+    }
+  });
+  // líneas de canal (16-oct): la institución por la que entra un negocio → su cliente final; fuerza cero para no deformar el mapa
+  const hay = new Set(nodes.map(n => n.id)), vistos = new Set();
+  for (const c of (D.canales || [])){
+    const a = "i:" + c.canal, b = "i:" + c.cliente, key = "canal:" + a + ">" + b;
+    if (hay.has(a) && hay.has(b) && !vistos.has(key)){ vistos.add(key); links.push({source:a, target:b, k:"canal", key}); }
+  }
+  modelo = {nodes, links};
+}
+
+/* ───────── simulación y dibujo ───────── */
+const svg = d3.select("#grafo");
+const capa = svg.append("g");
+const gL = capa.append("g");
+const gN = capa.append("g");
+let K = 1;
+const zoom = d3.zoom().scaleExtent([0.12, 7]).on("zoom", e => {
+  capa.attr("transform", e.transform); K = e.transform.k;
+  svg.node().style.setProperty("--k", K);
+  svg.classed("z1", K >= 1.35).classed("z2", K >= 1.9).classed("z3", K >= 2.8);
+}).on("end", () => despejarLuego());
+svg.call(zoom).on("dblclick.zoom", null);
+svg.on("click", () => ocultarRes());
+
+const sim = d3.forceSimulation()
+  .force("link", d3.forceLink().id(d => d.id)
+    .distance(l => l.k==="rp" ? 240 + Math.sqrt(l.target.n)*30 : l.k==="pc" ? l.source.r + l.target.r + 70 + Math.sqrt(l.target.n)*8 : l.k==="ci" ? l.source.r + l.target.r + (l.target.t1 ? 12 : l.target.ref.tier === "Tier B" ? 36 : 62) : l.k==="iu" ? l.source.r + 72 : 30)
+    .strength(l => l.k==="canal" ? 0 : l.k==="rp" ? 0.5 : l.k==="pc" ? 0.35 : l.k==="ci" ? (l.target.t1 ? 1 : l.target.ref.tier === "Tier B" ? 0.75 : 0.55) : 0.95))
+  .force("charge", d3.forceManyBody().distanceMax(900).strength(d => d.tipo==="raiz" ? -1000 : d.tipo==="pais" ? -800 - d.r*16 : d.tipo==="ciudad" ? -300 - d.r*11 : d.tipo==="inst" ? -80 - d.r*9 : d.tipo==="unidad" ? -230 : -45))
+  .force("collide", d3.forceCollide().radius(d => d.r + (d.tipo==="persona" ? 6 : d.tipo==="inst" ? 9 : d.tipo==="unidad" ? 10 : 14)).iterations(3))
+  .force("x", d3.forceX(0).strength(0.012))
+  .force("y", d3.forceY(0).strength(0.012))
+  .on("tick", tic)
+  .on("end", () => despejarLuego(60))
+  .stop();
+
+let selN, selL;
+function etiqueta(d){
+  if (d.tipo==="raiz" || d.tipo==="pais") return d.nombre;
+  if (d.tipo==="inst") return d.ref.nombre;
+  if (d.tipo==="unidad") return `${d.nombre} · ${d.n}`;
+  if (d.tipo==="persona") return d.ref.nombre;
+  return d.nombre;
+}
+function clases(d){
+  const c = ["n", "n-"+d.tipo];
+  if ((d.tipo==="ciudad" || d.tipo==="pais") && d.pend) c.push("pend");
+  if (d.tipo==="ciudad" && d.n < 3) c.push("chica");
+  if (REL && !REL.has(d.id)) c.push("aten");
+  if (d.tipo==="inst"){
+    const i = d.ref; c.push("st-"+i.estado);
+    if (S.abiertas.has(i.id)) c.push("abierta");
+    if (i.estado==="cliente" || i.tier==="Tier A") c.push("clave");
+    if (i.tier==="Tier A") c.push("tier1");
+    if (i.empresa) c.push("empresa");
+  }
+  if (d.tipo==="unidad" && d.nombre==="Unidad por identificar") c.push("porid");
+  if (d.tipo==="persona"){ c.push("ca-"+d.ref.calor); if (d.ref.pendientes.some(a => a.venc)) c.push("vencida"); }
+  if (S.sel && S.sel.id === d.id) c.push("sel");
+  return c.join(" ");
+}
+function dibujar(){
+  REL = relacionados(S.sel && CACHE.get(S.sel.id));
+  selL = gL.selectAll("line").data(modelo.links, l => l.key).join("line").attr("class", l => "l l-"+l.k + (REL && !(REL.has(l.source.id) && REL.has(l.target.id)) ? " aten" : ""));
+  selN = gN.selectAll("g.n").data(modelo.nodes, d => d.id).join(enter => {
+    const e = enter.append("g");
+    e.each(function(d){
+      const s = d3.select(this);
+      if (d.tipo==="unidad") s.append("rect").attr("x",-d.r).attr("y",-d.r).attr("width",d.r*2).attr("height",d.r*2).attr("rx",1.5).attr("transform","rotate(45)");
+      else s.append("circle");
+      const t = s.append("text").attr("class","lb");
+      if (d.tipo==="ciudad" || d.tipo==="pais" || d.tipo==="raiz"){ t.attr("text-anchor","middle"); }
+    });
+    e.on("click", (ev, d) => { ev.stopPropagation(); clic(d); })
+     .on("mouseenter", (ev, d) => verTip(ev, d))
+     .on("mousemove", ev => moverTip(ev))
+     .on("mouseleave", ocultarTip);
+    return e;
+  });
+  selN.attr("class", clases);
+  selN.select("circle").attr("r", d => d.r);
+  selN.select("text").each(function(d){
+    const t = d3.select(this);
+    t.selectAll("tspan").remove(); t.text(null);
+    if (d.tipo==="ciudad"){
+      t.attr("y", d.r + 4).attr("dominant-baseline","hanging").text(d.nombre);
+      t.append("tspan").attr("class","cnt").attr("dx",5).text(d.n);
+    } else if (d.tipo==="pais"){
+      t.attr("y", d.r + 5).attr("dominant-baseline","hanging").text(d.nombre);
+      t.append("tspan").attr("class","cnt").attr("dx",6).text(d.n);
+    } else if (d.tipo==="raiz"){
+      t.attr("y", d.r + 5).attr("dominant-baseline","hanging").text(d.nombre);
+    } else {
+      const izq = !!(d.padre && d.x < d.padre.x); d._izq = izq;   // la etiqueta apunta hacia afuera de su grupo
+      t.attr("text-anchor", izq ? "end" : "start").attr("x", izq ? -(d.r + 4) : d.r + 4).attr("dy", "0.35em").text(etiqueta(d));
+    }
+  });
+  const ORD = {raiz:5,pais:4,ciudad:3,inst:2,unidad:1,persona:0};
+  gN.selectAll("g.n").sort((a,b) => (ORD[a.tipo] - ORD[b.tipo]) || ((a.t1 ? 1 : 0) - (b.t1 ? 1 : 0)));
+}
+function tic(){
+  if (!selN) return;
+  selL.attr("x1", l => l.source.x).attr("y1", l => l.source.y).attr("x2", l => l.target.x).attr("y2", l => l.target.y);
+  selN.attr("transform", d => `translate(${d.x},${d.y})`);
+  selN.each(function(d){
+    if (!d.padre) return;
+    const izq = d.x < d.padre.x;
+    if (izq === d._izq) return;
+    d._izq = izq;
+    const t = this.querySelector("text.lb");
+    if (t){ t.setAttribute("text-anchor", izq ? "end" : "start"); t.setAttribute("x", izq ? -(d.r + 4) : d.r + 4); }
+  });
+}
+/* ───────── despeje de etiquetas (17-oct) ─────────
+   En orden de importancia (seleccionado, raíz, país, ciudad, Tier 1, cliente, negociación, resto, unidad, persona), cada etiqueta
+   visible se muestra solo si no choca con una ya puesta; desde «cliente» hacia abajo, tampoco puede cubrir el centro de otro nodo. Las ocultas aparecen al acercar el zoom o en el globo
+   al pasar el mouse. Raíz, países, ciudades y lo seleccionado se muestran siempre. */
+let despejeT;
+function prioLb(d){
+  if (S.sel && S.sel.id === d.id) return 0;
+  if (d.tipo==="raiz") return 1; if (d.tipo==="pais") return 2; if (d.tipo==="ciudad") return 3;
+  if (d.tipo==="inst") return d.t1 ? 4 : d.ref.estado==="cliente" ? 5 : d.ref.estado==="negociacion" ? 6 : 7;
+  return d.tipo==="unidad" ? 8 : 9;
+}
+function despejar(){
+  if (!selN) return;
+  const items = [], nodos = [];
+  selN.each(function(d){
+    const c = this.querySelector("circle, rect");
+    if (c){ const b = c.getBoundingClientRect(); if (b.width) nodos.push({d, b}); }
+    const t = this.querySelector("text.lb");
+    if (!t) return;
+    t.classList.remove("oculta");
+    if (getComputedStyle(t).display === "none") return;
+    const b = t.getBoundingClientRect();
+    if (!b.width) return;
+    const base = prioLb(d), foco = !!(REL && REL.has(d.id));
+    items.push({t, d, b, base, p: base - (foco ? 10 : 0)});   // lo relacionado con la selección va primero, pero no queda «fuerte»
+  });
+  items.sort((a, b) => a.p - b.p || (b.d.r || 0) - (a.d.r || 0));
+  const choca = (a, b, m) => a.left < b.right + m && a.right + m > b.left && a.top < b.bottom + m && a.bottom + m > b.top;
+  const cubre = (a, x, y) => x > a.left - 1 && x < a.right + 1 && y > a.top - 1 && y < a.bottom + 1;
+  const puestos = [];
+  for (const it of items){
+    const fuerte = it.base <= 3;
+    let ok = fuerte || !puestos.some(b => choca(it.b, b, 2));
+    // tapar un nodo = cubrir su centro; rozar el borde de un círculo no cuenta
+    // las Tier 1 solo ceden ante una etiqueta más importante (David quiere verlas); el resto tampoco puede tapar un nodo
+    if (ok && !fuerte && it.base >= 5) ok = !nodos.some(n => n.d !== it.d && cubre(it.b, (n.b.left + n.b.right) / 2, (n.b.top + n.b.bottom) / 2));
+    if (ok) puestos.push(it.b); else it.t.classList.add("oculta");
+  }
+}
+function despejarLuego(ms = 140){ clearTimeout(despejeT); despejeT = setTimeout(despejar, ms); }
+function refrescar(ticks=260, animar=false){
+  construir();
+  sim.nodes(modelo.nodes);
+  sim.force("link").links(modelo.links);
+  sim.alpha(1);
+  for (let k=0; k<ticks; k++) sim.tick();
+  dibujar(); tic(); despejarLuego();
+  if (animar && !reduce) sim.alpha(0.08).restart();
+  pintarConteo();
+}
+
+/* ───────── encuadre ───────── */
+function tam(){ const r = svg.node().getBoundingClientRect(); return [r.width || 800, r.height || 600]; }
+function encuadrar(ns, maxK=3.2, dur=650){
+  ns = ns.filter(n => n && n.x != null);
+  if (!ns.length) return;
+  const [w0, hh] = tam();
+  const ctl = document.getElementById("control");
+  const ox = ctl && ctl.open && !ctl.hidden && w0 > 900 ? ctl.offsetWidth + 24 : 0;   // la tabla de control ocupa la esquina izquierda
+  const w = w0 - ox;
+  const x0 = d3.min(ns, n => n.x - n.r - 20), x1 = d3.max(ns, n => n.x + n.r + 140);
+  const y0 = d3.min(ns, n => n.y - n.r - 24), y1 = d3.max(ns, n => n.y + n.r + 24);
+  const k = Math.max(0.12, Math.min(maxK, 0.92*Math.min(w/(x1-x0), hh/(y1-y0))));
+  const cx = (x0+x1)/2, cy = (y0+y1)/2;
+  const t = d3.zoomIdentity.translate(ox + w/2 - k*cx, hh/2 - k*cy).scale(k);
+  (reduce || !dur ? svg : svg.transition().duration(dur)).call(zoom.transform, t);
+}
+const verTodo = () => encuadrar(modelo.nodes, 1.4);
+const desc = d => {
+  if (d.tipo==="inst") return modelo.nodes.filter(n => n===d || (n.tipo==="unidad" && n.inst===d.ref) || (n.tipo==="persona" && n.ref.inst===d.ref.id));
+  if (d.tipo==="ciudad") return modelo.nodes.filter(n => n===d || (n.tipo==="inst" && n.ref.ciudad===d.nombre && n.ref.pais===d.pais));
+  if (d.tipo==="pais") return modelo.nodes.filter(n => n===d || (n.tipo==="ciudad" && n.pais===d.nombre) || (n.tipo==="inst" && n.ref.pais===d.nombre));
+  return [d];
+};
+
+/* ───────── interacción ───────── */
+let REL = null;
+function relacionados(d){
+  if (!d) return null;
+  const r = new Set(["raiz"]);
+  let inst = d.tipo==="inst" ? d.ref : d.tipo==="persona" ? INST.get(d.ref.inst) : d.tipo==="unidad" ? d.inst : null;
+  if (inst){
+    r.add("pa:"+inst.pais); r.add(`c:${inst.pais}|${inst.ciudad}`); r.add("i:"+inst.id);
+    for (const n of modelo.nodes) if ((n.tipo==="unidad" && n.inst===inst) || (n.tipo==="persona" && n.ref.inst===inst.id)) r.add(n.id);
+    return r;
+  }
+  if (d.tipo==="ciudad" || d.tipo==="pais"){
+    const dentro = i => i.pais===(d.tipo==="pais" ? d.nombre : d.pais) && (d.tipo==="pais" || i.ciudad===d.nombre);
+    r.add(d.id); r.add("pa:"+(d.tipo==="pais" ? d.nombre : d.pais));
+    for (const n of modelo.nodes){
+      if (n.tipo==="ciudad" && d.tipo==="pais" && n.pais===d.nombre) r.add(n.id);
+      if (n.tipo==="inst" && dentro(n.ref)) r.add(n.id);
+      if (n.tipo==="unidad" && dentro(n.inst)) r.add(n.id);
+      if (n.tipo==="persona" && dentro(INST.get(n.ref.inst))) r.add(n.id);
+    }
+    return r;
+  }
+  return null;
+}
+function seleccionar(d){
+  S.sel = d; REL = relacionados(d);
+  if (selN) selN.attr("class", clases);
+  if (selL) selL.attr("class", l => "l l-"+l.k + (REL && !(REL.has(l.source.id) && REL.has(l.target.id)) ? " aten" : ""));
+  despejarLuego();
+}
+function clic(d){
+  ocultarTip();
+  if (d.tipo==="raiz"){ seleccionar(null); fichaResumen(); verTodo(); return; }
+  if (d.tipo==="pais"){ seleccionar(d); fichaPais(d.nombre); encuadrar(desc(d), 1.8); return; }
+  if (d.tipo==="ciudad"){ seleccionar(d); fichaCiudad(d.pais, d.nombre); encuadrar(desc(d), 2.4); return; }
+  if (d.tipo==="inst"){
+    const i = d.ref;
+    if (S.abiertas.has(i.id) && S.sel && S.sel.id===d.id){ S.abiertas.delete(i.id); refrescar(120, true); seleccionar(CACHE.get(d.id)); fichaInst(i); return; }
+    if (!S.abiertas.has(i.id)){ S.abiertas.add(i.id); refrescar(160, true); }
+    const nd = CACHE.get(d.id); seleccionar(nd); fichaInst(i); encuadrar(desc(nd), 3); return;
+  }
+  if (d.tipo==="unidad"){ seleccionar(CACHE.get("i:"+d.inst.id)); fichaInst(d.inst, d.nombre); return; }
+  if (d.tipo==="persona"){ seleccionar(d); fichaPersona(d.ref); return; }
+}
+function irInst(i, unidad){
+  if (!pasa(i)) S.forzadas.add(i.id);
+  S.abiertas.add(i.id); refrescar(160, true);
+  const nd = CACHE.get("i:"+i.id); seleccionar(nd); fichaInst(i, unidad); encuadrar(desc(nd), 3);
+}
+function irPersona(p){
+  const i = INST.get(p.inst);
+  if (!pasa(i)) S.forzadas.add(i.id);
+  if (!S.abiertas.has(i.id)){ S.abiertas.add(i.id); refrescar(160, true); }
+  const nd = CACHE.get("p:"+p.id); seleccionar(nd); fichaPersona(p);
+  encuadrar([nd, ...modelo.nodes.filter(n => n.tipo==="unidad" && n.inst===i && n.nombre===p.unidad)], 3.4);
+}
+function irCiudad(pa, c){
+  const nd = CACHE.get(`c:${pa}|${c}`);
+  if (nd && modelo.nodes.includes(nd)){ seleccionar(nd); fichaCiudad(pa, c); encuadrar(desc(nd), 2.4); }
+  else { fichaCiudad(pa, c); }
+}
+function irPais(pa){
+  const nd = CACHE.get("pa:"+pa);
+  if (nd && modelo.nodes.includes(nd)){ seleccionar(nd); fichaPais(pa); encuadrar(desc(nd), 1.8); }
+  else { fichaPais(pa); }
+}
+const RAIZ = {t:D.raiz, fn:() => clic({tipo:"raiz"})};
+document.getElementById("zmas").onclick = () => svg.transition().duration(reduce?0:250).call(zoom.scaleBy, 1.4);
+document.getElementById("zmenos").onclick = () => svg.transition().duration(reduce?0:250).call(zoom.scaleBy, 1/1.4);
+document.getElementById("zver").onclick = verTodo;
+document.getElementById("expandir").onclick = () => { D.instituciones.filter(pasa).forEach(i => S.abiertas.add(i.id)); refrescar(300); verTodo(); };
+document.getElementById("contraer").onclick = () => { S.abiertas.clear(); S.forzadas.clear(); refrescar(200); verTodo(); fichaResumen(); seleccionar(null); };
+document.addEventListener("keydown", e => { if (e.key==="Escape"){ ocultarRes(); seleccionar(null); fichaResumen(); } });
+
+/* tooltip */
+const tip = document.getElementById("tip"), lienzo = document.getElementById("lienzo");
+function verTip(ev, d){
+  tip.replaceChildren();
+  if (d.tipo==="inst"){ const i = d.ref; tip.append(h("b",{},i.nombre), h("span",{}, `${plural(i.n,"persona","personas")} · ${EST[i.estado].t}`)); }
+  else if (d.tipo==="persona"){ const p = d.ref; tip.append(h("b",{},p.nombre), h("span",{}, p.cargo || p.unidad)); }
+  else if (d.tipo==="ciudad" || d.tipo==="pais"){ tip.append(h("b",{}, d.tipo==="ciudad" ? `${d.nombre}, ${d.pais}` : d.nombre), h("span",{}, `${plural(d.n,"institución","instituciones")} · ${plural(d.np,"persona","personas")}`)); }
+  else if (d.tipo==="unidad"){ tip.append(h("b",{},d.nombre), h("span",{}, `${d.inst.nombre} · ${plural(d.n,"persona","personas")}`)); }
+  else { tip.append(h("b",{},d.nombre), h("span",{},"Ver el resumen del mapa")); }
+  tip.hidden = false; moverTip(ev);
+}
+function moverTip(ev){
+  const r = lienzo.getBoundingClientRect();
+  let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  if (x + 290 > r.width) x = ev.clientX - r.left - 290;
+  tip.style.left = Math.max(4,x)+"px"; tip.style.top = y+"px";
+}
+function ocultarTip(){ tip.hidden = true; }
+
+/* ───────── ficha ───────── */
+const ficha = document.getElementById("ficha");
+function migas(partes){
+  const out = h("nav",{class:"migas","aria-label":"Ruta"});
+  partes.forEach((p, k) => {
+    if (k) out.append(h("span",{class:"sep"},"›"));
+    out.append(p.fn ? h("button",{type:"button",onclick:p.fn},p.t) : h("span",{},p.t));
+  });
+  return out;
+}
+const visibles = () => D.instituciones.filter(pasa);
+function itemAct(a, conPersona){
+  const cuando = a.pend
+    ? (a.venc ? `Venció ${hace(a.f)}` : a.f === new Date().toLocaleDateString("en-CA", {timeZone:"America/Bogota"}) ? (a.tipo==="Tarea" ? "Vence hoy" : "Hoy") : `${a.tipo==="Tarea" ? "Vence el" : "El"} ${fechaTxt(a.f)}`)
+    : `${fechaTxt(a.f)} · ${hace(a.f)}`;
+  const persona = conPersona && a.con ? D.personas.find(p => p.nombre===a.con && p.inst===conPersona.id) : null;
+  const pie = [a.q ? (a.tipo==="Compromiso del cliente" ? `Responsable: ${a.q}` : `Por ${a.q}`) : null, a.prio ? "Prioridad alta" : null].filter(Boolean).join(" · ");
+  return h("div",{class:"act"+(a.venc?" venc":"")},
+    h("div",{class:"act-cab"}, h("span",{class:"act-tipo"}, a.tipo + (a.origen ? ` · ${a.origen}` : ""), a.fuera ? h("span",{class:"fuera",title:"Viene de Gmail o Diio y todavía no está registrado en HubSpot"},"no está en HubSpot") : null), h("span",{class:"act-f"}, cuando)),
+    a.x ? h("p",{}, a.x) : null,
+    (pie || persona) ? h("small",{}, pie, pie && persona ? " · " : null, persona ? ["con ", h("button",{type:"button",class:"con",onclick:() => irPersona(persona)}, persona.nombre)] : null) : null);
+}
+function bloqueAct(titulo, lista, total, vacio, conPersona, resto){
+  return [h("h3",{}, titulo),
+    lista.length ? lista.map(a => itemAct(a, conPersona)) : h("p",{class:"nota"}, vacio),
+    total > lista.length ? h("p",{class:"mas"}, `${total - lista.length} ${total - lista.length === 1 ? ({"acciones más":"acción más","pendientes más":"pendiente más"})[resto] || resto : resto}`) : null];
+}
+function fichaResumen(){
+  const I = visibles(), np = d3.sum(I, i => i.n), npais = new Set(I.map(i => i.pais)).size;
+  const paises = d3.groups(I, i => i.pais).sort((a,b) => b[1].length - a[1].length);
+  const porEst = d3.rollup(I, v => v.length, i => i.estado);
+  const conLinea = (l) => I.filter(i => i.negocios && i.negocios[l]);
+  const gan = (l) => I.filter(i => i.negocios && i.negocios[l] && i.negocios[l].ganado).length;
+  const ciudades = d3.groups(I.filter(i => i.ciudad!=="Ciudad por confirmar"), i => `${i.pais}|${i.ciudad}`).sort((a,b) => b[1].length - a[1].length);
+  const todas = D.instituciones;
+  const propuestas = todas.filter(i => i.fuente_ciudad.startsWith("Propuesta")).length;
+  const sinCiudad = todas.filter(i => i.ciudad==="Ciudad por confirmar").length;
+  const sinPais = todas.filter(i => i.pais==="País por confirmar").length;
+  const sinUnidad = D.personas.filter(p => p.unidad==="Unidad por identificar").length;
+  const dup = D.personas.filter(p => p.ids.length > 1).length;
+  const sinNombre = d3.sum(todas, i => i.sin_nombre);
+  const repartidas = todas.filter(i => i.empresas_hs.length > 1).length;
+  poner(ficha,
+    migas([{t:D.raiz}]),
+    h("h2",{}, "Resumen del mapa"),
+    h("p",{class:"sub"}, "Lo que se ve con los filtros de arriba. Haz clic en un país, una ciudad o una institución para entrar."),
+    h("div",{class:"stats"},
+      h("div",{class:"stat"}, h("b",{}, I.length.toLocaleString("es-CO")), h("span",{},"instituciones")),
+      h("div",{class:"stat"}, h("b",{}, np.toLocaleString("es-CO")), h("span",{},"personas")),
+      h("div",{class:"stat"}, h("b",{}, npais), h("span",{}, npais===1 ? "país" : "países"))),
+    h("h3",{},"Por país"),
+    h("ul",{class:"lista"}, paises.map(([pa, v]) =>
+      h("li",{}, h("button",{type:"button",onclick:() => irPais(pa)}, h("span",{class:"nm"}, pa), h("span",{class:"num"}, `${v.length} inst. · ${d3.sum(v, i => i.n)} p.`))))),
+    h("h3",{},"Instituciones por estado comercial"),
+    h("ul",{class:"lista"}, Object.keys(EST).filter(k => porEst.get(k)).map(k =>
+      h("li",{}, h("div",{class:"linea",style:"grid-template-columns:18px minmax(0,1fr) auto"}, punto(EST_VAR[k]), h("span",{},EST[k].t), h("span",{class:"mono"}, porEst.get(k)))))),
+    h("h3",{},"Cobertura de cada responsable"),
+    tablaCobertura(I),
+    h("h3",{},"Negociaciones sin contacto con quien decide en 90 días"),
+    listaInst(I.filter(sinDecisor), "Todas las negociaciones tienen a alguien que decide contactado en los últimos 90 días.", i => `${plural(i.n,"persona","personas")}`),
+    h("h3",{},"Negocios por línea"),
+    ["POK","merahki"].filter(l => VISTA==="todas" || l===VISTA).map(l => h("div",{class:"linea"}, h("b",{},l), h("span",{}, `${plural(conLinea(l).length,"institución","instituciones")} con negocio en HubSpot · ganado en ${gan(l)}`))),
+    h("p",{class:"nota"}, VISTA==="todas"
+      ? "POK y merahki se cuentan por separado. Una institución con negocios de las dos líneas aparece en ambas."
+      : `Vista ${VISTA}: el estado, los negocios y el responsable de cada institución salen solo de sus negocios de ${VISTA}. Las que no tienen ninguno quedan como «solo contacto».`),
+    h("h3",{},"Pendientes en HubSpot"),
+    h("div",{class:"linea"}, h("b",{}, d3.sum(I, i => i.n_pend)), h("span",{}, `tareas abiertas y reuniones programadas · ${d3.sum(I, i => i.n_venc)} tareas vencidas`)),
+    (() => { const v = I.filter(i => i.n_venc).sort((a,b) => b.n_venc - a.n_venc).slice(0, 8);
+      return v.length ? h("ul",{class:"lista"}, v.map(i => h("li",{}, h("button",{type:"button",onclick:() => irInst(i)}, h("span",{class:"pt anillo"}), h("span",{class:"nm"}, i.nombre), h("span",{class:"num"}, i.n_venc === 1 ? "1 vencida" : `${i.n_venc} vencidas`))))) : null; })(),
+    h("details",{class:"calidad"}, h("summary",{},"Calidad del dato en HubSpot"),
+    h("ul",{class:"defs"},
+      D.excluidas ? h("li",{}, `No aparecen ${D.excluidas.instituciones} instituciones ni ${D.excluidas.personas} personas de HubSpot sin ningún correo, llamada, reunión ni mensaje registrado.`) : null,
+      h("li",{}, `${sinPais} instituciones sin país (van al nodo «País por confirmar»).`),
+      h("li",{}, `${sinCiudad} instituciones sin ciudad (van al nodo «Ciudad por confirmar» de su país).`),
+      h("li",{}, `${propuestas} instituciones con ciudad propuesta por Claude que todavía no está en HubSpot.`),
+      h("li",{}, `${sinUnidad} personas sin cargo, así que su unidad está por identificar.`),
+      h("li",{}, `${dup} personas con más de un registro en HubSpot (aquí se ven como una sola).`),
+      h("li",{}, `${repartidas} instituciones repartidas en varias empresas de HubSpot.`),
+      h("li",{}, `${sinNombre} contactos sin nombre que no aparecen en el mapa.`))),
+    h("h3",{},"Cómo leer el mapa"),
+    h("ul",{class:"defs"},
+      h("li",{}, h("b",{},"Línea (POK, merahki o todas): "), "POK y merahki tienen pipelines separados en HubSpot (POK Colombia, POK México, POK España y merahki Colombia). Al elegir una línea, el estado de cada institución, sus negocios, su responsable y el panel de control se calculan solo con los negocios de esa línea."),
+      Object.entries(EST).filter(([k]) => cuentaEst.get(k)).map(([k,e]) => h("li",{}, h("b",{}, e.t+": "), e.d)),
+      h("li",{}, h("b",{},"Tier 1: "), "las instituciones con un negocio «Tier A» en HubSpot. Van en dorado, más grandes y pegadas a su ciudad; el borde conserva el color de su estado comercial."),
+      h("li",{}, h("b",{},"Quién aparece: "), "solo las personas con al menos un correo, llamada, reunión o mensaje registrado (HubSpot, Gmail o Diio), y las instituciones donde hay al menos una de ellas."),
+      h("li",{}, h("b",{},"Color de cada persona: "), "qué tan reciente es el último contacto registrado en HubSpot (30 y 90 días)."),
+      h("li",{}, h("b",{},"Unidad: "), "sale del cargo en HubSpot. Si no hay cargo, del buzón de correo; si tampoco, queda por identificar."),
+      D.personas.some(p => p.acciones.some(a => a.origen)) ? h("li",{}, h("b",{},"No está en HubSpot: "), "acción o pendiente que aparece en Gmail o en una reunión de Diio y que HubSpot no tiene registrado para esa persona.") : null,
+      h("li",{}, h("b",{},"Empresa u organización: "), "cuenta que no es una institución educativa y tiene un negocio abierto o ganado. Va con el borde punteado."),
+      h("li",{}, h("b",{},"Canal: "), "la línea punteada une la institución por la que entra un negocio (por ejemplo Uniandes) con su cliente final. Sale de la etiqueta «Canal» de la asociación entre el negocio y la empresa en HubSpot."),
+      h("li",{}, h("b",{},"Responsable: "), "el dueño del negocio abierto más avanzado de la institución; si no tiene, el de su último negocio o el de la mayoría de sus contactos."),
+      h("li",{}, h("b",{},"Nivel de decisión: "), "«Decide» si el cargo es de rector, vicerrector, decano, director, gerente, jefe o similar; «Coordina» si es coordinador, líder o asesor; si no, «Ejecuta». Sale del cargo porque el rol de compra está vacío en HubSpot. En el grafo, quien decide va más grande."),
+      h("li",{}, h("b",{},"Fecha de cierre estimada: "), "la de HubSpot. Desde el 16-oct-2026 son estimaciones con el ciclo de venta de 7 meses, hasta que el cliente diga su fecha de decisión."),
+      h("li",{}, h("b",{},"Acciones y pendientes: "), "correos, llamadas, reuniones, notas y mensajes asociados a la persona en HubSpot; pendientes son las tareas abiertas y las reuniones programadas. Los correos, teléfonos, enlaces y cifras se ocultan para poder proyectar el mapa.")),
+    h("p",{class:"nota"}, `Fuente: HubSpot (portal ${D.portal}), descargado el ${D.descargado.replace("T"," ").slice(0,16)}.`)
+  );
+  ficha.scrollTop = 0;
+}
+const ORDEN_EST = {cliente:0,negociacion:1,prospeccion:2,contacto:3,sin_contacto:4};
+function fichaPais(pa){
+  const I = visibles().filter(i => i.pais===pa);
+  const porEst = d3.rollup(I, v => v.length, i => i.estado);
+  const ciudades = d3.groups(I, i => i.ciudad).sort((a,b) => (a[0]==="Ciudad por confirmar") - (b[0]==="Ciudad por confirmar") || b[1].length - a[1].length);
+  poner(ficha,
+    migas([RAIZ, {t:pa}]),
+    h("h2",{}, pa),
+    h("p",{class:"sub"}, `${plural(I.length,"institución","instituciones")}, ${plural(d3.sum(I, i => i.n),"persona","personas")} y ${plural(ciudades.length,"ciudad","ciudades")} con los filtros actuales.`),
+    pa==="País por confirmar" ? h("div",{class:"aviso"},"Estas instituciones no tienen país en HubSpot, ni dominio de país, ni pipeline de México o España. Completar el país en la empresa de HubSpot las ubica en la siguiente actualización.") : null,
+    h("h3",{},"Instituciones por estado comercial"),
+    h("ul",{class:"lista"}, Object.keys(EST).filter(k => porEst.get(k)).map(k =>
+      h("li",{}, h("div",{class:"linea",style:"grid-template-columns:18px minmax(0,1fr) auto"}, punto(EST_VAR[k]), h("span",{},EST[k].t), h("span",{class:"mono"}, porEst.get(k)))))),
+    h("h3",{},"Cobertura de cada responsable"),
+    tablaCobertura(I),
+    h("h3",{},"Tier A sin contacto en los últimos 90 días"),
+    listaInst(I.filter(frioTA), "Todas las Tier A tienen contacto en los últimos 90 días.", i => i.ciudad),
+    h("h3",{},"Negociaciones sin contacto con quien decide en 90 días"),
+    listaInst(I.filter(sinDecisor), "Todas las negociaciones tienen a alguien que decide contactado en los últimos 90 días.", i => i.ciudad),
+    h("h3",{},"Ciudades"),
+    h("ul",{class:"lista"}, ciudades.map(([c, v]) => h("li",{}, h("button",{type:"button",onclick:() => irCiudad(pa, c)}, h("span",{class:"nm"}, c), h("span",{class:"num"}, `${v.length} · ${d3.sum(v, i => i.n)} p.`)))))
+  );
+  ficha.scrollTop = 0;
+}
+function fichaCiudad(pa, c){
+  const I = visibles().filter(i => i.pais===pa && i.ciudad===c);
+  const RT = t => ({"Tier A":0,"Tier B":1,"Tier C":2,"Tier D":3})[t] ?? 4;
+  I.sort((a,b) => RT(a.tier)-RT(b.tier) || ORDEN_EST[a.estado]-ORDEN_EST[b.estado] || b.n-a.n);
+  poner(ficha,
+    migas([RAIZ, {t:pa, fn:() => irPais(pa)}, {t:c}]),
+    h("h2",{}, c),
+    h("p",{class:"sub"}, `${pa} · ${plural(I.length,"institución","instituciones")} y ${plural(d3.sum(I, i => i.n),"persona","personas")} con los filtros actuales.`),
+    c==="Ciudad por confirmar" ? h("div",{class:"aviso"},"Estas instituciones no tienen ciudad en HubSpot ni en sus contactos. Completar la ciudad en la empresa de HubSpot las ubica en el mapa en la siguiente actualización.") : null,
+    I.some(i => i.tier==="Tier A") ? [h("h3",{},"Tier A sin contacto en los últimos 90 días"),
+      listaInst(I.filter(frioTA), "Todas las Tier A de la ciudad tienen contacto en los últimos 90 días.", i => i.responsable || "sin responsable")] : null,
+    h("h3",{},"Instituciones"),
+    h("ul",{class:"lista"}, I.map(i => h("li",{}, h("button",{type:"button",onclick:() => irInst(i)}, i.tier==="Tier A" ? h("span",{class:"pt dorado"}) : punto(EST_VAR[i.estado]), h("span",{class:"nm"}, i.nombre, i.tier==="Tier A" ? h("span",{class:"tag1"},"Tier 1") : null), h("span",{class:"num"}, i.n)))))
+  );
+  ficha.scrollTop = 0;
+}
+function resumenNegocios(i){
+  const ls = ORDEN_LINEA.filter(l => i.negocios && i.negocios[l]);
+  if (!ls.length) return [h("p",{class:"nota"},"Sin negocios asociados en HubSpot.")];
+  return ls.map(l => {
+    const c = i.negocios[l];
+    const partes = ["ganado","abierto","retomar","perdido"].filter(k => c[k]).map(k => `${c[k]} ${k==="retomar" ? "para retomar" : k + (c[k]>1 ? "s" : "")}`);
+    return h("div",{class:"linea"}, h("b",{}, NOMBRE_LINEA[l]), h("span",{}, partes.join(" · ")));
+  });
+}
+function tablaCobertura(I){
+  const g = d3.groups(I, i => i.responsable || "Sin responsable").sort((a,b) => b[1].length - a[1].length);
+  const pct = (a, b) => b ? ` · ${Math.round(100*a/b)} %` : "";
+  return h("table",{class:"cob"},
+    h("tr",{}, h("th",{},"Responsable"), h("th",{title:"Instituciones a su cargo con los filtros actuales"},"Instituciones"),
+      h("th",{title:"Con correo, llamada, reunión o mensaje en los últimos 30 días"},"Con contacto en 30 días"),
+      h("th",{},"Tier A"), h("th",{title:"Tier A sin ningún contacto registrado en los últimos 90 días"},"Tier A sin contacto en 90 días")),
+    g.map(([rsp, v]) => { const act = v.filter(i => i.calor==="activo").length, ta = v.filter(i => i.tier==="Tier A");
+      return h("tr",{}, h("td",{}, rsp), h("td",{}, v.length), h("td",{}, `${act}${pct(act, v.length)}`), h("td",{}, ta.length), h("td",{}, ta.filter(frioTA).length)); }));
+}
+function listaInst(L, vacio, extra){
+  if (!L.length) return h("p",{class:"nota"}, vacio);
+  const RT = t => ({"Tier A":0,"Tier B":1,"Tier C":2,"Tier D":3})[t] ?? 4;
+  L = [...L].sort((a,b) => RT(a.tier)-RT(b.tier) || ORDEN_EST[a.estado]-ORDEN_EST[b.estado] || a.nombre.localeCompare(b.nombre,"es"));
+  const top = L.slice(0, 12);
+  return [h("ul",{class:"lista"}, top.map(i => h("li",{}, h("button",{type:"button",onclick:() => irInst(i)}, i.tier==="Tier A" ? h("span",{class:"pt dorado"}) : punto(EST_VAR[i.estado]), h("span",{class:"nm"}, i.nombre), h("span",{class:"num"}, extra(i)))))),
+    L.length > top.length ? h("p",{class:"nota"}, `Y ${plural(L.length - top.length, "institución más", "instituciones más")}. Los filtros de arriba acotan la lista.`) : null];
+}
+function bloqueNegocios(i){
+  const ds = i.deals || [];
+  if (!ds.length) return [h("p",{class:"nota"}, VISTA!=="todas" && (i._deals || []).length ? `Sin negocios de ${VISTA} en HubSpot. Tiene ${plural(i._deals.length,"negocio","negocios")} de otras líneas.` : "Sin negocios asociados en HubSpot.")];
+  const vivos = ds.filter(n => n.estado==="abierto" || n.estado==="retomar"), gan = ds.filter(n => n.estado==="ganado"), perd = ds.filter(n => n.estado==="perdido");
+  const btn = h("button",{type:"button",class:"btn","aria-pressed":String(MONTOS),onclick:() => { MONTOS = !MONTOS; try { localStorage.setItem("mapa-montos", MONTOS ? "1" : "0"); } catch(e){} fichaInst(i); }}, MONTOS ? "Ocultar montos" : "Mostrar montos");
+  const item = n => h("div",{class:"neg"+(n.estado==="ganado"?" ganado":"")},
+    h("a",{href:HSD(n.id),target:"_blank",rel:"noopener"}, h("b",{}, n.nombre)),
+    h("span",{class:"meta"}, [n.etapa, NOMBRE_LINEA[n.linea] || n.linea,
+      n.estado==="abierto" && n.cierre ? `Cierre estimado ${fechaTxt(n.cierre)}` : n.estado==="ganado" && n.cierre ? `Ganado el ${fechaTxt(n.cierre)}` : null,
+      n.estado==="abierto" && n.prioridad ? PRIO[n.prioridad] : null, n.owner || null, MONTOS && n.monto ? COP(n.monto) : null,
+      n.via && INST.get(n.via) ? `Llega por ${INST.get(n.via).nombre}` : null, n.cliente && INST.get(n.cliente) ? `Cliente final: ${INST.get(n.cliente).nombre}` : null].filter(Boolean).join(" · ")));
+  const ocultos = (i._deals || ds).length - ds.length;
+  return [h("div",{class:"fila-neg"}, h("span",{class:"nota",style:"margin:0"}, `${plural(vivos.length,"abierto","abiertos")} · ${plural(gan.length,"ganado","ganados")}${perd.length ? ` · ${perd.length} perdido${perd.length>1?"s":""} (no se muestra${perd.length>1?"n":""})` : ""}`), btn),
+    vivos.map(item), gan.map(item),
+    ocultos ? h("p",{class:"nota"}, `${plural(ocultos,"negocio de otra línea no se muestra","negocios de otras líneas no se muestran")} en la vista ${VISTA}.`) : null];
+}
+function fichaInst(i, unidadFoco){
+  const porU = d3.groups(i.personas, p => p.unidad).sort((a,b) => (a[0]==="Unidad por identificar") - (b[0]==="Unidad por identificar") || b[1].length - a[1].length);
+  const propuesta = i.fuente_ciudad.startsWith("Propuesta");
+  let foco = null;
+  poner(ficha,
+    migas([RAIZ, {t:i.pais, fn:() => irPais(i.pais)}, {t:i.ciudad, fn:() => irCiudad(i.pais, i.ciudad)}, {t:i.nombre}]),
+    h("h2",{}, i.nombre),
+    h("p",{class:"sub"}, `${i.tipo} · ${i.ciudad}, ${i.pais}`),
+    h("div",{class:"pills"},
+      h("span",{class:"pill"}, punto(EST_VAR[i.estado]), EST[i.estado].t),
+      i.tier ? h("span",{class:"pill"}, i.tier==="Tier A" ? [h("span",{class:"pt dorado"}), "Tier 1 (Tier A)"] : i.tier) : null,
+      i.ultimo ? h("span",{class:"pill"}, `Último contacto ${hace(i.ultimo)}`) : null),
+    h("dl",{class:"kv"},
+      h("dt",{},"País"), h("dd",{}, i.pais, h("small",{}, i.fuente_pais)),
+      h("dt",{},"Ciudad"), h("dd",{}, i.ciudad, h("small",{}, propuesta ? "Propuesta por Claude (sede principal). Falta confirmarla y llevarla a HubSpot." : i.fuente_ciudad)),
+      h("dt",{},"Responsable"), h("dd",{}, i.responsable || "Sin responsable en HubSpot", i.fuente_responsable ? h("small",{}, i.fuente_responsable) : null),
+      h("dt",{},"Personas"), h("dd",{}, i.n ? `${i.n} en ${plural(porU.length,"unidad","unidades")}` : "Sin contactos propios", !i.n && comoCliente(i).length ? h("small",{}, "La conversación va por la gente del canal") : null)),
+    h("h3",{},"Negocios en HubSpot"),
+    bloqueNegocios(i),
+    (comoCanal(i).length || comoCliente(i).length) ? [h("h3",{},"Relaciones de canal"),
+      comoCanal(i).length ? [h("p",{class:"nota"}, `${i.nombre} es el canal por el que llegan estos clientes:`),
+        h("ul",{class:"lista"}, comoCanal(i).map(c => { const x = INST.get(c.cliente); return x ? h("li",{}, h("button",{type:"button",onclick:() => irInst(x)}, punto(EST_VAR[x.estado]), h("span",{class:"nm"}, x.nombre), h("span",{class:"num"}, plural(c.negocios.length,"negocio","negocios")))) : null; }))] : null,
+      comoCliente(i).length ? [h("p",{class:"nota"}, "Este cliente llega por:"),
+        h("ul",{class:"lista"}, comoCliente(i).map(c => { const x = INST.get(c.canal); return x ? h("li",{}, h("button",{type:"button",onclick:() => irInst(x)}, punto(EST_VAR[x.estado]), h("span",{class:"nm"}, x.nombre), h("span",{class:"num"}, plural(c.negocios.length,"negocio","negocios")))) : null; }))] : null] : null,
+    bloqueAct("Actividad reciente", i.acciones, i.n_acc, "Sin acciones registradas con sus personas.", i, "acciones más"),
+    i.n_fuera ? h("p",{class:"nota"}, `${plural(i.n_fuera,"acción o pendiente","acciones o pendientes")} de Gmail o Diio no ${i.n_fuera===1?"está":"están"} en HubSpot.`) : null,
+    bloqueAct(i.n_venc ? `Pendientes · ${i.n_venc === 1 ? "1 vencido" : i.n_venc + " vencidos"}` : "Pendientes", i.pendientes, i.n_pend, "Sin tareas abiertas ni reuniones programadas.", i, "pendientes más"),
+    h("h3",{},"Personas que deciden"),
+    i.n ? null : h("p",{class:"nota"}, "Sin contactos propios en HubSpot."),
+    i.n === 0 ? null : (() => { const dec = i.personas.filter(decide), act = decAct(i);
+      return [h("p",{class:"nota"}, `${plural(dec.length,"persona con cargo de decisión","personas con cargo de decisión")}, ${act.length} con contacto en los últimos 90 días. El nivel sale del cargo.`),
+        sinDecisor(i) ? h("div",{class:"aviso"}, "Ninguna persona con cargo de decisión tiene contacto en los últimos 90 días.") : null,
+        i.n === 1 && (i.estado==="negociacion" || i.estado==="cliente") ? h("div",{class:"aviso"}, "Toda la relación depende de una sola persona.") : null]; })(),
+    h("h3",{},"Personas por unidad"),
+    porU.map(([u, ps]) => {
+      const cab = h("div",{class:"unidad"+(u===unidadFoco?" foco":"")}, h("span",{}, u), h("span",{class:"num"}, ps.length));
+      if (u===unidadFoco) foco = cab;
+      return [cab, h("ul",{class:"lista"}, ps.map(p => h("li",{}, h("button",{type:"button",onclick:() => irPersona(p)}, punto(CAL[p.calor].v), h("span",{class:"nm"}, p.nombre, decide(p) ? h("span",{class:"tag"},"Decide") : null, p.cargo ? h("small",{}, p.cargo) : null)))))];
+    }),
+    h("details",{class:"calidad"}, h("summary",{},"Calidad del dato en HubSpot"),
+      h("p",{class:"nota"}, `Dominio: ${i.dominio || "sin dominio"}.`),
+      i.empresas_hs.length > 1 ? h("div",{class:"aviso"}, `Está repartida en ${i.empresas_hs.length} empresas de HubSpot. Aquí se ven juntas; conviene fusionarlas.`) : null,
+      i.sin_nombre ? h("p",{class:"nota"}, `${plural(i.sin_nombre,"contacto","contactos")} sin nombre no aparecen en el mapa.`) : null,
+      i.buzones.length ? h("p",{class:"nota"}, `Buzones de oficina (no son personas): ${i.buzones.join(", ")}.`) : null),
+    h("h3",{},"Abrir en HubSpot"),
+    h("div",{class:"enlaces"}, i.empresas_hs.map((id, k) => h("a",{class:"enlace",href:HSC(id),target:"_blank",rel:"noopener"}, i.empresas_hs.length > 1 ? `Empresa ${k+1}` : "Empresa en HubSpot")))
+  );
+  if (foco) foco.scrollIntoView({block:"start"}); else ficha.scrollTop = 0;
+}
+function fichaPersona(p){
+  const i = INST.get(p.inst);
+  poner(ficha,
+    migas([RAIZ, {t:i.pais, fn:() => irPais(i.pais)}, {t:i.ciudad, fn:() => irCiudad(i.pais, i.ciudad)}, {t:i.nombre, fn:() => irInst(i)}, {t:p.unidad, fn:() => irInst(i, p.unidad)}]),
+    h("h2",{}, p.nombre),
+    h("p",{class:"sub"}, p.cargo || "Sin cargo en HubSpot"),
+    h("div",{class:"pills"},
+      h("span",{class:"pill"}, punto(CAL[p.calor].v), p.ultimo ? `Último contacto ${hace(p.ultimo)}` : "Sin contacto registrado"),
+      p.nivel && p.nivel !== "Sin cargo" ? h("span",{class:"pill"}, p.nivel) : null),
+    h("dl",{class:"kv"},
+      h("dt",{},"Institución"), h("dd",{}, i.nombre, h("small",{}, `${i.ciudad}, ${i.pais}`)),
+      h("dt",{},"Unidad"), h("dd",{}, p.unidad, h("small",{}, p.fuente_unidad)),
+      h("dt",{},"Cargo"), h("dd",{}, p.cargo || "—", p.cargo ? h("small",{}, p.fuente_cargo) : null),
+      h("dt",{},"Último contacto"), h("dd",{}, p.ultimo ? fechaTxt(p.ultimo) : "Sin registro", h("small",{}, CAL[p.calor].t + ": " + CAL[p.calor].d)),
+      h("dt",{},"Nivel de decisión"), h("dd",{}, p.nivel || "—", p.fuente_nivel ? h("small",{}, p.fuente_nivel) : null),
+      h("dt",{},"Responsable"), h("dd",{}, p.owner || "Sin responsable en HubSpot")),
+    p.propuesta_cargo ? h("div",{class:"aviso"}, p.propuesta_cargo.solo_unidad
+      ? `La unidad sale de ${p.propuesta_cargo.fuente.toLowerCase()}${p.propuesta_cargo.fecha ? " del " + fechaTxt(p.propuesta_cargo.fecha) : ""}. La firma no trae cargo y HubSpot tampoco lo tiene.`
+      : `El cargo y la unidad salen de ${p.propuesta_cargo.fuente.toLowerCase()}${p.propuesta_cargo.fecha ? " del " + fechaTxt(p.propuesta_cargo.fecha) : ""}. ${p.propuesta_cargo.reemplaza ? "Reemplazan un cargo genérico de HubSpot" : "HubSpot no tiene cargo para esta persona"}: están en la lista de propuestas para llevarlos.`) : null,
+    bloqueAct("Últimas acciones", p.acciones, p.n_acc, "Sin acciones registradas en HubSpot, Gmail ni Diio.", null, "acciones más"),
+    bloqueAct("Pendientes", p.pendientes, p.n_pend, "Sin tareas abiertas ni reuniones programadas.", null, "pendientes más"),
+    h("h3",{},"Negocios asociados"),
+    p.negocios.length ? p.negocios.map(n => h("div",{class:"neg"}, h("b",{}, n.nombre), h("span",{}, `${n.etapa} · ${NOMBRE_LINEA[n.linea] || n.linea} · ${ESTADO_NEG[n.estado] || n.estado}`))) : h("p",{class:"nota"},"Sin negocios asociados a esta persona en HubSpot."),
+    p.alertas.length ? [h("h3",{},"Higiene en HubSpot"), p.alertas.map(a => h("div",{class:"aviso"}, a))] : null,
+    h("h3",{},"Abrir en HubSpot"),
+    h("div",{class:"enlaces"}, p.ids.map((id, k) => h("a",{class:"enlace",href:HS(id),target:"_blank",rel:"noopener"}, p.ids.length > 1 ? `Registro ${k+1}` : "Contacto en HubSpot")))
+  );
+  ficha.scrollTop = 0;
+}
+
+/* ───────── filtros ───────── */
+const ESTADOS_EN_VISTAS = new Set();
+for (const v of Object.keys(VISTAS)){ aplicarVista(v); D.instituciones.forEach(i => ESTADOS_EN_VISTAS.add(i.estado)); }
+aplicarVista(VISTA);
+let cuentaEst = d3.rollup(D.instituciones, v => v.length, i => i.estado);
+const boxEst = document.getElementById("estados");
+const chipsEst = Object.keys(EST).filter(k => ESTADOS_EN_VISTAS.has(k)).map(k => {
+  const n = h("span",{class:"n"}, cuentaEst.get(k) || 0);
+  const b = h("button",{class:"chip",type:"button","aria-pressed":String(S.estados.has(k)),title:EST[k].d}, punto(EST_VAR[k]), EST[k].t, n);
+  b.onclick = () => { S.estados.has(k) ? S.estados.delete(k) : S.estados.add(k); b.setAttribute("aria-pressed", String(S.estados.has(k))); cambio(); };
+  b.hidden = !cuentaEst.get(k);
+  boxEst.append(b); return {k, b, n};
+});
+function contarEstados(){
+  cuentaEst = d3.rollup(D.instituciones, v => v.length, i => i.estado);
+  for (const c of chipsEst){ c.n.textContent = cuentaEst.get(c.k) || 0; c.b.hidden = !cuentaEst.get(c.k); }
+}
+const boxVista = document.getElementById("vista");
+const botonesVista = Object.entries(VISTAS).map(([v, t]) => {
+  const b = h("button",{class:"chip",type:"button","aria-pressed":String(v===VISTA),title:v==="todas" ? "Todos los negocios" : `Solo los negocios de ${t}`}, t);
+  b.onclick = () => ponerVista(v);
+  boxVista.append(b); return [v, b];
+});
+function ponerVista(v){
+  if (v === VISTA) return;
+  VISTA = v; try { localStorage.setItem("mapa-vista", v); } catch(e){}
+  aplicarVista(v);
+  if (v !== "todas") VEH = v;
+  for (const [k, b] of botonesVista) b.setAttribute("aria-pressed", String(k===v));
+  contarEstados(); opcionesResp(); pintarControl(); cambio();
+}
+const selTipo = document.getElementById("tipo");
+selTipo.append(h("option",{value:"todos"},"Todos los tipos"), ...d3.groups(D.instituciones, i => i.tipo).sort((a,b) => b[1].length-a[1].length).map(([t,v]) => h("option",{value:t}, `${t} (${v.length})`)));
+const selPais = document.getElementById("pais");
+selPais.append(h("option",{value:"todos"},"Todos los países"), ...d3.groups(D.instituciones, i => i.pais).sort((a,b) => b[1].length-a[1].length).map(([p,v]) => h("option",{value:p}, `${p} (${v.length})`)));
+selPais.value = S.pais;
+const selResp = document.getElementById("resp");
+function opcionesResp(){
+  const ops = [...d3.rollup(D.instituciones, v => v.length, i => i.responsable || "")].sort((a,b) => b[1]-a[1]);
+  if (S.resp !== "todos" && !ops.some(([rsp]) => (rsp || "sin") === S.resp)) S.resp = "todos";
+  selResp.replaceChildren(h("option",{value:"todos"},"Todos los responsables"),
+    ...ops.map(([rsp, n]) => h("option",{value: rsp || "sin"}, `${rsp ? "Responsable: " + rsp : "Sin responsable"} (${n})`)));
+  selResp.value = S.resp;
+}
+opcionesResp();
+selResp.onchange = e => { S.resp = e.target.value; cambio(); };
+document.getElementById("negf").onchange = e => { S.negf = e.target.value; cambio(); };
+const selCiudad = document.getElementById("ciudad");
+function opcionesCiudad(){
+  const base = D.instituciones.filter(i => S.pais==="todos" || i.pais===S.pais);
+  selCiudad.replaceChildren(h("option",{value:"todas"},"Todas las ciudades"), ...d3.groups(base, i => `${i.pais}|${i.ciudad}`).sort((a,b) => b[1].length-a[1].length)
+    .map(([k,v]) => { const [p,c] = k.split("|"); return h("option",{value:k}, S.pais==="todos" ? `${c}, ${p} (${v.length})` : `${c} (${v.length})`); }));
+}
+opcionesCiudad();
+selPais.onchange = e => { S.pais = e.target.value; S.ciudad = "todas"; opcionesCiudad(); cambio(); };
+selTipo.onchange = e => { S.tipo = e.target.value; cambio(); };
+selCiudad.onchange = e => { S.ciudad = e.target.value; cambio(); };
+function cambio(){ S.forzadas.clear(); seleccionar(null); refrescar(300); verTodo(); fichaResumen(); }
+function pintarConteo(){
+  const I = visibles();
+  document.getElementById("grafo").setAttribute("aria-label", `Grafo con ${I.length} instituciones en ${new Set(I.map(i => i.pais)).size} países`);
+}
+
+/* ───────── búsqueda ───────── */
+const q = document.getElementById("q"), res = document.getElementById("res");
+const IDX = [
+  ...D.instituciones.map(i => ({k:"i", o:i, t:clave(i.nombre+" "+i.dominio+" "+i.ciudad+" "+i.pais)})),
+  ...D.personas.map(p => ({k:"p", o:p, t:clave(p.nombre+" "+p.cargo+" "+p.unidad)}))
+];
+let resItems = [], resPos = -1;
+function buscar(){
+  const t = clave(q.value.trim());
+  if (t.length < 2){ ocultarRes(); return; }
+  const partes = t.split(/\s+/);
+  resItems = IDX.filter(x => partes.every(w => x.t.includes(w))).slice(0, 12);
+  res.replaceChildren(...(resItems.length ? resItems.map((x, k) => {
+    const b = x.k==="i"
+      ? h("button",{type:"button",role:"option"}, h("span",{}, x.o.nombre), h("small",{}, `Institución · ${x.o.ciudad}, ${x.o.pais} · ${plural(x.o.n,"persona","personas")}`))
+      : h("button",{type:"button",role:"option"}, h("span",{}, x.o.nombre), h("small",{}, `${x.o.cargo || x.o.unidad} · ${INST.get(x.o.inst).nombre}`));
+    b.onclick = () => elegir(k);
+    return b;
+  }) : [h("p",{class:"nota",style:"padding:6px 8px;margin:0"},"Sin resultados.")]));
+  resPos = -1; res.hidden = false;
+}
+function elegir(k){
+  const x = resItems[k]; if (!x) return;
+  ocultarRes(); q.blur();
+  x.k==="i" ? irInst(x.o) : irPersona(x.o);
+}
+function ocultarRes(){ res.hidden = true; }
+q.addEventListener("input", buscar);
+q.addEventListener("keydown", e => {
+  if (res.hidden) return;
+  const bs = [...res.querySelectorAll("button")];
+  if (e.key==="ArrowDown"){ e.preventDefault(); resPos = Math.min(bs.length-1, resPos+1); }
+  else if (e.key==="ArrowUp"){ e.preventDefault(); resPos = Math.max(0, resPos-1); }
+  else if (e.key==="Enter"){ e.preventDefault(); elegir(Math.max(0,resPos)); return; }
+  else return;
+  bs.forEach((b,k) => b.setAttribute("aria-selected", String(k===resPos)));
+  bs[resPos] && bs[resPos].scrollIntoView({block:"nearest"});
+});
+
+/* ───────── leyenda y arranque ───────── */
+if (!window.matchMedia("(max-width: 760px)").matches) document.getElementById("leyenda").open = true;
+else document.getElementById("control").open = false;
+/* ───────── tablero de control (Grove: actividad y su calidad contra lo esperado, más la proyección) ───────── */
+let VEH = VISTA === "POK" ? "POK" : "merahki";
+function pintarControl(){
+  const K = D.kpis, caja = document.getElementById("control-cuerpo");
+  if (!K){ document.getElementById("control").hidden = true; return; }
+  const M = n => (n/1e6).toLocaleString("es-CO", {maximumFractionDigits: 1}) + " M";
+  const N = n => Math.round(n).toLocaleString("es-CO");
+  const sem = r => r == null ? null : r >= 1 ? ["--ok","cumple o supera lo esperado"] : r >= .7 ? ["--alerta","entre 70 % y 99 % de lo esperado"] : ["--crit","menos del 70 % de lo esperado"];
+  // fila compacta: el detalle va en la ayuda al pasar el mouse, salvo las tres filas que lo necesitan a la vista
+  const fila = (nombre, valor, detalle, r, ayuda, verDetalle) => { const s = sem(r);
+    return h("tr",{title: [ayuda, detalle].filter(Boolean).join(" · ")}, h("td",{}, nombre),
+      h("td",{class:"v"}, valor, s ? h("span",{class:"sem",style:`background:var(${s[0]})`,title:s[1],"aria-label":s[1]}) : null, verDetalle && detalle ? h("small",{}, detalle) : null)); };
+  const md = K.meta_dia, hm = K.habiles_mes, f = K.ayer.split("-").map(Number);
+  const esp = k => md[k] * hm;
+  const prop = K.mes_propuestas, propT = prop.merahki[0] + prop.POK[0] + prop.otros[0];
+  const g = VEH, ganado = K.ganado_q4[g], meta = K.meta_q4[g], espHoy = meta * K.habiles_q_transcurridos / K.habiles_q;
+  const ritmo = K.ritmo_12s[g][0] / 12, proy = ganado + ritmo * K.semanas_restantes_q4, falta = Math.max(meta - ganado, 1);
+  const cob = K.pipeline_ponderado[g] / falta, fc = K.fechas_cierre, act = fc.vigente + fc.vencida + fc.sin_fecha;
+  const seg = h("div",{class:"seg",role:"group","aria-label":"Vehículo"}, ["merahki","POK"].map(v => h("button",{type:"button","aria-pressed":String(v===VEH),onclick:() => { if (VISTA === "todas"){ VEH = v; pintarControl(); } else ponerVista(v); }}, v)));
+  poner(caja,
+    h("table",{},
+      h("tr",{}, h("th",{colspan:2}, `Ayer · ${f[2]} ${MES[f[1]-1]}`)),
+      fila("Toques del equipo", `${N(K.ayer_toques)} / ${N(md.toques)}`, null, K.ayer_toques / md.toques, "Correos, llamadas, WhatsApp y LinkedIn de JD y Francely contra la meta diaria"),
+      fila("Reuniones agendadas", `${N(K.ayer_agendadas)} / ${md.agendadas.toLocaleString("es-CO")}`, null, K.ayer_agendadas / md.agendadas, "Reuniones que se agendaron ayer, para cualquier fecha: el indicador que anticipa las reuniones de la semana siguiente"),
+      fila("Reuniones realizadas", `${N(K.ayer_reuniones)} / ${md.reuniones.toLocaleString("es-CO")}`, null, K.ayer_reuniones / md.reuniones, "Reuniones de venta realizadas (JD, Francely y David con cuentas del pipeline)"),
+      h("tr",{}, h("th",{colspan:2}, `Mes · ${hm} de ${K.habiles_mes_total} días hábiles`)),
+      fila("Toques", `${N(K.mes_toques)} / ${N(esp("toques"))}`, null, K.mes_toques / esp("toques"), "Contra lo esperado a hoy (meta diaria × días hábiles transcurridos)"),
+      fila("Primeras reuniones", `${N(K.mes_primeras)} / ${N(esp("primeras"))}`, "con cuentas nuevas", K.mes_primeras / esp("primeras"), "Reuniones con cuentas con las que nunca nos habíamos reunido: el indicador que más anticipa ventas"),
+      fila("Propuestas enviadas", `${N(propT)} / ${N(esp("propuestas"))}`, `merahki ${prop.merahki[0]} (${M(prop.merahki[1])}) · POK ${prop.POK[0]} (${M(prop.POK[1])})`, propT / esp("propuestas"), "Negocios que entraron a la etapa 4 este mes", true),
+      h("tr",{}, h("th",{colspan:2}, "Trimestre", seg)),
+      fila("Ganado", `${M(ganado)} / ${M(meta)}`, `esperado a hoy ${M(espHoy)}`, ganado / Math.max(espHoy, 1), "Negocios ganados desde el 1-oct contra la meta del trimestre", true),
+      fila("Ritmo de cierre", `${M(ritmo)} por semana`, `${K.ritmo_12s[g][1]} negocios en 12 semanas`, null, "Promedio semanal ganado en las últimas 12 semanas: lo que se cierra por semana si nada cambia"),
+      fila("Proyección al 31-dic por ritmo", `${M(proy)} · ${Math.round(100 * proy / meta)} %`, "ganado + ritmo × semanas que faltan", proy / meta, "Lo que se cerraría al 31-dic al ritmo de las últimas 12 semanas"),
+      K.pronostico_fechas ? fila("Proyección al 31-dic por fechas de cierre", `${M(K.pronostico_fechas[g])} · ${Math.round(100 * K.pronostico_fechas[g] / meta)} %`, `ganado + ${K.n_cierre_q4[g]} negocios con cierre estimado al 31-dic, ponderados por etapa`, K.pronostico_fechas[g] / meta, "Si cada negocio cierra en su fecha estimada con la probabilidad de su etapa. Si queda muy por encima de la proyección por ritmo, el pipeline está optimista", true) : null,
+      fila("Pipeline activo", M(K.pipeline_bruto[g]), `ponderado ${M(K.pipeline_ponderado[g])} · etapas 2 a 5`, null, "Valor de los negocios abiertos en etapas 2 a 5; el ponderado usa 15, 35, 55 y 75 % por etapa"),
+      fila("Cobertura de lo que falta", `${cob.toLocaleString("es-CO", {maximumFractionDigits: 1})}×`, `pipeline ponderado ÷ ${M(falta)} que faltan`, cob, "Más de 1 vez: el pipeline alcanza para la meta si se convierte como se espera"),
+      h("tr",{}, h("th",{colspan:2}, "Disciplina del pronóstico")),
+      fila("Con fecha de cierre vigente", `${fc.vigente} de ${act}`, `${fc.vencida} vencidas · ${fc.sin_fecha} sin fecha`, act ? fc.vigente / act : null, "Negocios activos con fecha de decisión futura. Sin ella no se puede pronosticar cuánto cierra cada semana o mes", true),
+      fila("Pipeline sin vehículo", M(K.pipeline_bruto.otros), "sin línea POK o merahki", K.pipeline_bruto.otros > 0 ? 0 : 1, "Negocios activos sin línea de negocio: no se sabe a qué meta suman")),
+    h("p",{class:"nota"}, "Semáforo: verde cumple, ámbar 70 a 99 %, rojo menos de 70 % de lo esperado a hoy.")
+  );
+  document.getElementById("control-fecha").textContent = K.generado.slice(5).replace("-", "/");
+}
+pintarControl();
+document.getElementById("control").addEventListener("toggle", () => { if (!S.sel) encuadrar(modelo.nodes, 1.4); });
+document.getElementById("leyenda-cuerpo").append(
+  h("div",{class:"fila"}, h("span",{class:"tt"},"Institución"), Object.keys(EST).filter(k => ESTADOS_EN_VISTAS.has(k)).map(k => h("span",{}, punto(EST_VAR[k]), EST[k].t)), h("span",{}, h("span",{class:"pt dorado"}), "Tier 1, junto a su ciudad (borde = estado)"), h("span",{}, h("span",{class:"pt",style:"background:var(--st-neg);border:1.5px dashed var(--ink-2)"}), "Empresa u organización")),
+  h("div",{class:"fila"}, h("span",{class:"tt"},"Persona"), Object.keys(CAL).map(k => h("span",{}, h("span",{class:"pt"+(k==="sin"?" hueco":""),style:k==="sin"?"":`background:var(${CAL[k].v})`}), k==="sin" ? CAL[k].t : `${CAL[k].t} (${k==="activo"?"≤30 d":k==="tibio"?"31-90 d":">90 d"})`)), h("span",{}, h("span",{class:"pt anillo"}), "Con tarea vencida"), h("span",{}, h("span",{class:"pt",style:"width:14px;height:14px;background:var(--p-tibio)"}), "Más grande: decide (según su cargo)")),
+  h("div",{class:"fila"}, h("span",{class:"tt"},"Forma"), h("span",{}, h("span",{class:"pt",style:"background:var(--city);border:3px solid var(--ink)"}), "País"), h("span",{}, h("span",{class:"pt",style:"background:var(--city);border:2px solid var(--ink-2)"}), "Ciudad"), h("span",{}, h("span",{class:"pt",style:"background:var(--st-prosp)"}), "Institución (tamaño = personas)"), h("span",{}, h("span",{class:"sq",style:"transform:rotate(45deg)"}), "Unidad"), h("span",{}, h("span",{style:"display:inline-block;width:18px;border-top:2px dashed var(--accent);vertical-align:middle"}), "Canal: la institución por la que llega un cliente"))
+);
+document.getElementById("fuente").append(
+  h("div",{}, `HubSpot · ${D.descargado.replace("T"," ").slice(0,16)}`),
+  h("div",{}, `${new Set(D.instituciones.map(i => i.pais)).size} países · ${D.instituciones.length} instituciones · ${D.personas.length} personas`)
+);
+refrescar(320);
+fichaResumen();
+requestAnimationFrame(() => { encuadrar(modelo.nodes, 1.4, 0); despejarLuego(250); });
+let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { if (!S.sel) encuadrar(modelo.nodes, 1.4, 0); }, 150); }).observe(lienzo);
+</script>
+
+</body></html>
