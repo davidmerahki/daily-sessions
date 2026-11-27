@@ -27,6 +27,7 @@
     {
       "nombre": "Opción A",
       "descuento_pct": 0,
+      "_margen_objetivo": "Opcional, en vez de descuento_pct: margen bruto real fijado por David (ej. 0.25). Precio = costo real ÷ (1 − margen), hacia arriba a 50.000. Si queda bajo el piso, exige «excepcion_piso» con autor y fecha.",
       "semanas": 8,
       "lineas": [
         {"nombre": "Producto o servicio", "cantidad": 1, "horas": {"DI": 0, "MM": 0}, "jornadas": 0, "terceros_cop": 0}

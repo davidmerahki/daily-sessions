@@ -66,7 +66,7 @@ def validar_escenario(esc):
             extra = set(ln.get("horas", {})) - set(esc.get("tarifas_reales", {}))
             if extra:
                 errores.append(f"«{ln.get('nombre')}» usa perfiles sin tarifa: {sorted(extra)}")
-        if op.get("descuento_pct", 0) and not esc.get("decisiones"):
+        if (op.get("descuento_pct", 0) or op.get("margen_objetivo") is not None) and not esc.get("decisiones"):
             errores.append(f"la opción «{op.get('nombre')}» tiene descuento sin decisión escrita")
     if errores:
         raise SystemExit("Escenario incompleto:\n- " + "\n- ".join(errores))
@@ -103,8 +103,14 @@ def calcular(esc):
         costo_real = capa1 + capa2c + estudio + terceros
         costo_modelo = sum(perf[k] * mod[k] for k in mod) + estudio + terceros
         precio_lista = op.get("precio_lista") or lista
-        dcto = op.get("descuento_pct", 0) / 100
-        precio = round(precio_lista * (1 - dcto))
+        if op.get("margen_objetivo") is not None:
+            # precio fijado por un margen sobre el costo real (decisión de David): costo ÷ (1 − margen), hacia arriba a 50.000
+            precio = up((costo_real - terceros) / (1 - op["margen_objetivo"]) + terceros * (1 + p["recargo_terceros"])) \
+                if op.get("margen_objetivo_con_recargo") else up(costo_real / (1 - op["margen_objetivo"]))
+            dcto = 1 - precio / precio_lista
+        else:
+            dcto = op.get("descuento_pct", 0) / 100
+            precio = round(precio_lista * (1 - dcto))
         out.append(dict(nombre=op["nombre"], perf=perf, costo_perfil=costo_perfil, jornadas=jornadas, terceros=terceros,
                         capa1=capa1, capa2=capa2c, estudio=estudio, costo_real=costo_real, costo_modelo=costo_modelo,
                         lista_modelo=lista, competitivo=comp, piso=piso, precio_lista=precio_lista, dcto=dcto,
@@ -129,7 +135,7 @@ def verificar(esc, res, cliente_xlsx=None):
         mb = (r["precio"] - r["costo_real"]) / r["precio"]
         exc = esc.get("excepcion_piso")
         chk(f"{n}: margen real ≥ piso del {p['margen_piso']:.0%} (o excepción escrita de David)",
-            mb >= p["margen_piso"] or bool(exc), f"margen real {mb:.1%}")
+            mb >= p["margen_piso"] or bool(exc), f"margen real {mb:.1%}" + (f" · EXCEPCIÓN: {exc}" if mb < p["margen_piso"] and exc else ""))
         chk(f"{n}: banda calculada (lista ≥ competitivo ≥ piso)", r["lista_modelo"] >= r["competitivo"] >= r["piso"] > 0)
         if r["dcto"] > 0:
             chk(f"{n}: el descuento tiene decisión escrita", bool(esc.get("decisiones")))

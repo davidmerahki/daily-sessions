@@ -71,6 +71,7 @@ python cotizaciones/analisis_interno.py escenario.json salida.xlsx --cliente hoj
 - `escenario.json` sigue la plantilla `cotizaciones/escenario_plantilla.json`: opciones, líneas con horas por perfil, jornadas, terceros, descuento, decisiones, flags y supuestos.
 - Las tarifas se copian de la hoja Tarifas del modelo vigente. La plantilla las trae vacías a propósito, y el script no corre hasta que estén.
 - Con `--cliente`, la hoja interna se agrega al libro de la propuesta y el script revisa la hoja cliente.
+- Si David fija el precio por margen («baja el margen a 25 %»), se usa `margen_objetivo` en la opción en vez de `descuento_pct`. Bajo el piso del 40 %, el escenario debe traer `excepcion_piso` con autor y fecha, o el script no escribe el análisis.
 - La salida se sube a Drive como Google Sheets en «2 · Interno — no enviar».
 - Los escenarios con costos reales no se suben al repositorio. Viven en la carpeta interna de la cotización.
 
