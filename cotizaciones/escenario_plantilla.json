@@ -1,0 +1,39 @@
+{
+  "_nota": "Plantilla del escenario de analisis_interno.py (regla 24). Copia este archivo a la carpeta interna de la cotización, no al repositorio. Las tarifas van vacías a propósito: cópialas de la hoja Tarifas del modelo financiero vigente; el script no corre sin ellas.",
+  "codigo": "26-0XX",
+  "version": "v1",
+  "cliente": "Nombre del cliente (y cliente final si aplica)",
+  "proyecto": "Descripción corta del proyecto",
+  "fecha": "AAAA-MM-DD",
+  "carril": "A | B | C",
+  "tarifas_reales": {"DIR": null, "PM": null, "DI": null, "AV": null, "MM": null, "DEV": null},
+  "tarifas_modelo": {"DIR": null, "PM": null, "DI": null, "AV": null, "MM": null, "DEV": null},
+  "jornada": null,
+  "pago_dias": 30,
+  "parametros": {
+    "margen_lista": 0.60,
+    "margen_competitivo": 0.55,
+    "margen_piso": 0.40,
+    "contrib_min": 0.40,
+    "recargo_terceros": 0.20,
+    "comision": 0.06,
+    "ica": 0.011,
+    "gmf": 0.004,
+    "iva": 0.19,
+    "retenciones": 0.062,
+    "capa2": ["DIR", "PM"]
+  },
+  "opciones": [
+    {
+      "nombre": "Opción A",
+      "descuento_pct": 0,
+      "semanas": 8,
+      "lineas": [
+        {"nombre": "Producto o servicio", "cantidad": 1, "horas": {"DI": 0, "MM": 0}, "jornadas": 0, "terceros_cop": 0}
+      ]
+    }
+  ],
+  "decisiones": ["Quién decidió qué, cuándo, y dónde quedó registrado en ⚙️ Meta/Decisions"],
+  "flags": ["Qué puede salir mal y qué falta decidir"],
+  "supuestos": ["Cada supuesto con su fuente"]
+}
