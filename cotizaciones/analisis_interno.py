@@ -1,10 +1,16 @@
 """Hoja «Análisis Interno» de una cotización de merahki.ai, con las reglas de la regla 24.
 
 Uso:
+    python cotizaciones/analisis_interno.py --preguntas        (preguntas de alcance, antes de cotizar)
     python cotizaciones/analisis_interno.py escenario.json salida.xlsx [--cliente hoja_cliente.xlsx]
 
-- `escenario.json` describe la cotización: opciones, líneas con horas por perfil, jornadas,
-  terceros, precio de lista o descuento, y los textos de decisiones, flags y supuestos.
+- Regla 25: merahki.ai no escribe el contenido. El cliente entrega textos, conocimiento, guiones,
+  materiales y preguntas; merahki hace learning design, diseño instruccional, producción y
+  virtualización. El escenario trae el bloque `intake` con las preguntas de alcance respondidas,
+  y el script no calcula nada si falta una respuesta o si una línea cobra escribir lo que entrega
+  el cliente.
+- `escenario.json` describe la cotización: opciones, líneas con horas por perfil y tipo de trabajo,
+  jornadas, terceros, precio de lista o descuento, y los textos de decisiones, flags y supuestos.
 - Si se pasa `--cliente`, la hoja interna se agrega a ese libro (que trae la «Propuesta Comercial»)
   y se verifica que la hoja cliente no tenga valores por producto y que su valor final coincida.
 - El script se niega a escribir el archivo si alguna verificación falla (sale con código 1).
@@ -14,6 +20,7 @@ análisis se pueda auditar y recalcular en Google Sheets.
 """
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -40,6 +47,139 @@ def _font(sz=10, b=False, color=TXT):
 
 def up(x, step=50000):
     return int(math.ceil(round(x, 6) / step) * step)
+
+
+# ---------------------------------------------------------------- preguntas de alcance (regla 25)
+# merahki.ai no escribe el contenido: el cliente entrega textos, conocimiento, guiones, materiales y
+# preguntas. merahki hace learning design, diseño instruccional, producción y virtualización, y hasta ahí.
+# Cada pregunta: (id, bloque, pregunta, por qué mueve el precio).
+PREGUNTAS = [
+    ("contenido_fuente", "Contenido",
+     "¿Quién entrega el contenido académico: textos, conocimiento y materiales base? Responde «cliente» o «merahki».",
+     "Es lo que más mueve el precio. Lo normal es que lo entregue el cliente. Si lo escribe merahki son horas de "
+     "autoría, y solo se cotizan con confirmación escrita de David."),
+    ("contenido_estado", "Contenido",
+     "¿En qué estado y formato llega ese material, y cuándo? Por ejemplo: documentos terminados, presentaciones, "
+     "apuntes o grabaciones de clase.",
+     "Define las horas de adaptación didáctica del DI y el riesgo de retraso."),
+    ("guiones_fuente", "Contenido",
+     "¿Quién escribe los guiones de los videos y microvideos? Responde «cliente» o «merahki».",
+     "Si los escribe el cliente, merahki solo los ajusta al formato audiovisual."),
+    ("preguntas_fuente", "Contenido",
+     "¿Quién redacta las preguntas, los casos y las rúbricas de las evaluaciones? Responde «cliente» o «merahki».",
+     "Si los entrega el cliente, el DI hace revisión pedagógica y configuración, no redacción."),
+    ("experto_tematico", "Contenido",
+     "¿Quién es el experto temático del cliente, cuánto tiempo tiene y en cuántos días valida cada entrega?",
+     "Sin experto disponible, el cronograma se alarga y crecen las rondas de ajuste."),
+    ("alcance_di", "Diseño",
+     "¿Qué esperan de nuestro learning design y diseño instruccional? Por ejemplo: arquitectura del curso, objetivos, "
+     "secuencia, storyboard, actividades y adaptación del material al formato digital.",
+     "Es el alcance real del DI: acompañamiento y diseño sobre el material del cliente, no autoría."),
+    ("grabacion", "Producción",
+     "¿Quién aparece en los videos, quién graba, dónde y en cuántas sesiones? ¿Hay locución?",
+     "Define las jornadas de estudio, las horas de AV y los terceros (locutor o talento)."),
+    ("recursos", "Producción",
+     "¿Cuáles son los tipos y las cantidades de recursos, y cuánto dura cada video?",
+     "Las cantidades son las unidades del precio (regla 18)."),
+    ("accesibilidad", "Producción",
+     "¿Piden subtítulos, transcripciones, otros idiomas o requisitos de accesibilidad?",
+     "Suma horas de MM y AV o terceros de subtitulación."),
+    ("rondas", "Producción",
+     "¿Cuántas rondas de ajuste hay por entrega y quién aprueba?",
+     "Cada ronda extra es producción que no está en la cotización."),
+    ("plataforma", "Plataforma",
+     "¿En qué plataforma se publica, quién la paga y la administra, en qué estándar (SCORM 1.2, SCORM 2004 o xAPI) "
+     "y con qué límite de peso?",
+     "Define si hay horas de montaje, pruebas en la plataforma o costos de licencia."),
+    ("marca", "Plataforma",
+     "¿De quién es la marca del curso y hay manual de identidad?",
+     "Sin manual, la adaptación gráfica es diseño desde cero."),
+    ("presupuesto", "Comercial",
+     "¿El cliente tiene presupuesto o un rango de referencia?",
+     "Ubica el precio en la banda antes de armar el alcance."),
+    ("plazo", "Comercial",
+     "¿Cuándo empieza, cuándo se entrega y hay hitos fijos?",
+     "Define las semanas de gerencia y la necesidad de caja."),
+    ("carril", "Comercial",
+     "¿Es carril A, B o C? ¿Hay un cliente final detrás de un intermediario?",
+     "Define la banda permitida (regla 23)."),
+    ("pago", "Comercial",
+     "¿Cómo paga: anticipo o contra entrega, a cuántos días y con orden de compra?",
+     "Define la caja (regla 14)."),
+    ("competencia", "Comercial",
+     "¿Compite con otras propuestas o hay un precio de referencia?",
+     "Define cuánto margen se puede ceder."),
+    ("soporte", "Soporte y licencias",
+     "¿Qué soporte y garantía esperan, por cuánto tiempo y qué cubren?",
+     "Son horas después de la entrega que no se ven en la producción."),
+    ("licencias", "Soporte y licencias",
+     "¿Qué licencias de terceros hacen falta (stock, música, fuentes o software) y a nombre de quién quedan?",
+     "Son terceros que se cobran con recargo."),
+]
+# Tipos de trabajo de cada línea. Los de autoría solo caben si el intake dice que ese material lo escribe merahki.
+AUTORIA = {"redaccion_contenido": "contenido_fuente", "guiones": "guiones_fuente", "banco_preguntas": "preguntas_fuente"}
+TIPOS = {"learning_design", "diseno_instruccional", "adaptacion_contenido", "produccion", "virtualizacion",
+         "gestion", "soporte", *AUTORIA}
+PATRON_AUTORIA = re.compile(r"(construcci[oó]n|creaci[oó]n|desarrollo|redacci[oó]n|escritura) de(l)? contenido|"
+                            r"redacci[oó]n|escritura|gui[oó]n|guiones|libreto|banco de preguntas", re.I)
+SIN_RESPUESTA = {"", "none", "null", "pendiente", "por confirmar", "?", "tbd", "n/d", "nd", "sin respuesta"}
+
+
+def _resp(intake, pid):
+    it = intake.get(pid) or {}
+    return str(it.get("respuesta") if it.get("respuesta") is not None else "").strip()
+
+
+def revisar_intake(esc):
+    """Regla 25: preguntas de alcance respondidas y autoría coherente con las líneas. Devuelve verificaciones."""
+    intake = esc.get("intake") or {}
+    checks = []
+    faltan = [pid for pid, *_ in PREGUNTAS if _resp(intake, pid).lower() in SIN_RESPUESTA]
+    sin_fuente = [pid for pid, *_ in PREGUNTAS if pid not in faltan and not str((intake.get(pid) or {}).get("fuente") or "").strip()]
+    supuestos = [pid for pid, *_ in PREGUNTAS if (intake.get(pid) or {}).get("supuesto")]
+    det = "; ".join(x for x in (f"sin respuesta: {faltan}" if faltan else "", f"sin fuente: {sin_fuente}" if sin_fuente else "",
+                                f"{len(supuestos)} son supuestos por confirmar con el cliente" if supuestos else "") if x)
+    checks.append((f"Regla 25: las {len(PREGUNTAS)} preguntas de alcance tienen respuesta y fuente", not faltan and not sin_fuente, det))
+
+    autoria = {pid: _resp(intake, pid).lower() for pid in AUTORIA.values()}
+    malas = [pid for pid, v in autoria.items() if pid not in faltan and v not in ("cliente", "merahki")]
+    checks.append(("Regla 25: la autoría del contenido, los guiones y las preguntas dice «cliente» o «merahki»", not malas,
+                   f"respuestas no válidas: {malas}" if malas else ""))
+
+    de_merahki = [pid for pid, v in autoria.items() if v == "merahki"]
+    conf = esc.get("confirmacion_autoria_merahki") or {}
+    supuesto_merahki = [pid for pid in de_merahki if (intake.get(pid) or {}).get("supuesto")]
+    ok_conf = not de_merahki or (bool(conf.get("autor")) and bool(conf.get("fecha")) and not supuesto_merahki)
+    checks.append(("Regla 25: si merahki escribe algo, David lo confirmó por escrito (autor y fecha)", ok_conf,
+                   (f"merahki escribe: {de_merahki}" + (f" · confirmado por {conf.get('autor')} el {conf.get('fecha')}" if ok_conf else
+                    " · falta «confirmacion_autoria_merahki» con autor y fecha, y no puede ser un supuesto")) if de_merahki else ""))
+
+    sin_tipo, cobra_cliente, nombre_autoria = [], [], []
+    for op in esc.get("opciones", []):
+        for ln in op.get("lineas", []):
+            t, etq = ln.get("tipo"), f"{op.get('nombre')} → {ln.get('nombre')}"
+            if t not in TIPOS:
+                sin_tipo.append(etq)
+            if t in AUTORIA and autoria.get(AUTORIA[t]) != "merahki":
+                cobra_cliente.append(f"{etq} (tipo {t}, pero el intake dice que lo entrega el cliente)")
+            elif t not in AUTORIA and PATRON_AUTORIA.search(ln.get("nombre", "")):
+                nombre_autoria.append(f"{etq} (el nombre dice autoría: renómbrala como adaptación del material del cliente)")
+    checks.append(("Regla 25: cada línea declara su tipo de trabajo", not sin_tipo,
+                   f"sin tipo válido ({', '.join(sorted(TIPOS))}): {sin_tipo[:4]}" if sin_tipo else ""))
+    checks.append(("Regla 25: ninguna línea cobra escribir el contenido, los guiones o las preguntas que entrega el cliente",
+                   not cobra_cliente and not nombre_autoria, "; ".join((cobra_cliente + nombre_autoria)[:4])))
+    return checks
+
+
+def imprimir_preguntas():
+    print("# Preguntas de alcance antes de cotizar (regla 25)\n")
+    print("merahki.ai no escribe el contenido: lo entrega el cliente. Pregunta todo lo que la solicitud no responda.\n")
+    bloque = None
+    for i, (pid, b, preg, porque) in enumerate(PREGUNTAS, 1):
+        if b != bloque:
+            print(f"\n## {b}\n")
+            bloque = b
+        print(f"{i}. **{preg}** (`{pid}`)\n   - Por qué mueve el precio: {porque}")
 
 
 # ---------------------------------------------------------------- escenario
@@ -121,7 +261,7 @@ def calcular(esc):
 # ---------------------------------------------------------------- verificaciones de la regla 24
 def verificar(esc, res, cliente_xlsx=None):
     p = esc["parametros"]
-    checks = []
+    checks = revisar_intake(esc)
 
     def chk(nombre, ok, detalle=""):
         checks.append((nombre, bool(ok), detalle))
@@ -249,6 +389,41 @@ def construir(esc, res, checks, wb):
         if nfirst != note:
             H.merge(nfirst, note, r)
         return r
+
+    # ------------------------------------------------ 0 · alcance (regla 25)
+    intake = esc.get("intake") or {}
+    conf = esc.get("confirmacion_autoria_merahki") or {}
+    H.seccion("0 · ALCANCE: QUIÉN PONE QUÉ (preguntas antes de cotizar, regla 25)",
+              "merahki.ai no escribe el contenido: el cliente entrega textos, conocimiento, guiones, materiales y preguntas. merahki hace "
+              "learning design, diseño instruccional, producción y virtualización. Las respuestas en ámbar son supuestos por confirmar con el cliente.")
+    acol = H.cols[2]                                          # la respuesta ocupa de C a la columna antes de la nota
+    aend = H.cols[-3]
+    awidth = sum(widths[2:-2])
+    r = H.fila(24)
+    H.put(f"B{r}", "Pregunta", 10, True, WHITE, BAND)
+    H.put(f"{acol}{r}", "Respuesta", 10, True, WHITE, BAND)
+    for c in H.cols[3:-2]:
+        H.put(f"{c}{r}", None, bg=BAND)
+    H.merge(acol, aend, r)
+    H.put(f"{note}{r}", "Fuente", 10, True, WHITE, BAND, "center")
+    for pid, bloque, preg, _ in PREGUNTAS:
+        it = intake.get(pid) or {}
+        resp = _resp(intake, pid)
+        if pid in AUTORIA.values():
+            resp = ("Cliente" if resp.lower() == "cliente" else
+                    f"merahki.ai (confirmado por {conf.get('autor')}, {conf.get('fecha')})" if resp.lower() == "merahki" else resp)
+            if it.get("detalle"):
+                resp += f" · {it['detalle']}"
+        sup = bool(it.get("supuesto"))
+        resp = ("SUPUESTO · " if sup else "") + resp
+        color = AMBER if sup else (WHITE if pid in AUTORIA.values() else TXT)
+        r = H.fila(max(22, H._alto(preg, widths[1] * 0.85, 9), H._alto(resp, awidth * 0.9, 9), H._alto(it.get("fuente", ""), widths[-2] * 0.85, 9)))
+        H.put(f"B{r}", preg, 9, pid in AUTORIA.values(), TXT, R1)
+        H.put(f"{acol}{r}", resp, 9, pid in AUTORIA.values(), color, R1)
+        for c in H.cols[3:-2]:
+            H.put(f"{c}{r}", None, bg=R1)
+        H.merge(acol, aend, r)
+        H.put(f"{note}{r}", it.get("fuente", ""), 9, False, MUTED, R1)
 
     # ------------------------------------------------ 1 · resumen del negocio
     H.seccion("1 · RESUMEN DEL NEGOCIO: COBRADO, COSTO Y GANANCIA",
@@ -459,12 +634,22 @@ def construir(esc, res, checks, wb):
 
 
 def main(argv):
+    if "--preguntas" in argv:
+        imprimir_preguntas()
+        return 0
     if len(argv) < 3:
         print(__doc__)
         return 2
     esc = json.loads(Path(argv[1]).read_text(encoding="utf-8"))
     out = argv[2]
     cliente = argv[argv.index("--cliente") + 1] if "--cliente" in argv else None
+    alcance = revisar_intake(esc)                             # regla 25: primero el alcance, después el precio
+    if not all(ok for _, ok, _ in alcance):
+        for nombre, ok, det in alcance:
+            print(("OK   " if ok else "FALLA"), nombre, det)
+        print("\nRegla 25: no se cotiza sin las preguntas de alcance. Corre "
+              "`python cotizaciones/analisis_interno.py --preguntas` y pregunta al cliente o a David lo que la solicitud no responda.")
+        return 1
     validar_escenario(esc)
     res = calcular(esc)
     checks = verificar(esc, res, cliente)
@@ -483,6 +668,9 @@ def main(argv):
         wb.remove(wb.active)
     construir(esc, res, checks, wb)
     wb.save(out)
+    intake = esc["intake"]
+    print("Alcance: " + " · ".join(f"{pid.split('_')[0]} {_resp(intake, pid)}" for pid in AUTORIA.values())
+          + f" · {sum(1 for pid, *_ in PREGUNTAS if (intake.get(pid) or {}).get('supuesto'))} supuestos por confirmar")
     for r_ in res:
         mb = (r_["precio"] - r_["costo_real"]) / r_["precio"]
         var = esc["parametros"]["comision"] + esc["parametros"]["ica"] + esc["parametros"]["gmf"]

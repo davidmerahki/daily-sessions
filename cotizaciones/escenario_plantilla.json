@@ -1,21 +1,44 @@
 {
-  "_nota": "Plantilla del escenario de analisis_interno.py (regla 24). Copia este archivo a la carpeta interna de la cotización, no al repositorio. Las tarifas van vacías a propósito: cópialas de la hoja Tarifas del modelo financiero vigente; el script no corre sin ellas.",
+  "_nota": "Plantilla del escenario de analisis_interno.py (regla 24). Copia este archivo a la carpeta interna de la cotización, no al repositorio. Las tarifas van vacías a propósito: cópialas de la hoja Tarifas del modelo financiero vigente; el script no corre sin ellas. El script tampoco corre sin el bloque «intake» respondido (regla 25).",
   "codigo": "26-0XX",
   "version": "v1",
   "cliente": "Nombre del cliente (y cliente final si aplica)",
   "proyecto": "Descripción corta del proyecto",
   "fecha": "AAAA-MM-DD",
   "carril": "A | B | C",
+  "_intake": "Regla 25: responde estas preguntas ANTES de cotizar (python cotizaciones/analisis_interno.py --preguntas). merahki.ai no escribe el contenido: lo normal es contenido_fuente, guiones_fuente y preguntas_fuente = «cliente». Cada respuesta lleva su fuente (correo, llamada, solicitud). Si algo se asume, marca \"supuesto\": true y di quién lo autorizó en la fuente. Si alguna autoría es «merahki», el escenario necesita «confirmacion_autoria_merahki» con autor y fecha.",
+  "intake": {
+    "contenido_fuente": {"respuesta": null, "detalle": null, "fuente": null, "supuesto": false},
+    "contenido_estado": {"respuesta": null, "fuente": null, "supuesto": false},
+    "guiones_fuente": {"respuesta": null, "detalle": null, "fuente": null, "supuesto": false},
+    "preguntas_fuente": {"respuesta": null, "detalle": null, "fuente": null, "supuesto": false},
+    "experto_tematico": {"respuesta": null, "fuente": null, "supuesto": false},
+    "alcance_di": {"respuesta": null, "fuente": null, "supuesto": false},
+    "grabacion": {"respuesta": null, "fuente": null, "supuesto": false},
+    "recursos": {"respuesta": null, "fuente": null, "supuesto": false},
+    "accesibilidad": {"respuesta": null, "fuente": null, "supuesto": false},
+    "rondas": {"respuesta": null, "fuente": null, "supuesto": false},
+    "plataforma": {"respuesta": null, "fuente": null, "supuesto": false},
+    "marca": {"respuesta": null, "fuente": null, "supuesto": false},
+    "presupuesto": {"respuesta": null, "fuente": null, "supuesto": false},
+    "plazo": {"respuesta": null, "fuente": null, "supuesto": false},
+    "carril": {"respuesta": null, "fuente": null, "supuesto": false},
+    "pago": {"respuesta": null, "fuente": null, "supuesto": false},
+    "competencia": {"respuesta": null, "fuente": null, "supuesto": false},
+    "soporte": {"respuesta": null, "fuente": null, "supuesto": false},
+    "licencias": {"respuesta": null, "fuente": null, "supuesto": false}
+  },
+  "confirmacion_autoria_merahki": null,
   "tarifas_reales": {"DIR": null, "PM": null, "DI": null, "AV": null, "MM": null, "DEV": null},
   "tarifas_modelo": {"DIR": null, "PM": null, "DI": null, "AV": null, "MM": null, "DEV": null},
   "jornada": null,
   "pago_dias": 30,
   "parametros": {
-    "margen_lista": 0.60,
+    "margen_lista": 0.6,
     "margen_competitivo": 0.55,
-    "margen_piso": 0.40,
-    "contrib_min": 0.40,
-    "recargo_terceros": 0.20,
+    "margen_piso": 0.4,
+    "contrib_min": 0.4,
+    "recargo_terceros": 0.2,
     "comision": 0.06,
     "ica": 0.011,
     "gmf": 0.004,
@@ -30,8 +53,16 @@
       "_margen_objetivo": "Opcional, en vez de descuento_pct: margen bruto real fijado por David (ej. 0.25). Precio = costo real ÷ (1 − margen), hacia arriba a 50.000. Si queda bajo el piso, exige «excepcion_piso» con autor y fecha.",
       "semanas": 8,
       "lineas": [
-        {"nombre": "Producto o servicio", "cantidad": 1, "horas": {"DI": 0, "MM": 0}, "jornadas": 0, "terceros_cop": 0}
-      ]
+        {
+          "nombre": "Producto o servicio",
+          "tipo": "produccion",
+          "cantidad": 1,
+          "horas": {"DI": 0, "MM": 0},
+          "jornadas": 0,
+          "terceros_cop": 0
+        }
+      ],
+      "_tipo": "Cada línea lleva «tipo»: adaptacion_contenido, banco_preguntas, diseno_instruccional, gestion, guiones, learning_design, produccion, redaccion_contenido, soporte, virtualizacion. Los tipos redaccion_contenido, guiones y banco_preguntas solo caben si el intake dice que ese material lo escribe merahki. Sobre material del cliente se usa adaptacion_contenido (adaptación didáctica), nunca redacción."
     }
   ],
   "decisiones": ["Quién decidió qué, cuándo, y dónde quedó registrado en ⚙️ Meta/Decisions"],

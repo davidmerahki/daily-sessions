@@ -4,7 +4,7 @@
 |---|---|
 | [`modelos/ecosistema_credenciales/`](modelos/ecosistema_credenciales/README.md) | Modelo de dinámica de sistemas del ecosistema de credenciales digitales (instituciones, unidades académicas, docentes, estudiantes y empresas) con sus flywheels. Hipótesis v0.2 con el punto de partida de HubSpot; [simulador interactivo](https://claude.ai/artifact/5VjtbXGjGgtFBgRnZxrXuJ) con lienzo y tablero |
 | [`mapa_actores/`](mapa_actores/README.md) | Sincroniza el [Mapa de actores merahki × POK](https://claude.ai/artifact/QBcF7LRqi5fQhaqnJb42ab) con HubSpot (fuente de verdad) sin regenerarlo desde cero |
-| [`cotizaciones/`](cotizaciones/REGLAS_ANALISIS_INTERNO.md) | Regla 24: generador del análisis interno de las cotizaciones de merahki.ai (cobrado frente a costo real, margen, ganancia, banda, sensibilidad y caja), con verificaciones que bloquean el envío si algo no cuadra |
+| [`cotizaciones/`](cotizaciones/REGLAS_ANALISIS_INTERNO.md) | Reglas 24 y 25: preguntas de alcance antes de cotizar (el contenido lo pone el cliente) y generador del análisis interno de las cotizaciones de merahki.ai (cobrado frente a costo real, margen, ganancia, banda, sensibilidad y caja), con verificaciones que bloquean el envío si algo no cuadra |
 | [`simulador/`](simulador/README.md) | "Nuestro Vensim": **lienzo** para dibujar niveles, flujos, variables y fórmulas; motor JavaScript que simula `.mdl` (verificado contra PySD); y tablero con palancas e interruptores de bucles |
 | [`.claude/skills/vensim/`](.claude/skills/vensim/SKILL.md) | Base de conocimiento experta sobre Vensim (ver abajo) |
 

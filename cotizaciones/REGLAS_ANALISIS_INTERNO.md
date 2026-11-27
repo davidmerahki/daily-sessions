@@ -51,6 +51,7 @@
     - Cada supuesto lleva su fuente.
     - Los flags dicen qué puede salir mal y qué falta decidir.
 14. **Verificaciones automáticas.** El script no entrega el análisis si alguna falla:
+    - las preguntas de alcance respondidas y la autoría del contenido coherente con las líneas (regla 25);
     - capa 1 + capa 2 + estudio + terceros = costo real;
     - costo por perfil = costo por producto;
     - margen real igual o mayor que el piso, o una excepción escrita de David;
@@ -61,13 +62,29 @@
 15. **Las opciones van todas en el mismo análisis.** Llevan las mismas filas y una línea que explica la diferencia entre ellas, por ejemplo el impacto de las simulaciones en el precio.
 16. **Cada versión nueva regenera el análisis.** La versión anterior se renombra `[REEMPLAZADA]` y se mueve a la carpeta interna.
 17. **El reporte al usuario trae siempre estas cifras por opción:** precio cobrado sin IVA, costo real, utilidad bruta con su porcentaje y ganancia del proyecto con su porcentaje. Un reporte de cotización sin esas cifras está incompleto.
+18. **La sección 0, «Alcance: quién pone qué», va antes del resumen del negocio.** Muestra cada pregunta de alcance con su respuesta y su fuente, y los supuestos en ámbar (regla 25).
+
+# Regla 25 · El contenido lo pone el cliente (regla fija, 27-nov-2026)
+
+**Por qué existe.** El 27-nov-2026, David identificó lo que encarecía las cotizaciones: casi siempre asumían que merahki.ai escribía el contenido, es decir, los guiones, los textos y el conocimiento. Eso nunca pasa. En la 26-039, la línea «Construcción de contenidos académicos» y la redacción de preguntas sumaban 47,5 horas de DI que no nos tocan.
+
+1. **merahki.ai no escribe el contenido.** El cliente entrega textos, conocimiento, guiones, materiales y preguntas de evaluación. merahki.ai hace learning design y diseño instruccional sobre ese material, y después lo produce y lo virtualiza. Hasta ahí.
+2. **Primero el alcance, después el precio.** Antes de estimar horas se responden las 19 preguntas de `cotizaciones/PREGUNTAS_ANTES_DE_COTIZAR.md`, o las de `python cotizaciones/analisis_interno.py --preguntas`. Cada respuesta lleva su fuente: la solicitud, un correo, una llamada o David.
+3. **Lo que la solicitud no responda se pregunta.** Se le pregunta a David o, con su visto bueno, al cliente. Si David decide cotizar sin la respuesta, va como supuesto con quién lo autorizó. Los supuestos salen en ámbar en el análisis y se le confirman al cliente en el correo de la propuesta.
+4. **Cada línea declara su tipo de trabajo:** `learning_design`, `diseno_instruccional`, `adaptacion_contenido`, `produccion`, `virtualizacion`, `gestion` o `soporte`.
+5. **La autoría es la excepción.** Los tipos `redaccion_contenido`, `guiones` y `banco_preguntas` solo caben si el intake dice «merahki» y el escenario trae `confirmacion_autoria_merahki` con autor y fecha. Una autoría de merahki nunca puede ser un supuesto.
+6. **«Construcción de contenidos» en una solicitud es adaptación.** Se cotiza como adaptación didáctica del material que entrega el cliente (`adaptacion_contenido`) y se le confirma. La línea no puede llamarse «construcción», «redacción», «escritura», «guion» ni «banco de preguntas» si no es autoría.
+7. **Las evaluaciones se cotizan como revisión pedagógica y configuración.** El experto del cliente redacta las preguntas, los casos y los criterios. El DI los revisa, les da forma y los configura.
+8. **El generador lo hace cumplir.** `analisis_interno.py` no calcula nada si falta una respuesta o una fuente, si una línea no tiene tipo, si una línea cobra escribir lo que entrega el cliente o si una autoría de merahki no tiene confirmación.
 
 ## Cómo se usa
 
 ```bash
+python cotizaciones/analisis_interno.py --preguntas
 python cotizaciones/analisis_interno.py escenario.json salida.xlsx --cliente hoja_cliente.xlsx
 ```
 
+- La primera línea imprime las preguntas de alcance. Sus respuestas van en el bloque `intake` del escenario, y el script no corre sin ellas (regla 25).
 - `escenario.json` sigue la plantilla `cotizaciones/escenario_plantilla.json`: opciones, líneas con horas por perfil, jornadas, terceros, descuento, decisiones, flags y supuestos.
 - Las tarifas se copian de la hoja Tarifas del modelo vigente. La plantilla las trae vacías a propósito, y el script no corre hasta que estén.
 - Con `--cliente`, la hoja interna se agrega al libro de la propuesta y el script revisa la hoja cliente.
@@ -75,9 +92,10 @@ python cotizaciones/analisis_interno.py escenario.json salida.xlsx --cliente hoj
 - La salida se sube a Drive como Google Sheets en «2 · Interno — no enviar».
 - Los escenarios con costos reales no se suben al repositorio. Viven en la carpeta interna de la cotización.
 
-## Dónde más debe vivir esta regla
+## Dónde más deben vivir estas reglas
 
-Esta regla se escribió en `daily-sessions` porque esta sesión no tenía acceso al vault ni a `claude-skills`. Para que rija en todas las cotizaciones, también debe estar en dos lugares más:
+Las reglas 24 y 25 se escribieron en `daily-sessions` porque esta sesión no tenía acceso al vault ni a `claude-skills`. Para que rijan en todas las cotizaciones, también deben estar en dos lugares más:
 
 - **`vault-david/CLAUDE.md`, como regla 24**, con este texto: «Análisis interno de toda cotización (regla fija, 2026-11-27). Ninguna cotización se comparte sin su análisis interno en Google Sheets generado con `cotizaciones/analisis_interno.py` (o `/cfo` cuando lo adopte), con las verificaciones en ✓. El análisis muestra por opción: precio de lista, descuento, precio cobrado sin IVA, costo real por capa, utilidad bruta y margen, variables, ganancia del proyecto y margen de contribución, contribución en caja, banda y semáforo, costo por perfil y por producto, sensibilidad de horas y caja. Cifras como números y fórmulas, nunca dentro de frases. Detalle: `daily-sessions/cotizaciones/REGLAS_ANALISIS_INTERNO.md`.»
-- **`claude-skills/cfo/SKILL.md`:** que el paso final de `/cfo` llame a este generador, o que reproduzca sus 10 secciones y sus verificaciones.
+- **`vault-david/CLAUDE.md`, como regla 25**, con este texto: «El contenido lo pone el cliente (regla fija, 2026-11-27). merahki.ai no escribe el contenido: el cliente entrega textos, conocimiento, guiones, materiales y preguntas, y merahki.ai hace learning design, diseño instruccional, producción y virtualización. Antes de estimar horas se responden las preguntas de alcance (`daily-sessions/cotizaciones/PREGUNTAS_ANTES_DE_COTIZAR.md`); lo que la solicitud no responda se pregunta, nunca se asume. «Construcción de contenidos» en una solicitud se cotiza como adaptación didáctica del material del cliente. Cotizar autoría exige confirmación escrita de David.»
+- **`claude-skills/cfo/SKILL.md`:** que el paso final de `/cfo` llame a este generador, o que reproduzca sus 10 secciones y sus verificaciones. Que su primer paso sea el cuestionario de alcance de la regla 25.
