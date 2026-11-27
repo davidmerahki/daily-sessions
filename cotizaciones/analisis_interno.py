@@ -226,7 +226,7 @@ def construir(esc, res, checks, wb):
     H.put(f"B{r}", f"{esc['codigo']} {esc['version']} · {esc['cliente']} · {esc['proyecto']} · {esc['fecha']} · carril {esc['carril']}", 10, True, WHITE, BG, border=False)
     H.merge("B", last)
 
-    def header(*titulos, h=34):
+    def header(*titulos, h=48):
         r = H.fila(h)
         for col, t in titulos:
             if col == note and nfirst != note:
